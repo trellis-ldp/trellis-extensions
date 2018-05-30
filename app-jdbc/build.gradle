@@ -1,0 +1,62 @@
+apply plugin: 'java-library'
+apply plugin: 'osgi'
+
+description = 'Trellis JDBC Application'
+
+ext {
+    moduleName = 'org.trellisldp.ext.jdbc.triplestore'
+}
+
+dependencies {
+    compile("io.dropwizard:dropwizard-auth:$dropwizardVersion")
+    compile("io.dropwizard:dropwizard-core:$dropwizardVersion")
+    compile("io.dropwizard:dropwizard-metrics:$dropwizardVersion")
+    compile("io.dropwizard:dropwizard-http2:$dropwizardVersion")
+    compile("javax.jms:javax.jms-api:$jmsApiVersion")
+    compile("org.apache.activemq:activemq-client:$activeMqVersion")
+    compile("org.apache.commons:commons-rdf-jena:$commonsRdfVersion")
+    compile("org.slf4j:slf4j-api:$slf4jVersion")
+    compile("org.apache.kafka:kafka-clients:$kafkaVersion")
+
+    compile("org.trellisldp:trellis-constraint-rules:$trellisVersion")
+    compile("org.trellisldp:trellis-io-jena:$trellisVersion")
+    compile("org.trellisldp:trellis-id:$trellisVersion")
+    compile("org.trellisldp:trellis-api:$trellisVersion")
+    compile("org.trellisldp:trellis-http:$trellisVersion")
+    compile("org.trellisldp:trellis-vocabulary:$trellisVersion")
+    compile("org.trellisldp:trellis-file:$trellisVersion")
+    compile("org.trellisldp:trellis-namespaces:$trellisVersion")
+    compile("org.trellisldp:trellis-agent:$trellisVersion")
+    compile("org.trellisldp:trellis-audit:$trellisVersion")
+    compile("org.trellisldp:trellis-event-serialization:$trellisVersion")
+    compile("org.trellisldp:trellis-webac:$trellisVersion")
+    compile("org.trellisldp:trellis-jms:$trellisVersion")
+    compile("org.trellisldp:trellis-rdfa:$trellisVersion")
+    compile("org.trellisldp:trellis-kafka:$trellisVersion")
+    compile("org.trellisldp:trellis-app:$trellisVersion")
+
+    compile project(':trellis-ext-jdbc')
+
+    runtime ("javax.xml.bind:jaxb-api:$jaxbVersion")
+
+    testCompile("io.dropwizard:dropwizard-client:$dropwizardVersion")
+    testCompile("io.dropwizard:dropwizard-testing:$dropwizardVersion")
+    testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
+    testCompile("org.apache.tamaya:tamaya-core:$tamayaVersion")
+    testCompile("ch.qos.logback:logback-classic:$logbackVersion")
+    testCompile("org.mockito:mockito-core:$mockitoVersion")
+    testCompile("org.trellisldp:trellis-test:$trellisVersion")
+}
+
+jar {
+    manifest {
+        description project.description
+        vendor project.vendor
+        license project.license
+
+        instruction 'Automatic-Module-Name', moduleName
+        instruction 'Import-Package', '*'
+        instruction 'Export-Package', "${moduleName};version=${projectOsgiVersion}"
+    }
+}
+

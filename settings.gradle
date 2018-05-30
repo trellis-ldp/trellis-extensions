@@ -1,0 +1,6 @@
+rootProject.name = 'trellis-jdbc'
+include ':trellis-ext-jdbc'
+include ':trellis-ext-app-jdbc'
+
+project(':trellis-ext-jdbc').projectDir = "$rootDir/jdbc" as File
+project(':trellis-ext-app-jdbc').projectDir = "$rootDir/app-jdbc" as File
