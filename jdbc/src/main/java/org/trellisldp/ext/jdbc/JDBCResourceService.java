@@ -23,7 +23,6 @@ import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.empty;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
@@ -36,7 +35,6 @@ import static org.trellisldp.vocabulary.Trellis.PreferAudit;
 import static org.trellisldp.vocabulary.Trellis.PreferServerManaged;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
 
-import java.sql.Connection;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +45,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
+import javax.sql.DataSource;
 
 import org.apache.commons.lang3.Range;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
@@ -55,6 +54,7 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
+import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.EventService;
@@ -72,7 +72,7 @@ import org.trellisldp.vocabulary.PROV;
 import org.trellisldp.vocabulary.XSD;
 
 /**
- * A triplestore-based implementation of the Trellis ResourceService API.
+ * A JDBC-based implementation of the Trellis ResourceService API.
  */
 public class JDBCResourceService extends DefaultAuditService implements ResourceService {
 
@@ -87,24 +87,26 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
     private static final Predicate<BlankNodeOrIRI> isServerGraph = PreferServerManaged::equals;
 
     private final Supplier<String> supplier;
-    private final Connection connection;
+    private final Jdbi jdbi;
+    private final DataSource ds;
     private final Optional<EventService> eventService;
     private final Optional<MementoService> mementoService;
     private final Set<IRI> supportedIxnModels;
 
     /**
-     * Create a triplestore-backed resource service.
-     * @param connection the connection to an RDF datastore
+     * Create a JDBC-backed resource service.
+     * @param ds the data source
      * @param identifierService an ID supplier service
      * @param mementoService a service for memento resources
      * @param eventService an event service
      */
     @Inject
-    public JDBCResourceService(final Connection connection, final IdentifierService identifierService,
+    public JDBCResourceService(final DataSource ds, final IdentifierService identifierService,
             final MementoService mementoService, final EventService eventService) {
-        requireNonNull(connection, "Connection may not be null!");
+        requireNonNull(ds, "DataSource may not be null!");
         requireNonNull(identifierService, "IdentifierService may not be null!");
-        this.connection = connection;
+        this.jdbi = Jdbi.create(ds);
+        this.ds = ds;
         this.supplier = identifierService.getSupplier();
         this.eventService = ofNullable(eventService);
         this.mementoService = ofNullable(mementoService);
@@ -129,7 +131,7 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
             final Instant eventTime = now();
             dataset.add(PreferServerManaged, identifier, DC.type, DeletedResource);
             dataset.add(PreferServerManaged, identifier, type, LDP.Resource);
-            return storeAndNotify(identifier, session, dataset, eventTime, OperationType.DELETE);
+            return storeAndNotify(identifier, session, ixnModel, dataset, eventTime, OperationType.DELETE);
         });
     }
 
@@ -181,14 +183,33 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
                     dataset.add(PreferServerManaged, binary.getIdentifier(), DC.extent, size));
         }
 
-        return storeAndNotify(identifier, session, dataset, eventTime, opType);
+        return storeAndNotify(identifier, session, ixnModel, dataset, eventTime, opType);
     }
 
-    private Boolean storeAndNotify(final IRI identifier, final Session session, final Dataset dataset,
-            final Instant eventTime, final OperationType opType) {
+    private Boolean storeAndNotify(final IRI identifier, final Session session, final IRI ixnModel,
+            final Dataset dataset, final Instant eventTime, final OperationType opType) {
         final Literal time = rdf.createLiteral(eventTime.toString(), XSD.dateTime);
         try {
-            //connection.update(buildUpdateRequest(identifier, time, dataset, type));
+            //ds.getConnection().update(buildUpdateRequest(identifier, time, dataset, type));
+            // TODO insert rows from dataset
+            // TRANSACTION (
+            //   DELETE FROM metadata WHERE id = ?
+            //   DELETE FROM resource WHERE id = ?
+            //   DELETE FROM acl WHERE id = ?
+            //   DELETE FROM binary WHERE id = ?
+            //   DELETE FROM ldp WHERE id = ?
+            //   INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)
+            //      VALUES (?, ?, ?, ?, ?, ?)
+            //   INSERT INTO resource (id, subject, predicate, object, lang, datatype)
+            //      VALUES (?, ?, ?, ?, ?, ?)
+            //   INSERT INTO acl (id, subject, predicate, object, lang, datatype)
+            //      VALUES (?, ?, ?, ?, ?, ?)
+            //   INSERT INTO binary // <- if ldp-nr
+            //      (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)
+            //   INSERT INTO ldp // <- if direct/indirect container
+            //      (id, member, membershipResource, hasMemberRelation, isMemberOfRelation, insertedContentRelation)
+            //      VALUES (?, ?, ?, ?, ?, ?)
+            // )
             if (opType != OperationType.DELETE) {
                 mementoService.ifPresent(svc -> get(identifier).ifPresent(res ->
                             svc.put(identifier, eventTime, res.stream())));
@@ -230,10 +251,6 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
         });
     }
 
-    private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
-                        final OperationType opType, final Literal time) {
-    }
-
     /**
      * This is equivalent to the SPARQL below.
      *
@@ -249,6 +266,11 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
      * }
      * </code></pre></p>
      */
+    private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
+                        final OperationType opType, final Literal time) {
+        // TODO
+    }
+
     private enum OperationType {
         DELETE, CREATE, REPLACE;
 
@@ -275,12 +297,17 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
 
     @Override
     public Stream<Triple> scan() {
-        final Stream.Builder<Triple> builder = builder();
-        return builder.build();
+        final String query = "SELECT id, interactionModel FROM metadata";
+        return jdbi.withHandle(handle -> handle.createQuery(query)
+                .map((rs, ctx) -> rdf.createTriple(
+                        rdf.createIRI(rs.getString("id")), type,
+                        rdf.createIRI(rs.getString("interactionModel"))))
+                .stream());
     }
 
     private void init() {
         final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
+        // TODO -- initialize if no tables
     }
 
     @Override
@@ -290,7 +317,7 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
 
     @Override
     public Optional<Resource> get(final IRI identifier) {
-        return JDBCResource.findResource(connection, identifier);
+        return JDBCResource.findResource(ds, identifier);
     }
 
     @Override
@@ -315,6 +342,10 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
             try (final Dataset data = rdf.createDataset()) {
                 dataset.getGraph(PreferAudit).ifPresent(g ->
                         g.stream().forEach(t -> data.add(graphName, t.getSubject(), t.getPredicate(), t.getObject())));
+                // TODO
+                // Add to audit
+                //   INSERT INTO audit (id, subject, predicate, object, lang, datatype)
+                //      VALUES (?, ?, ?, ?, ?, ?)
                 return true;
             } catch (final Exception ex) {
                 LOGGER.error("Error storing audit dataset: {}", ex.getMessage());

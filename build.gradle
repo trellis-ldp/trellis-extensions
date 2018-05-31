@@ -9,6 +9,7 @@ plugins {
 ext {
 
     /* Dependencies */
+    jdbiVersion = '3.2.1'
     commonsLangVersion = '3.7'
     commonsRdfVersion = '0.5.0'
     kafkaVersion = '1.1.0'
