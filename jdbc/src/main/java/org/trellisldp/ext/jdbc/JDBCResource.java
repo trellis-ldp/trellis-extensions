@@ -22,11 +22,12 @@ import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.vocabulary.RDF.type;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,13 +39,16 @@ import java.util.stream.Stream;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
+import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
+import org.trellisldp.vocabulary.XSD;
 
 /**
  * A jdbc-based implementation of the Trellis Resource API.
@@ -54,6 +58,16 @@ public class JDBCResource implements Resource {
     private static final Logger LOGGER = getLogger(JDBCResource.class);
     private static final RDF rdf = getInstance();
 
+    private static final String OBJECT = "object";
+    private static final String LANG = "lang";
+    private static final String DATATYPE = "datatype";
+    private static final String SUBJECT = "subject";
+    private static final String PREDICATE = "predicate";
+    private static final String MEMBERSHIP_RESOURCE = "membershipResource";
+    private static final String HAS_MEMBER_RELATION = "hasMemberRelation";
+    private static final String IS_MEMBER_OF_RELATION = "isMemberOfRelation";
+    private static final String INSERTED_CONTENT_RELATION = "insertedContentRelation";
+
     private final IRI identifier;
     private final Connection connection;
     private final Map<IRI, Supplier<Stream<Quad>>> graphMapper = new HashMap<>();
@@ -61,6 +75,7 @@ public class JDBCResource implements Resource {
     // Resource data fields.
     private String interactionModel;
     private Long modified;
+    private String isPartOf;
 
     private String isMemberOfRelation;
     private String hasMemberRelation;
@@ -104,48 +119,6 @@ public class JDBCResource implements Resource {
      */
     protected Boolean exists() {
         return nonNull(getModified()) && nonNull(getInteractionModel());
-    }
-
-    /**
-     * Fetch data for this resource.
-     */
-    protected void fetchData() {
-        LOGGER.debug("Fetching data for: {}", identifier);
-        try (final Statement stmt = connection.createStatement()) {
-
-            final String query = "SELECT "
-                + "interactionModel, modified, hasAcl, isDeleted "
-                + "membershipResource, hasMemberRelation, isMemberOfRelation, insertedContentRelation, "
-                + "binary, binaryModified, binaryFormat, binarySize "
-                + "FROM metadata WHERE id=";
-            final ResultSet rs = stmt.executeQuery(query);
-            if (rs.next()) {
-                interactionModel = rs.getString("interactionModel");
-                modified = rs.getLong("modified");
-                resourceHasAcl = rs.getBoolean("hasAcl");
-                resourceIsDeleted = rs.getBoolean("isDeleted");
-
-                membershipResource = rs.getString("membershipResource");
-                hasMemberRelation = rs.getString("hasMemberRelation");
-                isMemberOfRelation = rs.getString("isMemberOfRelation");
-                insertedContentRelation = rs.getString("insertedContentRelation");
-
-                final String binaryIdentifier = rs.getString("binary");
-                final Long binaryModified = rs.getLong("binaryModified");
-                final String binaryFormat = rs.getString("binaryFormat");
-                final Long binarySize = rs.getLong("binarySize");
-
-                if (LDP.NonRDFSource.getIRIString().equals(interactionModel) &&
-                        nonNull(binaryIdentifier) && nonNull(binaryModified)) {
-                    binary = new Binary(rdf.createIRI(binaryIdentifier), ofEpochMilli(binaryModified), binaryFormat,
-                            binarySize);
-                }
-            } else {
-
-            }
-        } catch (final SQLException ex) {
-            throw new RuntimeTrellisException(ex);
-        }
     }
 
     @Override
@@ -196,7 +169,7 @@ public class JDBCResource implements Resource {
 
     @Override
     public Instant getModified() {
-        return ofEpochMilli(modified);
+        return ofNullable(modified).map(Instant::ofEpochMilli).orElse(null);
     }
 
     @Override
@@ -209,53 +182,31 @@ public class JDBCResource implements Resource {
         return resourceIsDeleted;
     }
 
-    private Stream<Quad> fetchServerQuads() {
-        // todo
-        return Stream.empty();
-    }
-
-    /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?subject ?predicate ?object
-     * WHERE { GRAPH fromGraphName { ?subject ?predicate ?object } }
-     * </code></pre>
-     */
-    private Stream<Quad> fetchAllFromGraph(final String fromGraphName, final IRI toGraphName) {
-        // todo
-        final Stream.Builder<Quad> builder = builder();
-        return builder.build();
-    }
-
-    /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?subject ?predicate ?object
-     * WHERE { GRAPH IDENTIFIER?ext=audit { ?subject ?predicate ?object } }
-     * </code></pre>
-    */
-    private Stream<Quad> fetchAuditQuads() {
-        // todo
-        return fetchAllFromGraph(identifier.getIRIString() + "?ext=audit", Trellis.PreferAudit);
-    }
-
-    /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?subject ?predicate ?object
-     * WHERE { GRAPH IDENTIFIER?ext=acl { ?subject ?predicate ?object } }
-     * </code></pre>
-    */
-    private Stream<Quad> fetchAclQuads() {
-        return fetchAllFromGraph(identifier.getIRIString() + "?ext=acl", Trellis.PreferAccessControl);
-    }
-
     private Stream<Quad> fetchMembershipQuads() {
         return concat(fetchIndirectMemberQuads(),
                 concat(fetchDirectMemberQuads(), fetchDirectMemberQuadsInverse()));
+    }
+
+    private Stream<Quad> fetchServerQuads() {
+        final Stream.Builder<Quad> builder = builder();
+        builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
+        ofNullable(getModified()).map(m -> rdf.createLiteral(m.toString(), XSD.dateTime)).ifPresent(modified ->
+                builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.modified, modified)));
+        ofNullable(isPartOf).map(rdf::createIRI).ifPresent(parent ->
+                builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.isPartOf, parent)));
+        return builder.build();
+    }
+
+    private Stream<Quad> fetchUserQuads() {
+        return fetchQuadsFromTable("resource", Trellis.PreferUserManaged);
+    }
+
+    private Stream<Quad> fetchAuditQuads() {
+        return fetchQuadsFromTable("audit", Trellis.PreferAudit);
+    }
+
+    private Stream<Quad> fetchAclQuads() {
+        return fetchQuadsFromTable("acl", Trellis.PreferAccessControl);
     }
 
     /**
@@ -278,76 +229,162 @@ public class JDBCResource implements Resource {
      */
     private Stream<Quad> fetchIndirectMemberQuads() {
         final Stream.Builder<Quad> builder = builder();
+        final String query
+            = "SELECT l.membershipResource, l.hasMemberRelation, r.object, r.lang, r.datatype "
+            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.insertedContentRelation "
+            + "WHERE l.member = ? AND m.interactionModel = ?";
+        try (final PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, identifier.getIRIString());
+            stmt.setString(2, LDP.IndirectContainer.getIRIString());
+            final ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                final String object = rs.getString(OBJECT);
+                final String lang = rs.getString(LANG);
+                final String datatype = rs.getString(DATATYPE);
+                builder.add(rdf.createQuad(LDP.PreferMembership, rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
+                            rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
+                            getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))));
+            }
+        } catch (final SQLException ex) {
+            throw new RuntimeTrellisException(ex);
+        }
         return builder.build();
     }
 
-    /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?subject ?predicate ?object
-     * WHERE {
-     *   GRAPH trellis:PreferServerManaged {
-     *      ?s ldp:member IDENTIFIER
-     *      ?s ldp:membershipResource ?subject
-     *      AND ?s ldp:hasMemberRelation ?predicate
-     *      AND ?s ldp:insertedContentRelation ldp:MemberSubject
-     *      AND ?object dc:isPartOf ?s }
-     * }
-     * </code></pre>
-     */
-    private Stream<Quad> fetchDirectMemberQuads() {
-        final Stream.Builder<Quad> builder = builder();
-        return builder.build();
-    }
-
-    /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?predicate ?object
-     * WHERE {
-     *   GRAPH trellis:PreferServerManaged {
-     *      IDENTIFIER dc:isPartOf ?subject .
-     *      ?subject ldp:isMemberOfRelation ?predicate .
-     *      ?subject ldp:membershipResource ?object .
-     *      ?subject ldp:insertedContentRelation ldp:MemberSubject .
-     *   }
-     * }
-     * </code></pre>
-     */
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final Stream.Builder<Quad> builder = builder();
+        final String query
+            = "SELECT l.isMemberOfRelation, l.membershipResource "
+            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "WHERE m.id = ? AND l.insertedContentRelation = ?";
+        try (final PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, getIdentifier().getIRIString());
+            stmt.setString(2, LDP.MemberSubject.getIRIString());
+            final ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                builder.add(rdf.createQuad(LDP.PreferMembership, getIdentifier(),
+                            rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
+                            rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))));
+
+            }
+        } catch (final SQLException ex) {
+            throw new RuntimeTrellisException(ex);
+        }
         return builder.build();
     }
 
-    /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?object
-     * WHERE {
-     *   GRAPH trellis:PreferServerManaged { ?object dc:isPartOf IDENTIFIER }
-     * }
-     * </code></pre>
-     */
+    private Stream<Quad> fetchDirectMemberQuads() {
+        final Stream.Builder<Quad> builder = builder();
+        final String query
+            = "SELECT l.membershipResource, l.hasMemberRelation, m.id "
+            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "WHERE l.member = ? AND l.insertedContentRelation = ?";
+        try (final PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, identifier.getIRIString());
+            stmt.setString(2, LDP.MemberSubject.getIRIString());
+            final ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                builder.add(rdf.createQuad(LDP.PreferMembership, rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
+                            rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)), rdf.createIRI(rs.getString("id"))));
+
+            }
+        } catch (final SQLException ex) {
+            throw new RuntimeTrellisException(ex);
+        }
+        return builder.build();
+    }
+
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
             final Stream.Builder<Quad> builder = builder();
+            final String query = "SELECT id FROM metadata where isPartOf = ?";
+            try (final PreparedStatement stmt = connection.prepareStatement(query)) {
+                stmt.setString(1, identifier.getIRIString());
+                final ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    builder.add(rdf.createQuad(LDP.PreferContainment, getIdentifier(), LDP.contains,
+                                rdf.createIRI(rs.getString("id"))));
+                }
+            } catch (final SQLException ex) {
+                throw new RuntimeTrellisException(ex);
+            }
             return builder.build();
         }
         return Stream.empty();
     }
 
     /**
-     * This code is equivalent to the SPARQL query below.
-     *
-     * <p><pre><code>
-     * SELECT ?subject ?predicate ?object
-     * WHERE { GRAPH IDENTIFIER { ?subject ?predicate ?object } }
-     * </code></pre>
+     * Fetch data for this resource.
      */
-    private Stream<Quad> fetchUserQuads() {
-        return fetchAllFromGraph(identifier.getIRIString(), Trellis.PreferUserManaged);
+    protected void fetchData() {
+        LOGGER.debug("Fetching data for: {}", identifier);
+        final String query
+            = "SELECT m.interactionModel, m.modified, m.isPartOf, m.isDeleted, m.hasAcl, "
+            + "l.membershipResource, l.hasMemberRelation, l.isMemberOfRelation, l.insertedContentRelation, "
+            + "b.location, b.modified AS binaryModified, b.format, b.size "
+            + "FROM medatdata AS m "
+            + "LEFT JOIN ldp AS l ON m.id = l.id "
+            + "LEFT JOIN binary AS b ON m.id = b.id "
+            + "WHERE m.id = ?";
+        try (final PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, identifier.getIRIString());
+            final ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                interactionModel = rs.getString("interactionModel");
+                modified = rs.getLong("modified");
+                isPartOf = rs.getString("isPartOf");
+                resourceHasAcl = rs.getBoolean("hasAcl");
+                resourceIsDeleted = rs.getBoolean("isDeleted");
+
+                membershipResource = rs.getString(MEMBERSHIP_RESOURCE);
+                hasMemberRelation = rs.getString(HAS_MEMBER_RELATION);
+                isMemberOfRelation = rs.getString(IS_MEMBER_OF_RELATION);
+                insertedContentRelation = rs.getString(INSERTED_CONTENT_RELATION);
+
+                final String binaryLocation = rs.getString("location");
+                final Long binaryModified = rs.getLong("binaryModified");
+                final String binaryFormat = rs.getString("format");
+                final Long binarySize = rs.getLong("size");
+
+                if (LDP.NonRDFSource.getIRIString().equals(interactionModel) && nonNull(binaryLocation)
+                        && nonNull(binaryModified)) {
+                    binary = new Binary(rdf.createIRI(binaryLocation), ofEpochMilli(binaryModified), binaryFormat,
+                            binarySize);
+                }
+            }
+        } catch (final SQLException ex) {
+            throw new RuntimeTrellisException(ex);
+        }
+    }
+
+    private Stream<Quad> fetchQuadsFromTable(final String tableName, final IRI graphName) {
+        final Stream.Builder<Quad> builder = builder();
+        final String query = "SELECT subject, predicate, object, lang, datatype "
+                           + "FROM " + tableName + " WHERE id = ?";
+        try (final PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, identifier.getIRIString());
+            final ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                final String object = rs.getString(OBJECT);
+                final String lang = rs.getString(LANG);
+                final String datatype = rs.getString(DATATYPE);
+                builder.add(rdf.createQuad(graphName, rdf.createIRI(rs.getString(SUBJECT)),
+                            rdf.createIRI(rs.getString(PREDICATE)),
+                            getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))));
+            }
+        } catch (final SQLException ex) {
+            throw new RuntimeTrellisException(ex);
+        }
+        return builder.build();
+    }
+
+    private static RDFTerm getObject(final String value, final String lang, final String datatype) {
+        if (nonNull(lang)) {
+            return rdf.createLiteral(value, lang);
+        } else if (nonNull(datatype)) {
+            return rdf.createLiteral(value, rdf.createIRI(datatype));
+        }
+        return rdf.createIRI(value);
     }
 }

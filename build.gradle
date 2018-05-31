@@ -9,6 +9,7 @@ plugins {
 ext {
 
     /* Dependencies */
+    commonsLangVersion = '3.7'
     commonsRdfVersion = '0.5.0'
     kafkaVersion = '1.1.0'
     trellisVersion = '0.7.0'
@@ -57,7 +58,7 @@ allprojects { subproj ->
 
     jacoco.toolVersion = jacocoVersion
 
-    group = 'org.trellisldp'
+    group = 'org.trellisldp.ext'
 
     repositories {
         mavenCentral()
