@@ -204,9 +204,8 @@ public class JDBCResource implements Resource {
             + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.insertedContentRelation "
             + "WHERE l.member = ? AND m.interactionModel = ?";
 
-        return jdbi.withHandle(handle -> handle.createQuery(query)
-                .bind(0, getIdentifier().getIRIString())
-                .bind(1, LDP.IndirectContainer.getIRIString())
+        return jdbi.withHandle(handle -> handle.select(query,
+                    getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
                             rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                             rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
@@ -220,9 +219,8 @@ public class JDBCResource implements Resource {
             + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
             + "WHERE m.id = ? AND l.insertedContentRelation = ?";
 
-        return jdbi.withHandle(handle -> handle.createQuery(query)
-                .bind(0, getIdentifier().getIRIString())
-                .bind(1, LDP.MemberSubject.getIRIString())
+        return jdbi.withHandle(handle -> handle.select(query,
+                    getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership, getIdentifier(),
                         rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))))
@@ -235,9 +233,8 @@ public class JDBCResource implements Resource {
             + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
             + "WHERE l.member = ? AND l.insertedContentRelation = ?";
 
-        return jdbi.withHandle(handle -> handle.createQuery(query)
-                .bind(0, getIdentifier().getIRIString())
-                .bind(1, LDP.MemberSubject.getIRIString())
+        return jdbi.withHandle(handle -> handle.select(query,
+                    getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                         rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
@@ -248,8 +245,8 @@ public class JDBCResource implements Resource {
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
             final String query = "SELECT id FROM metadata where isPartOf = ?";
-            return jdbi.withHandle(handle -> handle.createQuery(query)
-                    .bind(0, getIdentifier().getIRIString())
+            return jdbi.withHandle(handle -> handle.select(query,
+                        getIdentifier().getIRIString())
                     .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment, getIdentifier(),
                             LDP.contains, rdf.createIRI(rs.getString("id"))))
                     .stream());
@@ -260,8 +257,7 @@ public class JDBCResource implements Resource {
     private Stream<Quad> fetchQuadsFromTable(final String tableName, final IRI graphName) {
         final String query = "SELECT subject, predicate, object, lang, datatype "
                            + "FROM " + tableName + " WHERE id = ?";
-        return jdbi.withHandle(handle -> handle.createQuery(query)
-                .bind(0, getIdentifier().getIRIString())
+        return jdbi.withHandle(handle -> handle.select(query, getIdentifier().getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(graphName, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
                         getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
@@ -281,8 +277,7 @@ public class JDBCResource implements Resource {
             + "LEFT JOIN ldp AS l ON m.id = l.id "
             + "LEFT JOIN binary AS b ON m.id = b.id "
             + "WHERE m.id = ?";
-        jdbi.useHandle(handle -> handle.createQuery(query)
-                .bind(0, identifier.getIRIString())
+        jdbi.useHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> {
                     final ResourceData data = new ResourceData();
                     data.interactionModel = rs.getString("interactionModel");
