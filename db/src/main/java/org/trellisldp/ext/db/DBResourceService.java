@@ -96,7 +96,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
-    private final DataSource ds;
     private final Optional<EventService> eventService;
     private final Optional<MementoService> mementoService;
     private final Set<IRI> supportedIxnModels;
@@ -111,10 +110,21 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     @Inject
     public DBResourceService(final DataSource ds, final IdentifierService identifierService,
             final MementoService mementoService, final EventService eventService) {
-        requireNonNull(ds, "DataSource may not be null!");
+        this(Jdbi.create(ds), identifierService, mementoService, eventService);
+    }
+
+    /**
+     * Create a Database-backed resource service.
+     * @param jdbi the jdbi object
+     * @param identifierService an ID supplier service
+     * @param mementoService a service for memento resources
+     * @param eventService an event service
+     */
+    public DBResourceService(final Jdbi jdbi, final IdentifierService identifierService,
+            final MementoService mementoService, final EventService eventService) {
+        requireNonNull(jdbi, "Jdbi may not be null!");
         requireNonNull(identifierService, "IdentifierService may not be null!");
-        this.jdbi = Jdbi.create(ds);
-        this.ds = ds;
+        this.jdbi = jdbi;
         this.supplier = identifierService.getSupplier();
         this.eventService = ofNullable(eventService);
         this.mementoService = ofNullable(mementoService);
@@ -379,7 +389,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public Optional<Resource> get(final IRI identifier) {
-        return DBResource.findResource(ds, identifier);
+        return DBResource.findResource(jdbi, identifier);
     }
 
     @Override

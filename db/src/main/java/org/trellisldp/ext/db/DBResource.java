@@ -79,8 +79,17 @@ public class DBResource implements Resource {
      * @param identifier the identifier
      */
     public DBResource(final DataSource ds, final IRI identifier) {
+        this(Jdbi.create(ds), identifier);
+    }
+
+    /**
+     * Create a DB-based Resource.
+     * @param jdbi the jdbi object
+     * @param identifier the identifier
+     */
+    public DBResource(final Jdbi jdbi, final IRI identifier) {
         this.identifier = identifier;
-        this.jdbi = Jdbi.create(ds);
+        this.jdbi = jdbi;
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
         graphMapper.put(Trellis.PreferServerManaged, this::fetchServerQuads);
         graphMapper.put(Trellis.PreferAudit, this::fetchAuditQuads);
@@ -96,7 +105,17 @@ public class DBResource implements Resource {
      * @return a Resource, if one exists
      */
     public static Optional<Resource> findResource(final DataSource ds, final IRI identifier) {
-        final DBResource res = new DBResource(ds, identifier);
+        return findResource(Jdbi.create(ds), identifier);
+    }
+
+    /**
+     * Try to load a Trellis resource.
+     * @param jdbi the Jdbi object
+     * @param identifier the identifier
+     * @return a Resource, if one exists
+     */
+    public static Optional<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
+        final DBResource res = new DBResource(jdbi, identifier);
         res.fetchData();
         return res.exists() ? of(res) : empty();
     }

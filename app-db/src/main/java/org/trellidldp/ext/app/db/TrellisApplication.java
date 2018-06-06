@@ -25,8 +25,7 @@ import io.dropwizard.setup.Environment;
 
 import java.util.Optional;
 
-import javax.sql.DataSource;
-
+import org.jdbi.v3.core.Jdbi;
 import org.trellisldp.api.AuditService;
 import org.trellisldp.api.BinaryService;
 import org.trellisldp.api.EventService;
@@ -56,6 +55,8 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
     private BinaryService binaryService;
 
     private IOService ioService;
+
+    private Jdbi jdbi;
 
     /**
      * The main entry point.
@@ -97,26 +98,22 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
         super.initialize(config, environment);
 
         final IdentifierService idService = new UUIDGenerator();
+        final JdbiFactory factory = new JdbiFactory();
 
         this.resourceService = buildResourceService(idService, config, environment);
         this.binaryService = buildBinaryService(idService, config);
         this.ioService = buildIoService(config);
 
-        final JdbiFactory factory = new JdbiFactory();
-
-        factory.build(environment, config.getDataSourceFactory(), "trellis");
+        this.jdbi = factory.build(environment, config.getDataSourceFactory(), "trellis");
     }
 
     private DBResourceService buildResourceService(final IdentifierService idService,
             final AppConfiguration config, final Environment environment) {
         final MementoService mementoService = new FileMementoService(config.getMementos());
-        final DataSource ds = null;
         final EventService notificationService = AppUtils.getNotificationService(config.getNotifications(),
                 environment);
 
-        // Health checks
-        environment.healthChecks().register("connection", new DatabaseConnectionHealthCheck(ds));
-        return new DBResourceService(ds, idService, mementoService, notificationService);
+        return new DBResourceService(jdbi, idService, mementoService, notificationService);
     }
 
     private IOService buildIoService(final AppConfiguration config) {
