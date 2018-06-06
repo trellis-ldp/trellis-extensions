@@ -4,7 +4,7 @@ apply plugin: 'osgi'
 description = 'Trellis JDBC Application'
 
 ext {
-    moduleName = 'org.trellisldp.ext.jdbc.triplestore'
+    moduleName = 'org.trellisldp.ext.app.jdbc'
 }
 
 dependencies {
@@ -35,7 +35,7 @@ dependencies {
     compile("org.trellisldp:trellis-kafka:$trellisVersion")
     compile("org.trellisldp:trellis-app:$trellisVersion")
 
-    compile project(':trellis-ext-jdbc')
+    compile project(':trellis-jdbc')
 
     runtime ("javax.xml.bind:jaxb-api:$jaxbVersion")
 

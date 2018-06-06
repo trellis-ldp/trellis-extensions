@@ -16,6 +16,7 @@ package org.trellisldp.ext.jdbc;
 import static org.trellisldp.api.RDFUtils.getInstance;
 
 import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 
@@ -32,6 +33,29 @@ final class JDBCUtils {
             return rdf.createIRI(iri);
         }
         return object;
+    }
+
+    public static String getObjectValue(final RDFTerm term) {
+        if (term instanceof IRI) {
+            return ((IRI) term).getIRIString();
+        } else if (term instanceof Literal) {
+            return ((Literal) term).getLexicalForm();
+        }
+        return null;
+    }
+
+    public static String getObjectLang(final RDFTerm term) {
+        if (term instanceof Literal) {
+            return ((Literal) term).getLanguageTag().orElse(null);
+        }
+        return null;
+    }
+
+    public static String getObjectDatatype(final RDFTerm term) {
+        if (term instanceof Literal) {
+            return ((Literal) term).getDatatype().getIRIString();
+        }
+        return null;
     }
 
     private JDBCUtils() {

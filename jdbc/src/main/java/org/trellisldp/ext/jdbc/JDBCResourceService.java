@@ -30,6 +30,9 @@ import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.TRELLIS_SESSION_BASE_URL;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.ext.jdbc.JDBCUtils.getBaseIRI;
+import static org.trellisldp.ext.jdbc.JDBCUtils.getObjectDatatype;
+import static org.trellisldp.ext.jdbc.JDBCUtils.getObjectLang;
+import static org.trellisldp.ext.jdbc.JDBCUtils.getObjectValue;
 import static org.trellisldp.vocabulary.RDF.type;
 import static org.trellisldp.vocabulary.Trellis.DeletedResource;
 import static org.trellisldp.vocabulary.Trellis.PreferAccessControl;
@@ -59,6 +62,7 @@ import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.PreparedBatch;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.EventService;
@@ -207,8 +211,7 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
                         "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
                         "VALUES (?, ?, ?, ?, ?, ?)",
                         identifier.getIRIString(), ixnModel.getIRIString(),
-                        // TODO -- nanoseconds? what precision?
-                        session.getCreated().getEpochSecond(),
+                        session.getCreated().toEpochMilli(),
                         dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
                             .flatMap(objectAsString).findFirst().orElse(null),
                         opType == OperationType.DELETE,
@@ -236,25 +239,38 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
                     handle.execute("INSERT INTO binary (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
                             identifier.getIRIString(),
                             binary.getIdentifier().getIRIString(),
-                            // TODO -- what precision?
-                            binary.getModified().getEpochSecond(),
+                            binary.getModified().toEpochMilli(),
                             binary.getMimeType().orElse(null),
                             binary.getSize().orElse(null));
                 }
 
                 handle.execute("DELETE FROM resource WHERE id = ?", identifier.getIRIString());
                 dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-                    // TODO add to resource
-                    //   INSERT INTO resource (id, subject, predicate, object, lang, datatype)
-                    //      VALUES (?, ?, ?, ?, ?, ?)
+                    final PreparedBatch batch = handle.prepareBatch(
+                            "INSERT INTO resource (id, subject, predicate, object, lang, datatype) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)");
+                    graph.stream().forEach(triple -> batch
+                            .bind(0, identifier.getIRIString())
+                            .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                            .bind(2, triple.getPredicate().getIRIString())
+                            .bind(3, getObjectValue(triple.getObject()))
+                            .bind(4, getObjectLang(triple.getObject()))
+                            .bind(5, getObjectDatatype(triple.getObject())).add());
+                    batch.execute();
                 });
 
                 handle.execute("DELETE FROM acl WHERE id = ?", identifier.getIRIString());
                 dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
-                    // TODO add to acl
-                    //   INSERT INTO acl (id, subject, predicate, object, lang, datatype)
-                    //      VALUES (?, ?, ?, ?, ?, ?)
-                    handle.execute("INSERT INTO acl ...");
+                    final PreparedBatch batch = handle.prepareBatch(
+                        "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
+                    graph.stream().forEach(triple -> batch
+                            .bind(0, identifier.getIRIString())
+                            .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                            .bind(2, triple.getPredicate().getIRIString())
+                            .bind(3, getObjectValue(triple.getObject()))
+                            .bind(4, getObjectLang(triple.getObject()))
+                            .bind(5, getObjectDatatype(triple.getObject())).add());
+                    batch.execute();
                 });
             });
 
@@ -346,11 +362,9 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
     @Override
     public Stream<Triple> scan() {
         final String query = "SELECT id, interactionModel FROM metadata";
-        return jdbi.withHandle(handle -> handle.createQuery(query)
-                .map((rs, ctx) -> rdf.createTriple(
-                        rdf.createIRI(rs.getString("id")), type,
-                        rdf.createIRI(rs.getString("interactionModel"))))
-                .stream());
+        return jdbi.withHandle(handle -> handle.createQuery(query).map((rs, ctx) ->
+                    rdf.createTriple(rdf.createIRI(rs.getString("id")), type,
+                        rdf.createIRI(rs.getString("interactionModel")))).stream());
     }
 
     private void init() {
@@ -385,15 +399,21 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
 
     @Override
     public Future<Boolean> add(final IRI id, final Session session, final Dataset dataset) {
+        final String q = "INSERT INTO audit (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)";
         return supplyAsync(() -> {
-            final IRI graphName = rdf.createIRI(id.getIRIString() + "?ext=audit");
-            try (final Dataset data = rdf.createDataset()) {
-                dataset.getGraph(PreferAudit).ifPresent(g ->
-                        g.stream().forEach(t -> data.add(graphName, t.getSubject(), t.getPredicate(), t.getObject())));
-                // TODO
-                // Add to audit
-                //   INSERT INTO audit (id, subject, predicate, object, lang, datatype)
-                //      VALUES (?, ?, ?, ?, ?, ?)
+            try {
+                jdbi.useHandle(handle -> dataset.getGraph(PreferAudit).ifPresent(graph -> {
+                    final PreparedBatch batch = handle.prepareBatch(q);
+                    graph.stream().forEach(triple -> batch
+                            .bind(0, id.getIRIString())
+                            .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                            .bind(2, triple.getPredicate().getIRIString())
+                            .bind(3, getObjectValue(triple.getObject()))
+                            .bind(4, getObjectLang(triple.getObject()))
+                            .bind(5, getObjectDatatype(triple.getObject())).add());
+                    batch.execute();
+                }));
+
                 return true;
             } catch (final Exception ex) {
                 LOGGER.error("Error storing audit dataset: {}", ex.getMessage());
