@@ -11,8 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.trellisldp.ext.app.jdbc;
+package org.trellisldp.ext.app.db;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static java.util.Optional.empty;
@@ -21,10 +20,12 @@ import static java.util.concurrent.TimeUnit.HOURS;
 
 import com.google.common.cache.Cache;
 
+import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.setup.Environment;
 
-import java.sql.Connection;
 import java.util.Optional;
+
+import javax.sql.DataSource;
 
 import org.trellisldp.api.AuditService;
 import org.trellisldp.api.BinaryService;
@@ -37,8 +38,7 @@ import org.trellisldp.api.RDFaWriterService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.app.AbstractTrellisApplication;
 import org.trellisldp.app.TrellisCache;
-import org.trellisldp.app.config.TrellisConfiguration;
-import org.trellisldp.ext.jdbc.JDBCResourceService;
+import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
 import org.trellisldp.id.UUIDGenerator;
@@ -49,9 +49,9 @@ import org.trellisldp.rdfa.HtmlSerializer;
 /**
  * A deployable Trellis application.
  */
-public class TrellisApplication extends AbstractTrellisApplication<TrellisConfiguration> {
+public class TrellisApplication extends AbstractTrellisApplication<AppConfiguration> {
 
-    private JDBCResourceService resourceService;
+    private DBResourceService resourceService;
 
     private BinaryService binaryService;
 
@@ -93,7 +93,7 @@ public class TrellisApplication extends AbstractTrellisApplication<TrellisConfig
     }
 
     @Override
-    protected void initialize(final TrellisConfiguration config, final Environment environment) {
+    protected void initialize(final AppConfiguration config, final Environment environment) {
         super.initialize(config, environment);
 
         final IdentifierService idService = new UUIDGenerator();
@@ -101,21 +101,25 @@ public class TrellisApplication extends AbstractTrellisApplication<TrellisConfig
         this.resourceService = buildResourceService(idService, config, environment);
         this.binaryService = buildBinaryService(idService, config);
         this.ioService = buildIoService(config);
+
+        final JdbiFactory factory = new JdbiFactory();
+
+        factory.build(environment, config.getDataSourceFactory(), "trellis");
     }
 
-    private JDBCResourceService buildResourceService(final IdentifierService idService,
-            final TrellisConfiguration config, final Environment environment) {
+    private DBResourceService buildResourceService(final IdentifierService idService,
+            final AppConfiguration config, final Environment environment) {
         final MementoService mementoService = new FileMementoService(config.getMementos());
-        final Connection connection = AppUtils.getConnection(config);
+        final DataSource ds = null;
         final EventService notificationService = AppUtils.getNotificationService(config.getNotifications(),
                 environment);
 
         // Health checks
-        environment.healthChecks().register("connection", new DatabaseConnectionHealthCheck(connection));
-        return new JDBCResourceService(connection, idService, mementoService, notificationService);
+        environment.healthChecks().register("connection", new DatabaseConnectionHealthCheck(ds));
+        return new DBResourceService(ds, idService, mementoService, notificationService);
     }
 
-    private IOService buildIoService(final TrellisConfiguration config) {
+    private IOService buildIoService(final AppConfiguration config) {
         final Long cacheSize = config.getJsonld().getCacheSize();
         final Long hours = config.getJsonld().getCacheExpireHours();
         final Cache<String, String> cache = newBuilder().maximumSize(cacheSize).expireAfterAccess(hours, HOURS).build();
@@ -127,7 +131,7 @@ public class TrellisApplication extends AbstractTrellisApplication<TrellisConfig
                 config.getJsonld().getContextWhitelist(), config.getJsonld().getContextDomainWhitelist());
     }
 
-    private BinaryService buildBinaryService(final IdentifierService idService, final TrellisConfiguration config) {
+    private BinaryService buildBinaryService(final IdentifierService idService, final AppConfiguration config) {
         return new FileBinaryService(idService, config.getBinaries(), config.getBinaryHierarchyLevels(),
                 config.getBinaryHierarchyLength());
     }

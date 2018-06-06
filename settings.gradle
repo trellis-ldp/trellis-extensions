@@ -1,6 +1,6 @@
-rootProject.name = 'trellis-ext-jdbc'
-include ':trellis-jdbc'
-include ':trellis-app-jdbc'
+rootProject.name = 'trellis-ext-db'
+include ':trellis-db'
+include ':trellis-app-db'
 
-project(':trellis-jdbc').projectDir = "$rootDir/jdbc" as File
-project(':trellis-app-jdbc').projectDir = "$rootDir/app-jdbc" as File
+project(':trellis-db').projectDir = "$rootDir/db" as File
+project(':trellis-app-db').projectDir = "$rootDir/app-db" as File

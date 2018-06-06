@@ -11,11 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * Trellis ResourceService implementation using a database connection.
+ * Trellis Database Application
  *
- * <p>This package provides a simple implementation of the
- * ResourceService interface.
+ * <p>This package provides a complete database-backed Trellis application.
+ *
+ * @author acoburn
  */
-package org.trellisldp.ext.jdbc;
+package org.trellisldp.ext.app.db;

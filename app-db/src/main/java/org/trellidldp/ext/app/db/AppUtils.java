@@ -11,9 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.app.jdbc;
+package org.trellisldp.ext.app.db;
 
-import static java.util.Optional.ofNullable;
 import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.app.config.NotificationsConfiguration.Type.JMS;
@@ -22,7 +21,6 @@ import static org.trellisldp.app.config.NotificationsConfiguration.Type.KAFKA;
 import io.dropwizard.lifecycle.AutoCloseableManager;
 import io.dropwizard.setup.Environment;
 
-import java.util.Optional;
 import java.util.Properties;
 
 import javax.jms.Connection;
@@ -35,7 +33,6 @@ import org.trellisldp.api.EventService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.app.config.NotificationsConfiguration;
-import org.trellisldp.app.config.TrellisConfiguration;
 import org.trellisldp.jms.JmsPublisher;
 import org.trellisldp.kafka.KafkaPublisher;
 
@@ -103,11 +100,6 @@ final class AppUtils {
         final String status = "notifications will be disabled";
         LOGGER.info("Using no-op event service: {}", status);
         return new NoopEventService();
-    }
-
-    public static java.sql.Connection getConnection(final TrellisConfiguration config) {
-        final Optional<String> location = ofNullable(config.getResources());
-        return null;
     }
 
     private AppUtils() {

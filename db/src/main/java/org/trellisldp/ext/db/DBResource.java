@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.jdbc;
+package org.trellisldp.ext.db;
 
 import static java.time.Instant.ofEpochMilli;
 import static java.util.Objects.nonNull;
@@ -49,11 +49,11 @@ import org.trellisldp.vocabulary.Trellis;
 import org.trellisldp.vocabulary.XSD;
 
 /**
- * A jdbc-based implementation of the Trellis Resource API.
+ * A db-based implementation of the Trellis Resource API.
  */
-public class JDBCResource implements Resource {
+public class DBResource implements Resource {
 
-    private static final Logger LOGGER = getLogger(JDBCResource.class);
+    private static final Logger LOGGER = getLogger(DBResource.class);
     private static final RDF rdf = getInstance();
 
     private static final String OBJECT = "object";
@@ -74,11 +74,11 @@ public class JDBCResource implements Resource {
     private ResourceData data;
 
     /**
-     * Create a JDBC-based Resource.
-     * @param ds the jdbc connector
+     * Create a DB-based Resource.
+     * @param ds the datasource
      * @param identifier the identifier
      */
-    public JDBCResource(final DataSource ds, final IRI identifier) {
+    public DBResource(final DataSource ds, final IRI identifier) {
         this.identifier = identifier;
         this.jdbi = Jdbi.create(ds);
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
@@ -91,12 +91,12 @@ public class JDBCResource implements Resource {
 
     /**
      * Try to load a Trellis resource.
-     * @param ds the triplestore connector
+     * @param ds the datasource
      * @param identifier the identifier
      * @return a Resource, if one exists
      */
     public static Optional<Resource> findResource(final DataSource ds, final IRI identifier) {
-        final JDBCResource res = new JDBCResource(ds, identifier);
+        final DBResource res = new DBResource(ds, identifier);
         res.fetchData();
         return res.exists() ? of(res) : empty();
     }

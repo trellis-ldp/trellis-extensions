@@ -11,11 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
- * Trellis Triplestore Application
+ * Trellis ResourceService implementation using a database connection.
  *
- * <p>This package provides a complete triplestore-based Trellis application.
- *
- * @author acoburn
+ * <p>This package provides a simple implementation of the
+ * ResourceService interface.
  */
-package org.trellisldp.app.triplestore;
+package org.trellisldp.ext.db;

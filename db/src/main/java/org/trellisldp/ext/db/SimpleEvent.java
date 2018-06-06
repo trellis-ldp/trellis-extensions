@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.jdbc;
+package org.trellisldp.ext.db;
 
 import static java.time.Instant.now;
 import static java.util.Optional.of;

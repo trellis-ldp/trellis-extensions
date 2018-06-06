@@ -1,10 +1,10 @@
 apply plugin: 'java-library'
 apply plugin: 'osgi'
 
-description = 'Trellis JDBC Application'
+description = 'Trellis Database Application'
 
 ext {
-    moduleName = 'org.trellisldp.ext.app.jdbc'
+    moduleName = 'org.trellisldp.ext.app.db'
 }
 
 dependencies {
@@ -12,6 +12,7 @@ dependencies {
     compile("io.dropwizard:dropwizard-core:$dropwizardVersion")
     compile("io.dropwizard:dropwizard-metrics:$dropwizardVersion")
     compile("io.dropwizard:dropwizard-http2:$dropwizardVersion")
+    compile("io.dropwizard:dropwizard-jdbi3:$dropwizardVersion")
     compile("javax.jms:javax.jms-api:$jmsApiVersion")
     compile("org.apache.activemq:activemq-client:$activeMqVersion")
     compile("org.apache.commons:commons-rdf-jena:$commonsRdfVersion")
@@ -35,7 +36,7 @@ dependencies {
     compile("org.trellisldp:trellis-kafka:$trellisVersion")
     compile("org.trellisldp:trellis-app:$trellisVersion")
 
-    compile project(':trellis-jdbc')
+    compile project(':trellis-db')
 
     runtime ("javax.xml.bind:jaxb-api:$jaxbVersion")
 

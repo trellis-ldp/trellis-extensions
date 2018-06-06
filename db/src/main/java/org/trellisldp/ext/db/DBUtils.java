@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.jdbc;
+package org.trellisldp.ext.db;
 
 import static org.trellisldp.api.RDFUtils.getInstance;
 
@@ -21,9 +21,9 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 
 /**
- * Utilities for the JDBC resource service.
+ * Utilities for the DB resource service.
  */
-final class JDBCUtils {
+final class DBUtils {
 
     private static final RDF rdf = getInstance();
 
@@ -58,7 +58,7 @@ final class JDBCUtils {
         return null;
     }
 
-    private JDBCUtils() {
+    private DBUtils() {
         // prevent instantiation
     }
 }

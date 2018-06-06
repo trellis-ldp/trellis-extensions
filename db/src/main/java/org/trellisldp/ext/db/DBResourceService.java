@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.jdbc;
+package org.trellisldp.ext.db;
 
 import static java.time.Instant.now;
 import static java.util.Arrays.asList;
@@ -29,10 +29,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.TRELLIS_SESSION_BASE_URL;
 import static org.trellisldp.api.RDFUtils.getInstance;
-import static org.trellisldp.ext.jdbc.JDBCUtils.getBaseIRI;
-import static org.trellisldp.ext.jdbc.JDBCUtils.getObjectDatatype;
-import static org.trellisldp.ext.jdbc.JDBCUtils.getObjectLang;
-import static org.trellisldp.ext.jdbc.JDBCUtils.getObjectValue;
+import static org.trellisldp.ext.db.DBUtils.getBaseIRI;
+import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
+import static org.trellisldp.ext.db.DBUtils.getObjectLang;
+import static org.trellisldp.ext.db.DBUtils.getObjectValue;
 import static org.trellisldp.vocabulary.RDF.type;
 import static org.trellisldp.vocabulary.Trellis.DeletedResource;
 import static org.trellisldp.vocabulary.Trellis.PreferAccessControl;
@@ -80,15 +80,15 @@ import org.trellisldp.vocabulary.PROV;
 import org.trellisldp.vocabulary.XSD;
 
 /**
- * A JDBC-based implementation of the Trellis ResourceService API.
+ * A Database-backed implementation of the Trellis ResourceService API.
  */
-public class JDBCResourceService extends DefaultAuditService implements ResourceService {
+public class DBResourceService extends DefaultAuditService implements ResourceService {
 
     private static final String PARENT = "parent";
     private static final String MODIFIED = "modified";
     private static final String MEMBER = "member";
 
-    private static final Logger LOGGER = getLogger(JDBCResourceService.class);
+    private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
 
     private static final Predicate<BlankNodeOrIRI> isUserGraph = PreferUserManaged::equals;
@@ -102,14 +102,14 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
     private final Set<IRI> supportedIxnModels;
 
     /**
-     * Create a JDBC-backed resource service.
+     * Create a Database-backed resource service.
      * @param ds the data source
      * @param identifierService an ID supplier service
      * @param mementoService a service for memento resources
      * @param eventService an event service
      */
     @Inject
-    public JDBCResourceService(final DataSource ds, final IdentifierService identifierService,
+    public DBResourceService(final DataSource ds, final IdentifierService identifierService,
             final MementoService mementoService, final EventService eventService) {
         requireNonNull(ds, "DataSource may not be null!");
         requireNonNull(identifierService, "IdentifierService may not be null!");
@@ -379,7 +379,7 @@ public class JDBCResourceService extends DefaultAuditService implements Resource
 
     @Override
     public Optional<Resource> get(final IRI identifier) {
-        return JDBCResource.findResource(ds, identifier);
+        return DBResource.findResource(ds, identifier);
     }
 
     @Override

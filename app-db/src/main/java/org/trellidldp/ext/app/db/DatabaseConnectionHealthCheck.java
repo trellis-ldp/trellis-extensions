@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.app.jdbc;
+package org.trellisldp.ext.app.db;
 
 import static com.codahale.metrics.health.HealthCheck.Result.healthy;
 import static com.codahale.metrics.health.HealthCheck.Result.unhealthy;
@@ -21,24 +21,26 @@ import com.codahale.metrics.health.HealthCheck;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import javax.sql.DataSource;
+
 /**
  * Check the health of the Database connection.
  */
 public class DatabaseConnectionHealthCheck extends HealthCheck {
 
-    private final Connection connection;
+    private final DataSource ds;
 
     /**
      * Create an object that checks the health of a Database Connection.
-     * @param connection the database Connection
+     * @param ds the datasource
      */
-    public DatabaseConnectionHealthCheck(final Connection connection) {
-        this.connection = connection;
+    public DatabaseConnectionHealthCheck(final DataSource ds) {
+        this.ds = ds;
     }
 
     @Override
     protected HealthCheck.Result check() throws InterruptedException {
-        try {
+        try (final Connection connection = ds.getConnection()) {
             if (!connection.isClosed()) {
                 return healthy("Database Connection is open.");
             }
