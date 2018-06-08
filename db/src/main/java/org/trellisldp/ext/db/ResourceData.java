@@ -13,6 +13,9 @@
  */
 package org.trellisldp.ext.db;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.trellisldp.api.Binary;
 
 /**
@@ -32,4 +35,5 @@ class ResourceData {
     public String insertedContentRelation;
 
     public Binary binary;
+    public Map<String, String> extra = new HashMap<>();
 }

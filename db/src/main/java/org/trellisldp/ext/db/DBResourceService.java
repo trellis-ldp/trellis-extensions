@@ -73,9 +73,12 @@ import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.api.Session;
 import org.trellisldp.audit.DefaultAuditService;
+import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.DC;
+import org.trellisldp.vocabulary.FOAF;
 import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.OA;
 import org.trellisldp.vocabulary.PROV;
 import org.trellisldp.vocabulary.XSD;
 
@@ -269,6 +272,21 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                     batch.execute();
                 });
 
+                handle.execute("DELETE FROM extras WHERE subject = ?", identifier.getIRIString());
+                dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
+                    final PreparedBatch batch = handle.prepareBatch(
+                            "INSERT INTO extras (subject, predicate, object) VALUES (?, ?, ?)");
+                    graph.stream(identifier, null, null)
+                         .filter(t -> LDP.inbox.equals(t.getPredicate())
+                                 || OA.annotationService.equals(t.getPredicate()))
+                         .filter(t -> t.getObject() instanceof IRI)
+                         .forEach(t -> batch
+                            .bind(0, identifier.getIRIString())
+                            .bind(1, t.getPredicate().getIRIString())
+                            .bind(2, ((IRI) t.getObject()).getIRIString()).add());
+                    batch.execute();
+                });
+
                 handle.execute("DELETE FROM acl WHERE id = ?", identifier.getIRIString());
                 dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
                     final PreparedBatch batch = handle.prepareBatch(
@@ -325,21 +343,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         });
     }
 
-    /**
-     * This is equivalent to the SPARQL below.
-     *
-     * <p><pre><code>
-     * WITH trellis:PreferServerManaged
-     *   DELETE { ?member dc:modified ?modified }
-     *   INSERT { ?member dc:modified TIME }
-     *   WHERE {
-     *     IDENTIFIER dc:isPartOf ?parent .
-     *     ?parent ldp:membershipResource ?member .
-     *     ?parent ldp:hasMemberRelation ?any .
-     *     ?member dc:modified ?modified
-     * }
-     * </code></pre></p>
-     */
     private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
                         final OperationType opType, final Literal time) {
         // TODO
@@ -378,8 +381,28 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private void init() {
-        final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
-        // TODO -- initialize if no tables
+        // TODO -- initialize if no data
+        jdbi.useTransaction(handle -> {
+            final String auth = TRELLIS_DATA_PREFIX + "#auth";
+            handle.execute(
+                    "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    TRELLIS_DATA_PREFIX, LDP.BasicContainer.getIRIString(), now().toEpochMilli(), null, false, true);
+
+            final PreparedBatch batch = handle.prepareBatch(
+                "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, NULL, NULL)");
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                 .bind(3, ACL.Read.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                 .bind(3, ACL.Write.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                 .bind(3, ACL.Control.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.agentClass.getIRIString())
+                 .bind(3, FOAF.Agent.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.accessTo.getIRIString())
+                 .bind(3, TRELLIS_DATA_PREFIX).add();
+            batch.execute();
+        });
     }
 
     @Override

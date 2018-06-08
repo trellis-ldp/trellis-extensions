@@ -18,6 +18,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -25,9 +26,11 @@ import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -189,6 +192,11 @@ public class DBResource implements Resource {
         return data.isDeleted;
     }
 
+    @Override
+    public Stream<Map.Entry<String,String>> getExtraLinkRelations() {
+        return data.extra.entrySet().stream();
+    }
+
     private Stream<Quad> fetchMembershipQuads() {
         return concat(fetchIndirectMemberQuads(),
                 concat(fetchDirectMemberQuads(), fetchDirectMemberQuadsInverse()));
@@ -288,6 +296,12 @@ public class DBResource implements Resource {
      */
     protected void fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
+        final String extraQuery = "SELECT property, object FROM extras WHERE subject = ?";
+        final Map<String, String> extras = jdbi.withHandle(handle ->
+                handle.select(extraQuery, identifier.getIRIString())
+                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString("property"), rs.getString("object")))
+                      .stream().collect(toMap(Entry::getKey, Entry::getValue)));
+
         final String query
             = "SELECT m.interactionModel, m.modified, m.isPartOf, m.isDeleted, m.hasAcl, "
             + "l.membershipResource, l.hasMemberRelation, l.isMemberOfRelation, l.insertedContentRelation, "
@@ -296,7 +310,7 @@ public class DBResource implements Resource {
             + "LEFT JOIN ldp AS l ON m.id = l.id "
             + "LEFT JOIN binary AS b ON m.id = b.id "
             + "WHERE m.id = ?";
-        jdbi.useHandle(handle -> handle.select(query, identifier.getIRIString())
+        jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> {
                     final ResourceData data = new ResourceData();
                     data.interactionModel = rs.getString("interactionModel");
@@ -320,7 +334,7 @@ public class DBResource implements Resource {
                                 binaryFormat, binarySize);
                     }
                     return data;
-                }).findFirst().ifPresent(data -> this.data = data));
+                }).findFirst()).ifPresent(data -> this.data = data);
     }
 
     private static RDFTerm getObject(final String value, final String lang, final String datatype) {
