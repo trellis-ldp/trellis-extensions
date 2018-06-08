@@ -18,7 +18,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -297,10 +296,11 @@ public class DBResource implements Resource {
     protected void fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
         final String extraQuery = "SELECT property, object FROM extras WHERE subject = ?";
-        final Map<String, String> extras = jdbi.withHandle(handle ->
+        final Map<String, String> extras = new HashMap<>();
+        jdbi.useHandle(handle ->
                 handle.select(extraQuery, identifier.getIRIString())
                       .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString("property"), rs.getString("object")))
-                      .stream().collect(toMap(Entry::getKey, Entry::getValue)));
+                      .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
 
         final String query
             = "SELECT m.interactionModel, m.modified, m.isPartOf, m.isDeleted, m.hasAcl, "

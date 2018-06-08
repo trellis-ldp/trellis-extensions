@@ -90,6 +90,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     private static final String PARENT = "parent";
     private static final String MODIFIED = "modified";
     private static final String MEMBER = "member";
+    private static final int BATCH_SIZE = 1000;
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
@@ -262,13 +263,17 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                     final PreparedBatch batch = handle.prepareBatch(
                             "INSERT INTO resource (id, subject, predicate, object, lang, datatype) " +
                             "VALUES (?, ?, ?, ?, ?, ?)");
-                    graph.stream().forEach(triple -> batch
-                            .bind(0, identifier.getIRIString())
-                            .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                            .bind(2, triple.getPredicate().getIRIString())
-                            .bind(3, getObjectValue(triple.getObject()))
-                            .bind(4, getObjectLang(triple.getObject()))
-                            .bind(5, getObjectDatatype(triple.getObject())).add());
+                    graph.stream().sequential().forEach(triple -> {
+                        batch.bind(0, identifier.getIRIString())
+                             .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                             .bind(2, triple.getPredicate().getIRIString())
+                             .bind(3, getObjectValue(triple.getObject()))
+                             .bind(4, getObjectLang(triple.getObject()))
+                             .bind(5, getObjectDatatype(triple.getObject())).add();
+                        if (batch.size() >= BATCH_SIZE) {
+                            batch.execute();
+                        }
+                    });
                     batch.execute();
                 });
 
@@ -276,14 +281,16 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
                     final PreparedBatch batch = handle.prepareBatch(
                             "INSERT INTO extras (subject, predicate, object) VALUES (?, ?, ?)");
-                    graph.stream(identifier, null, null)
-                         .filter(t -> LDP.inbox.equals(t.getPredicate())
-                                 || OA.annotationService.equals(t.getPredicate()))
-                         .filter(t -> t.getObject() instanceof IRI)
-                         .forEach(t -> batch
-                            .bind(0, identifier.getIRIString())
-                            .bind(1, t.getPredicate().getIRIString())
-                            .bind(2, ((IRI) t.getObject()).getIRIString()).add());
+                    graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
+                        .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
+                                batch.bind(0, identifier.getIRIString()).bind(1, LDP.inbox.getIRIString()).bind(2, iri)
+                                     .add());
+
+                    graph.stream(identifier, OA.annotationService, null).map(Triple::getObject)
+                         .filter(t -> t instanceof IRI).map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
+                                batch.bind(0, identifier.getIRIString()).bind(1, OA.annotationService.getIRIString())
+                                     .bind(2, iri).add());
+
                     batch.execute();
                 });
 
@@ -291,13 +298,17 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
                     final PreparedBatch batch = handle.prepareBatch(
                         "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
-                    graph.stream().forEach(triple -> batch
-                            .bind(0, identifier.getIRIString())
-                            .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                            .bind(2, triple.getPredicate().getIRIString())
-                            .bind(3, getObjectValue(triple.getObject()))
-                            .bind(4, getObjectLang(triple.getObject()))
-                            .bind(5, getObjectDatatype(triple.getObject())).add());
+                    graph.stream().sequential().forEach(triple -> {
+                        batch.bind(0, identifier.getIRIString())
+                             .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                             .bind(2, triple.getPredicate().getIRIString())
+                             .bind(3, getObjectValue(triple.getObject()))
+                             .bind(4, getObjectLang(triple.getObject()))
+                             .bind(5, getObjectDatatype(triple.getObject())).add();
+                        if (batch.size() >= BATCH_SIZE) {
+                            batch.execute();
+                        }
+                    });
                     batch.execute();
                 });
             });
