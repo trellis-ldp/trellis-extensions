@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -61,6 +60,8 @@ import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
+import org.apache.tamaya.Configuration;
+import org.apache.tamaya.ConfigurationProvider;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
 import org.slf4j.Logger;
@@ -84,19 +85,26 @@ import org.trellisldp.vocabulary.XSD;
 
 /**
  * A Database-backed implementation of the Trellis ResourceService API.
+ *
+ * <p>Note: one can manipulate the size of a batched query by setting
+ * a property for {@code trellis.ext.db.batchSize}. By default, this
+ * value is 1,000.
  */
 public class DBResourceService extends DefaultAuditService implements ResourceService {
+
+    public static final String BATCH_KEY = "trellis.ext.db.batchSize";
+    public static final int DEFAULT_BATCH_SIZE = 1000;
 
     private static final String PARENT = "parent";
     private static final String MODIFIED = "modified";
     private static final String MEMBER = "member";
-    private static final int BATCH_SIZE = 1000;
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
 
     private static final Predicate<BlankNodeOrIRI> isUserGraph = PreferUserManaged::equals;
     private static final Predicate<BlankNodeOrIRI> isServerGraph = PreferServerManaged::equals;
+    private static final Configuration config = ConfigurationProvider.getConfiguration();
 
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
@@ -150,10 +158,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final Dataset dataset) {
         LOGGER.debug("Deleting: {}", identifier);
         return supplyAsync(() -> {
-            final Instant eventTime = now();
             dataset.add(PreferServerManaged, identifier, DC.type, DeletedResource);
             dataset.add(PreferServerManaged, identifier, type, LDP.Resource);
-            return storeAndNotify(identifier, session, ixnModel, dataset, eventTime, OperationType.DELETE, null);
+            return storeAndNotify(identifier, session, ixnModel, dataset, OperationType.DELETE, null);
         });
     }
 
@@ -165,222 +172,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 createOrReplace(id, session, ixnModel, dataset, OperationType.REPLACE, container, binary));
     }
 
-    private Boolean createOrReplace(final IRI identifier, final Session session, final IRI ixnModel,
-                    final Dataset dataset, final OperationType opType, final IRI container, final Binary binary) {
-        final Instant eventTime = now();
-
-        // Set the LDP type
-        dataset.add(PreferServerManaged, identifier, type, ixnModel);
-
-        // Relocate some user-managed triples into the server-managed graph
-        if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
-            dataset.getGraph(PreferUserManaged).ifPresent(g -> {
-                g.stream(identifier, LDP.membershipResource, null).findFirst().ifPresent(t -> {
-                    // This allows for HTTP resource URL-based queries
-                    dataset.add(PreferServerManaged, identifier, LDP.member, getBaseIRI(t.getObject()));
-                    dataset.add(PreferServerManaged, identifier, LDP.membershipResource, t.getObject());
-                });
-                g.stream(identifier, LDP.hasMemberRelation, null).findFirst().ifPresent(t -> dataset
-                                .add(PreferServerManaged, identifier, LDP.hasMemberRelation, t.getObject()));
-                g.stream(identifier, LDP.isMemberOfRelation, null).findFirst().ifPresent(t -> dataset
-                                .add(PreferServerManaged, identifier, LDP.isMemberOfRelation, t.getObject()));
-                dataset.add(PreferServerManaged, identifier, LDP.insertedContentRelation,
-                                g.stream(identifier, LDP.insertedContentRelation, null).map(Triple::getObject)
-                                                .findFirst().orElse(LDP.MemberSubject));
-            });
-        }
-
-        // Set the parent relationship
-        if (nonNull(container)) {
-            dataset.add(PreferServerManaged, identifier, DC.isPartOf, container);
-        }
-
-        if (nonNull(binary)) {
-            dataset.add(PreferServerManaged, identifier, DC.hasPart, binary.getIdentifier());
-            dataset.add(PreferServerManaged, binary.getIdentifier(), DC.modified,
-                    rdf.createLiteral(binary.getModified().toString(), XSD.dateTime));
-            binary.getMimeType().map(rdf::createLiteral).ifPresent(mimeType ->
-                    dataset.add(PreferServerManaged, binary.getIdentifier(), DC.format, mimeType));
-            binary.getSize().map(size -> rdf.createLiteral(size.toString(), XSD.long_)).ifPresent(size ->
-                    dataset.add(PreferServerManaged, binary.getIdentifier(), DC.extent, size));
-        }
-
-        return storeAndNotify(identifier, session, ixnModel, dataset, eventTime, opType, binary);
-    }
-
-    private static Function<Quad, Stream<String>> objectAsString = quad -> {
-        if (quad.getObject() instanceof IRI) {
-            return Stream.of(((IRI) quad.getObject()).getIRIString());
-        }
-        return Stream.empty();
-    };
-
-    private Boolean storeAndNotify(final IRI identifier, final Session session, final IRI ixnModel,
-            final Dataset dataset, final Instant eventTime, final OperationType opType, final Binary binary) {
-        final Literal time = rdf.createLiteral(eventTime.toString(), XSD.dateTime);
-        try {
-            jdbi.useTransaction(handle -> {
-                handle.execute("DELETE FROM metadata WHERE id = ?", identifier.getIRIString());
-                handle.execute(
-                        "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
-                        "VALUES (?, ?, ?, ?, ?, ?)",
-                        identifier.getIRIString(), ixnModel.getIRIString(),
-                        session.getCreated().toEpochMilli(),
-                        dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
-                            .flatMap(objectAsString).findFirst().orElse(null),
-                        opType == OperationType.DELETE,
-                        dataset.stream(of(PreferAccessControl), null, null, null).findFirst().isPresent());
-
-                handle.execute("DELETE FROM ldp WHERE id = ?", identifier.getIRIString());
-                if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
-                    handle.execute("INSERT INTO ldp (id, member, membershipResource, hasMemberRelation, " +
-                            "isMemberOfRelation, insertedContentRelation) VALUES (?, ?, ?, ?, ?, ?)",
-                            identifier.getIRIString(),
-                            dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
-                                .flatMap(objectAsString).findFirst().orElse(null),
-                            dataset.stream(of(PreferServerManaged), identifier, LDP.membershipResource, null)
-                                .flatMap(objectAsString).findFirst().orElse(null),
-                            dataset.stream(of(PreferServerManaged), identifier, LDP.hasMemberRelation, null)
-                                .flatMap(objectAsString).findFirst().orElse(null),
-                            dataset.stream(of(PreferServerManaged), identifier, LDP.isMemberOfRelation, null)
-                                .flatMap(objectAsString).findFirst().orElse(null),
-                            dataset.stream(of(PreferServerManaged), identifier, LDP.insertedContentRelation, null)
-                                .flatMap(objectAsString).findFirst().orElse(null));
-                }
-
-                handle.execute("DELETE FROM binary WHERE id = ?", identifier.getIRIString());
-                if (nonNull(binary)) {
-                    handle.execute("INSERT INTO binary (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
-                            identifier.getIRIString(),
-                            binary.getIdentifier().getIRIString(),
-                            binary.getModified().toEpochMilli(),
-                            binary.getMimeType().orElse(null),
-                            binary.getSize().orElse(null));
-                }
-
-                handle.execute("DELETE FROM resource WHERE id = ?", identifier.getIRIString());
-                dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-                    final PreparedBatch batch = handle.prepareBatch(
-                            "INSERT INTO resource (id, subject, predicate, object, lang, datatype) " +
-                            "VALUES (?, ?, ?, ?, ?, ?)");
-                    graph.stream().sequential().forEach(triple -> {
-                        batch.bind(0, identifier.getIRIString())
-                             .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                             .bind(2, triple.getPredicate().getIRIString())
-                             .bind(3, getObjectValue(triple.getObject()))
-                             .bind(4, getObjectLang(triple.getObject()))
-                             .bind(5, getObjectDatatype(triple.getObject())).add();
-                        if (batch.size() >= BATCH_SIZE) {
-                            batch.execute();
-                        }
-                    });
-                    batch.execute();
-                });
-
-                handle.execute("DELETE FROM extras WHERE subject = ?", identifier.getIRIString());
-                dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-                    final PreparedBatch batch = handle.prepareBatch(
-                            "INSERT INTO extras (subject, predicate, object) VALUES (?, ?, ?)");
-                    graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
-                        .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
-                                batch.bind(0, identifier.getIRIString()).bind(1, LDP.inbox.getIRIString()).bind(2, iri)
-                                     .add());
-
-                    graph.stream(identifier, OA.annotationService, null).map(Triple::getObject)
-                         .filter(t -> t instanceof IRI).map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
-                                batch.bind(0, identifier.getIRIString()).bind(1, OA.annotationService.getIRIString())
-                                     .bind(2, iri).add());
-
-                    batch.execute();
-                });
-
-                handle.execute("DELETE FROM acl WHERE id = ?", identifier.getIRIString());
-                dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
-                    final PreparedBatch batch = handle.prepareBatch(
-                        "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
-                    graph.stream().sequential().forEach(triple -> {
-                        batch.bind(0, identifier.getIRIString())
-                             .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                             .bind(2, triple.getPredicate().getIRIString())
-                             .bind(3, getObjectValue(triple.getObject()))
-                             .bind(4, getObjectLang(triple.getObject()))
-                             .bind(5, getObjectDatatype(triple.getObject())).add();
-                        if (batch.size() >= BATCH_SIZE) {
-                            batch.execute();
-                        }
-                    });
-                    batch.execute();
-                });
-            });
-
-            if (opType != OperationType.DELETE) {
-                mementoService.ifPresent(svc -> get(identifier).ifPresent(res ->
-                            svc.put(identifier, eventTime, res.stream())));
-            }
-            emitEvents(identifier, session, opType, time, dataset);
-        } catch (final Exception ex) {
-            LOGGER.error("Could not update data: {}", ex.getMessage());
-            throw new RuntimeTrellisException(ex);
-        }
-        return true;
-    }
-
     @Override
     public List<Range<Instant>> getMementos(final IRI identifier) {
         return mementoService.map(svc -> svc.list(identifier)).orElse(emptyList());
-    }
-
-    private void emitEvents(final IRI identifier, final Session session, final OperationType opType,
-            final Literal time, final Dataset dataset) {
-
-        // Get the base URL
-        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
-        final IRI inbox = dataset.getGraph(PreferUserManaged)
-            .flatMap(graph -> graph.stream(null, LDP.inbox, null).map(Triple::getObject)
-                    .filter(term -> term instanceof IRI).map(term -> (IRI) term).findFirst())
-            .orElse(null);
-        final List<IRI> targetTypes = dataset.stream()
-            .filter(quad -> quad.getGraphName().filter(isUserGraph.or(isServerGraph)).isPresent())
-            .filter(quad -> quad.getPredicate().equals(type))
-            .flatMap(quad -> quad.getObject() instanceof IRI ? Stream.of((IRI) quad.getObject()) : empty())
-            .distinct().collect(toList());
-
-        eventService.ifPresent(svc -> {
-            svc.emit(new SimpleEvent(getUrl(identifier, baseUrl),
-                        asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
-                        targetTypes, inbox));
-            getContainer(identifier).ifPresent(parent ->
-                    emitEventsForAdjacentResources(svc, parent, session, opType, time));
-        });
-    }
-
-    private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
-                        final OperationType opType, final Literal time) {
-        // TODO
-    }
-
-    private enum OperationType {
-        DELETE, CREATE, REPLACE;
-
-        static IRI asIRI(final OperationType opType) {
-            switch (opType) {
-                case DELETE:
-                  return AS.Delete;
-                case CREATE:
-                  return AS.Create;
-                case REPLACE:
-                default:
-                  return AS.Update;
-            }
-        }
-    }
-
-    private String getUrl(final IRI identifier, final Optional<String> baseUrl) {
-        if (baseUrl.isPresent()) {
-            return toExternal(identifier, baseUrl.get()).getIRIString();
-        }
-        LOGGER.warn("No baseURL defined. Emitting message with resource's internal IRI: {}", identifier);
-        return identifier.getIRIString();
     }
 
     @Override
@@ -389,31 +183,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         return jdbi.withHandle(handle -> handle.createQuery(query).map((rs, ctx) ->
                     rdf.createTriple(rdf.createIRI(rs.getString("id")), type,
                         rdf.createIRI(rs.getString("interactionModel")))).stream());
-    }
-
-    private void init() {
-        // TODO -- initialize if no data
-        jdbi.useTransaction(handle -> {
-            final String auth = TRELLIS_DATA_PREFIX + "#auth";
-            handle.execute(
-                    "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
-                    "VALUES (?, ?, ?, ?, ?, ?)",
-                    TRELLIS_DATA_PREFIX, LDP.BasicContainer.getIRIString(), now().toEpochMilli(), null, false, true);
-
-            final PreparedBatch batch = handle.prepareBatch(
-                "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, NULL, NULL)");
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                 .bind(3, ACL.Read.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                 .bind(3, ACL.Write.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                 .bind(3, ACL.Control.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.agentClass.getIRIString())
-                 .bind(3, FOAF.Agent.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.accessTo.getIRIString())
-                 .bind(3, TRELLIS_DATA_PREFIX).add();
-            batch.execute();
-        });
     }
 
     @Override
@@ -470,4 +239,234 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public Set<IRI> supportedInteractionModels() {
         return supportedIxnModels;
     }
+
+    private void init() {
+        jdbi.useTransaction(handle -> {
+            final String auth = TRELLIS_DATA_PREFIX + "#auth";
+            handle.execute(
+                    "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    TRELLIS_DATA_PREFIX, LDP.BasicContainer.getIRIString(), now().toEpochMilli(), null, false, true);
+
+            final PreparedBatch batch = handle.prepareBatch(
+                "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, NULL, NULL)");
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                 .bind(3, ACL.Read.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                 .bind(3, ACL.Write.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                 .bind(3, ACL.Control.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.agentClass.getIRIString())
+                 .bind(3, FOAF.Agent.getIRIString()).add();
+            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.accessTo.getIRIString())
+                 .bind(3, TRELLIS_DATA_PREFIX).add();
+            batch.execute();
+        });
+    }
+
+    private Boolean createOrReplace(final IRI identifier, final Session session, final IRI ixnModel,
+                    final Dataset dataset, final OperationType opType, final IRI container, final Binary binary) {
+
+        // Set the LDP type
+        dataset.add(PreferServerManaged, identifier, type, ixnModel);
+
+        // Relocate some user-managed triples into the server-managed graph
+        if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
+            dataset.getGraph(PreferUserManaged).ifPresent(g -> {
+                g.stream(identifier, LDP.membershipResource, null).findFirst().ifPresent(t -> {
+                    // This allows for HTTP resource URL-based queries
+                    dataset.add(PreferServerManaged, identifier, LDP.member, getBaseIRI(t.getObject()));
+                    dataset.add(PreferServerManaged, identifier, LDP.membershipResource, t.getObject());
+                });
+                g.stream(identifier, LDP.hasMemberRelation, null).findFirst().ifPresent(t -> dataset
+                                .add(PreferServerManaged, identifier, LDP.hasMemberRelation, t.getObject()));
+                g.stream(identifier, LDP.isMemberOfRelation, null).findFirst().ifPresent(t -> dataset
+                                .add(PreferServerManaged, identifier, LDP.isMemberOfRelation, t.getObject()));
+                dataset.add(PreferServerManaged, identifier, LDP.insertedContentRelation,
+                                g.stream(identifier, LDP.insertedContentRelation, null).map(Triple::getObject)
+                                                .findFirst().orElse(LDP.MemberSubject));
+            });
+        }
+
+        // Set the parent relationship
+        if (nonNull(container)) {
+            dataset.add(PreferServerManaged, identifier, DC.isPartOf, container);
+        }
+
+        if (nonNull(binary)) {
+            dataset.add(PreferServerManaged, identifier, DC.hasPart, binary.getIdentifier());
+            dataset.add(PreferServerManaged, binary.getIdentifier(), DC.modified,
+                    rdf.createLiteral(binary.getModified().toString(), XSD.dateTime));
+            binary.getMimeType().map(rdf::createLiteral).ifPresent(mimeType ->
+                    dataset.add(PreferServerManaged, binary.getIdentifier(), DC.format, mimeType));
+            binary.getSize().map(size -> rdf.createLiteral(size.toString(), XSD.long_)).ifPresent(size ->
+                    dataset.add(PreferServerManaged, binary.getIdentifier(), DC.extent, size));
+        }
+
+        return storeAndNotify(identifier, session, ixnModel, dataset, opType, binary);
+    }
+
+    private Boolean storeAndNotify(final IRI identifier, final Session session, final IRI ixnModel,
+            final Dataset dataset, final OperationType opType, final Binary binary) {
+        try {
+            jdbi.useTransaction(handle -> {
+                handle.execute("DELETE FROM metadata WHERE id = ?", identifier.getIRIString());
+                handle.execute(
+                        "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
+                        "VALUES (?, ?, ?, ?, ?, ?)",
+                        identifier.getIRIString(), ixnModel.getIRIString(),
+                        session.getCreated().toEpochMilli(),
+                        dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
+                            .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
+                        opType == OperationType.DELETE,
+                        dataset.stream(of(PreferAccessControl), null, null, null).findFirst().isPresent());
+
+                handle.execute("DELETE FROM ldp WHERE id = ?", identifier.getIRIString());
+                if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
+                    handle.execute("INSERT INTO ldp (id, member, membershipResource, hasMemberRelation, " +
+                            "isMemberOfRelation, insertedContentRelation) VALUES (?, ?, ?, ?, ?, ?)",
+                            identifier.getIRIString(),
+                            dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
+                                .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
+                            dataset.stream(of(PreferServerManaged), identifier, LDP.membershipResource, null)
+                                .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
+                            dataset.stream(of(PreferServerManaged), identifier, LDP.hasMemberRelation, null)
+                                .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
+                            dataset.stream(of(PreferServerManaged), identifier, LDP.isMemberOfRelation, null)
+                                .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
+                            dataset.stream(of(PreferServerManaged), identifier, LDP.insertedContentRelation, null)
+                                .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null));
+                }
+
+                handle.execute("DELETE FROM binary WHERE id = ?", identifier.getIRIString());
+                if (nonNull(binary)) {
+                    handle.execute("INSERT INTO binary (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
+                            identifier.getIRIString(),
+                            binary.getIdentifier().getIRIString(),
+                            binary.getModified().toEpochMilli(),
+                            binary.getMimeType().orElse(null),
+                            binary.getSize().orElse(null));
+                }
+
+                handle.execute("DELETE FROM resource WHERE id = ?", identifier.getIRIString());
+                dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
+                    final PreparedBatch batch = handle.prepareBatch(
+                            "INSERT INTO resource (id, subject, predicate, object, lang, datatype) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)");
+                    graph.stream().sequential().forEach(triple -> {
+                        batch.bind(0, identifier.getIRIString())
+                             .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                             .bind(2, triple.getPredicate().getIRIString())
+                             .bind(3, getObjectValue(triple.getObject()))
+                             .bind(4, getObjectLang(triple.getObject()))
+                             .bind(5, getObjectDatatype(triple.getObject())).add();
+                        if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+                            batch.execute();
+                        }
+                    });
+                    batch.execute();
+                });
+
+                handle.execute("DELETE FROM extras WHERE subject = ?", identifier.getIRIString());
+                dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
+                    final PreparedBatch batch = handle.prepareBatch(
+                            "INSERT INTO extras (subject, predicate, object) VALUES (?, ?, ?)");
+                    graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
+                        .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
+                                batch.bind(0, identifier.getIRIString()).bind(1, LDP.inbox.getIRIString()).bind(2, iri)
+                                     .add());
+
+                    graph.stream(identifier, OA.annotationService, null).map(Triple::getObject)
+                         .filter(t -> t instanceof IRI).map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
+                                batch.bind(0, identifier.getIRIString()).bind(1, OA.annotationService.getIRIString())
+                                     .bind(2, iri).add());
+
+                    batch.execute();
+                });
+
+                handle.execute("DELETE FROM acl WHERE id = ?", identifier.getIRIString());
+                dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
+                    final PreparedBatch batch = handle.prepareBatch(
+                        "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
+                    graph.stream().sequential().forEach(triple -> {
+                        batch.bind(0, identifier.getIRIString())
+                             .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                             .bind(2, triple.getPredicate().getIRIString())
+                             .bind(3, getObjectValue(triple.getObject()))
+                             .bind(4, getObjectLang(triple.getObject()))
+                             .bind(5, getObjectDatatype(triple.getObject())).add();
+                        if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+                            batch.execute();
+                        }
+                    });
+                    batch.execute();
+                });
+            });
+
+            if (opType != OperationType.DELETE) {
+                mementoService.ifPresent(svc -> get(identifier).ifPresent(res ->
+                            svc.put(identifier, session.getCreated(), res.stream())));
+            }
+            emitEvents(identifier, session, opType, dataset);
+        } catch (final Exception ex) {
+            LOGGER.error("Could not update data: {}", ex.getMessage());
+            throw new RuntimeTrellisException(ex);
+        }
+        return true;
+    }
+
+    private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
+                        final OperationType opType) {
+        final Literal time = rdf.createLiteral(session.getCreated().toString(), XSD.dateTime);
+        // TODO - determine which resources changed, send events for each
+    }
+
+    private void emitEvents(final IRI identifier, final Session session, final OperationType opType,
+            final Dataset dataset) {
+
+        // Get the base URL
+        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
+        final IRI inbox = dataset.getGraph(PreferUserManaged)
+            .flatMap(graph -> graph.stream(null, LDP.inbox, null).map(Triple::getObject)
+                    .filter(term -> term instanceof IRI).map(term -> (IRI) term).findFirst())
+            .orElse(null);
+        final List<IRI> targetTypes = dataset.stream()
+            .filter(quad -> quad.getGraphName().filter(isUserGraph.or(isServerGraph)).isPresent())
+            .filter(quad -> quad.getPredicate().equals(type))
+            .flatMap(quad -> quad.getObject() instanceof IRI ? Stream.of((IRI) quad.getObject()) : empty())
+            .distinct().collect(toList());
+
+        eventService.ifPresent(svc -> {
+            svc.emit(new SimpleEvent(getUrl(identifier, baseUrl),
+                        asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
+                        targetTypes, inbox));
+            getContainer(identifier).ifPresent(parent ->
+                    emitEventsForAdjacentResources(svc, parent, session, opType));
+        });
+    }
+
+    private enum OperationType {
+        DELETE, CREATE, REPLACE;
+
+        static IRI asIRI(final OperationType opType) {
+            switch (opType) {
+                case DELETE:
+                  return AS.Delete;
+                case CREATE:
+                  return AS.Create;
+                case REPLACE:
+                default:
+                  return AS.Update;
+            }
+        }
+    }
+
+    private String getUrl(final IRI identifier, final Optional<String> baseUrl) {
+        if (baseUrl.isPresent()) {
+            return toExternal(identifier, baseUrl.get()).getIRIString();
+        }
+        LOGGER.warn("No baseURL defined. Emitting message with resource's internal IRI: {}", identifier);
+        return identifier.getIRIString();
+    }
+
 }

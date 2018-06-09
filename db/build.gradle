@@ -17,6 +17,7 @@ dependencies {
     implementation("org.trellisldp:trellis-vocabulary:$trellisVersion")
     implementation("org.jdbi:jdbi3-core:$jdbiVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.apache.tamaya:tamaya-api:$tamayaVersion")
 
     testImplementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
