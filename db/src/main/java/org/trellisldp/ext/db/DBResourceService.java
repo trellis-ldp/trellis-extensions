@@ -66,6 +66,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
+import org.trellisldp.api.Event;
 import org.trellisldp.api.EventService;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.MementoService;
@@ -416,8 +417,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
-                        final OperationType opType) {
-        final Literal time = rdf.createLiteral(session.getCreated().toString(), XSD.dateTime);
+                        final OperationType opType, final Instant time) {
+        final Literal eventTime = rdf.createLiteral(time.toString(), XSD.dateTime);
         // TODO - determine which resources changed, send events for each
     }
 
@@ -437,11 +438,12 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             .distinct().collect(toList());
 
         eventService.ifPresent(svc -> {
-            svc.emit(new SimpleEvent(getUrl(identifier, baseUrl),
+            final Event evt = new SimpleEvent(getUrl(identifier, baseUrl),
                         asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
-                        targetTypes, inbox));
+                        targetTypes, inbox);
+            svc.emit(evt);
             getContainer(identifier).ifPresent(parent ->
-                    emitEventsForAdjacentResources(svc, parent, session, opType));
+                    emitEventsForAdjacentResources(svc, parent, session, opType, evt.getCreated()));
         });
     }
 
