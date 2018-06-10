@@ -213,7 +213,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public Future<Boolean> add(final IRI id, final Session session, final Dataset dataset) {
-        final String q = "INSERT INTO audit (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)";
+        final String q = "INSERT INTO log (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)";
         return supplyAsync(() -> {
             try {
                 jdbi.useHandle(handle -> dataset.getGraph(PreferAudit).ifPresent(graph -> {
@@ -243,25 +243,27 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     private void init() {
         jdbi.useTransaction(handle -> {
-            final String auth = TRELLIS_DATA_PREFIX + "#auth";
-            handle.execute(
+            if (handle.select("SELECT COUNT(*) FROM metadata").mapTo(Long.class).findOnly() == 0) {
+                final String auth = TRELLIS_DATA_PREFIX + "#auth";
+                handle.execute(
                     "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
                     "VALUES (?, ?, ?, ?, ?, ?)",
                     TRELLIS_DATA_PREFIX, LDP.BasicContainer.getIRIString(), now().toEpochMilli(), null, false, true);
 
-            final PreparedBatch batch = handle.prepareBatch(
-                "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, NULL, NULL)");
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                 .bind(3, ACL.Read.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                 .bind(3, ACL.Write.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                 .bind(3, ACL.Control.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.agentClass.getIRIString())
-                 .bind(3, FOAF.Agent.getIRIString()).add();
-            batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.accessTo.getIRIString())
-                 .bind(3, TRELLIS_DATA_PREFIX).add();
-            batch.execute();
+                final PreparedBatch batch = handle.prepareBatch(
+                    "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, NULL, NULL)");
+                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                     .bind(3, ACL.Read.getIRIString()).add();
+                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                     .bind(3, ACL.Write.getIRIString()).add();
+                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
+                     .bind(3, ACL.Control.getIRIString()).add();
+                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.agentClass.getIRIString())
+                     .bind(3, FOAF.Agent.getIRIString()).add();
+                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.accessTo.getIRIString())
+                     .bind(3, TRELLIS_DATA_PREFIX).add();
+                batch.execute();
+            }
         });
     }
 
@@ -339,9 +341,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                 .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null));
                 }
 
-                handle.execute("DELETE FROM binary WHERE id = ?", identifier.getIRIString());
+                handle.execute("DELETE FROM nonrdf WHERE id = ?", identifier.getIRIString());
                 if (nonNull(binary)) {
-                    handle.execute("INSERT INTO binary (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
+                    handle.execute("INSERT INTO nonrdf (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
                             identifier.getIRIString(),
                             binary.getIdentifier().getIRIString(),
                             binary.getModified().toEpochMilli(),
@@ -368,10 +370,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                     batch.execute();
                 });
 
-                handle.execute("DELETE FROM extras WHERE subject = ?", identifier.getIRIString());
+                handle.execute("DELETE FROM extra WHERE subject = ?", identifier.getIRIString());
                 dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
                     final PreparedBatch batch = handle.prepareBatch(
-                            "INSERT INTO extras (subject, predicate, object) VALUES (?, ?, ?)");
+                            "INSERT INTO extra (subject, predicate, object) VALUES (?, ?, ?)");
                     graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
                         .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
                                 batch.bind(0, identifier.getIRIString()).bind(1, LDP.inbox.getIRIString()).bind(2, iri)

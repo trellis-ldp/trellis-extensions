@@ -216,7 +216,7 @@ public class DBResource implements Resource {
     }
 
     private Stream<Quad> fetchAuditQuads() {
-        return fetchQuadsFromTable("audit", Trellis.PreferAudit);
+        return fetchQuadsFromTable("log", Trellis.PreferAudit);
     }
 
     private Stream<Quad> fetchAclQuads() {
@@ -305,10 +305,10 @@ public class DBResource implements Resource {
         final String query
             = "SELECT m.interactionModel, m.modified, m.isPartOf, m.isDeleted, m.hasAcl, "
             + "l.membershipResource, l.hasMemberRelation, l.isMemberOfRelation, l.insertedContentRelation, "
-            + "b.location, b.modified AS binaryModified, b.format, b.size "
+            + "nr.location, nr.modified AS binaryModified, nr.format, nr.size "
             + "FROM medatdata AS m "
             + "LEFT JOIN ldp AS l ON m.id = l.id "
-            + "LEFT JOIN binary AS b ON m.id = b.id "
+            + "LEFT JOIN nonrdf AS nr ON m.id = nr.id "
             + "WHERE m.id = ?";
         jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> {
