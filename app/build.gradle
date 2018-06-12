@@ -16,8 +16,12 @@ dependencies {
     compile("javax.jms:javax.jms-api:$jmsApiVersion")
     compile("org.apache.activemq:activemq-client:$activeMqVersion")
     compile("org.apache.commons:commons-rdf-jena:$commonsRdfVersion")
-    compile("org.slf4j:slf4j-api:$slf4jVersion")
     compile("org.apache.kafka:kafka-clients:$kafkaVersion")
+    compile("org.apache.tamaya:tamaya-core:$tamayaVersion")
+    compile("org.slf4j:slf4j-api:$slf4jVersion")
+
+    compile("mysql:mysql-connector-java:$mysqlVersion")
+    compile("org.postgresql:postgresql:$postgresVersion")
 
     compile("org.trellisldp:trellis-constraint-rules:$trellisVersion")
     compile("org.trellisldp:trellis-io-jena:$trellisVersion")
@@ -38,7 +42,8 @@ dependencies {
 
     compile project(':trellis-db')
 
-    runtime ("javax.xml.bind:jaxb-api:$jaxbVersion")
+    runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
+    runtime("javax.activation:activation:$activationVersion")
 
     testCompile("ch.qos.logback:logback-classic:$logbackVersion")
     testCompile("com.google.guava:guava:$guavaVersion")
@@ -47,7 +52,6 @@ dependencies {
     testCompile("io.dropwizard:dropwizard-testing:$dropwizardVersion")
     testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
     testCompile("org.apache.commons:commons-text:$commonsTextVersion")
-    testCompile("org.apache.tamaya:tamaya-core:$tamayaVersion")
     testCompile("org.mockito:mockito-core:$mockitoVersion")
     testCompile("org.trellisldp:trellis-test:$trellisVersion")
 }

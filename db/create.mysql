@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS metadata (
     id VARCHAR(1024) NOT NULL PRIMARY KEY,
     interactionModel VARCHAR(255) NOT NULL,
-    modified INTEGER NOT NULL,
+    modified BIGINT NOT NULL,
     isPartOf VARCHAR(1024),
     isDeleted BOOLEAN default FALSE,
     hasAcl BOOLEAN default FALSE
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS extra (
 CREATE TABLE IF NOT EXISTS nonrdf (
     id VARCHAR(1024) NOT NULL PRIMARY KEY,
     location VARCHAR(1024) NOT NULL,
-    modified INTEGER NOT NULL,
+    modified BIGINT NOT NULL,
     format VARCHAR(255),
     size INTEGER
 );
