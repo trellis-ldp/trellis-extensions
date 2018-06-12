@@ -19,8 +19,14 @@ dependencies {
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("org.apache.tamaya:tamaya-api:$tamayaVersion")
 
+    testImplementation("com.opentable.components:otj-pg-embedded:$otjPgVersion")
+    testImplementation("org.apache.commons:commons-text:$commonsTextVersion")
     testImplementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion")
+    testImplementation("org.apache.tamaya:tamaya-core:$tamayaVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("org.trellisldp:trellis-id:$trellisVersion")
+    testImplementation("org.trellisldp:trellis-test:$trellisVersion")
+    testImplementation("com.google.guava:guava:$guavaVersion")
 }
 
 jar {

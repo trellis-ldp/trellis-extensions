@@ -73,7 +73,7 @@ public class DBResource implements Resource {
     private final Map<IRI, Supplier<Stream<Quad>>> graphMapper = new HashMap<>();
 
     // Resource data fields.
-    private ResourceData data;
+    private ResourceData data = new ResourceData();
 
     /**
      * Create a DB-based Resource.
@@ -295,18 +295,18 @@ public class DBResource implements Resource {
      */
     protected void fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
-        final String extraQuery = "SELECT property, object FROM extras WHERE subject = ?";
+        final String extraQuery = "SELECT predicate, object FROM extra WHERE subject = ?";
         final Map<String, String> extras = new HashMap<>();
         jdbi.useHandle(handle ->
                 handle.select(extraQuery, identifier.getIRIString())
-                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString("property"), rs.getString("object")))
+                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString("predicate"), rs.getString("object")))
                       .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
 
         final String query
             = "SELECT m.interactionModel, m.modified, m.isPartOf, m.isDeleted, m.hasAcl, "
             + "l.membershipResource, l.hasMemberRelation, l.isMemberOfRelation, l.insertedContentRelation, "
             + "nr.location, nr.modified AS binaryModified, nr.format, nr.size "
-            + "FROM medatdata AS m "
+            + "FROM metadata AS m "
             + "LEFT JOIN ldp AS l ON m.id = l.id "
             + "LEFT JOIN nonrdf AS nr ON m.id = nr.id "
             + "WHERE m.id = ?";

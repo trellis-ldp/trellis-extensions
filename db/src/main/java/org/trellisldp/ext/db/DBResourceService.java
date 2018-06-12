@@ -225,7 +225,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             .bind(3, getObjectValue(triple.getObject()))
                             .bind(4, getObjectLang(triple.getObject()))
                             .bind(5, getObjectDatatype(triple.getObject())).add());
-                    batch.execute();
+                    if (batch.size() > 0) {
+                        batch.execute();
+                    }
                 }));
 
                 return true;
@@ -317,8 +319,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 handle.execute(
                         "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
                         "VALUES (?, ?, ?, ?, ?, ?)",
-                        identifier.getIRIString(), ixnModel.getIRIString(),
-                        session.getCreated().toEpochMilli(),
+                        identifier.getIRIString(), ixnModel.getIRIString(), session.getCreated().toEpochMilli(),
                         dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
                             .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
                         opType == OperationType.DELETE,
@@ -367,7 +368,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             batch.execute();
                         }
                     });
-                    batch.execute();
+                    if (batch.size() > 0) {
+                        batch.execute();
+                    }
                 });
 
                 handle.execute("DELETE FROM extra WHERE subject = ?", identifier.getIRIString());
@@ -384,7 +387,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                 batch.bind(0, identifier.getIRIString()).bind(1, OA.annotationService.getIRIString())
                                      .bind(2, iri).add());
 
-                    batch.execute();
+                    if (batch.size() > 0) {
+                        batch.execute();
+                    }
                 });
 
                 handle.execute("DELETE FROM acl WHERE id = ?", identifier.getIRIString());
@@ -402,7 +407,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             batch.execute();
                         }
                     });
-                    batch.execute();
+                    if (batch.size() > 0) {
+                        batch.execute();
+                    }
                 });
             });
 
