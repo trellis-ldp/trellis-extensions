@@ -28,11 +28,19 @@ class AppConfiguration extends TrellisConfiguration {
     @NotNull
     private DataSourceFactory database = new DataSourceFactory();
 
+    /**
+     * Set the datasource factory.
+     * @param factory the factory
+     */
     @JsonProperty("database")
     public void setDataSourceFactory(final DataSourceFactory factory) {
         this.database = factory;
     }
 
+    /**
+     * Get the datasource factory.
+     * @return the datasource factory
+     */
     @JsonProperty("database")
     public DataSourceFactory getDataSourceFactory() {
         return database;

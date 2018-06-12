@@ -40,11 +40,14 @@ dependencies {
 
     runtime ("javax.xml.bind:jaxb-api:$jaxbVersion")
 
+    testCompile("ch.qos.logback:logback-classic:$logbackVersion")
+    testCompile("com.google.guava:guava:$guavaVersion")
+    testCompile("com.opentable.components:otj-pg-embedded:$otjPgVersion")
     testCompile("io.dropwizard:dropwizard-client:$dropwizardVersion")
     testCompile("io.dropwizard:dropwizard-testing:$dropwizardVersion")
     testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
+    testCompile("org.apache.commons:commons-text:$commonsTextVersion")
     testCompile("org.apache.tamaya:tamaya-core:$tamayaVersion")
-    testCompile("ch.qos.logback:logback-classic:$logbackVersion")
     testCompile("org.mockito:mockito-core:$mockitoVersion")
     testCompile("org.trellisldp:trellis-test:$trellisVersion")
 }

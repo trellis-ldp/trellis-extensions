@@ -100,11 +100,11 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
         final IdentifierService idService = new UUIDGenerator();
         final JdbiFactory factory = new JdbiFactory();
 
+        this.jdbi = factory.build(environment, config.getDataSourceFactory(), "trellis");
         this.resourceService = buildResourceService(idService, config, environment);
         this.binaryService = buildBinaryService(idService, config);
         this.ioService = buildIoService(config);
 
-        this.jdbi = factory.build(environment, config.getDataSourceFactory(), "trellis");
     }
 
     private DBResourceService buildResourceService(final IdentifierService idService,
