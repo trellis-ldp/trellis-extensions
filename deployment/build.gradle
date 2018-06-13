@@ -4,7 +4,7 @@ apply plugin: 'nebula.ospackage-application'
 
 description = 'Trellis Database Application'
 mainClassName = 'org.trellisldp.ext.app.db.TrellisApplication'
-applicationName = 'trellis'
+applicationName = 'trellis-db'
 
 dependencies {
     compile project(':trellis-db-app')
