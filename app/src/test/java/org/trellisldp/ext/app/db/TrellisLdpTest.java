@@ -19,6 +19,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singleton;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
@@ -34,12 +36,15 @@ import javax.ws.rs.client.Client;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.AfterAll;
+import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationLdpTests;
 
 /**
  * Run LDP-Related Tests.
  */
 public class TrellisLdpTest extends AbstractApplicationLdpTests {
+
+    private static final Logger LOGGER = getLogger(TrellisLdpTest.class);
 
     private static EmbeddedPostgres pg = null;
 
@@ -71,7 +76,8 @@ public class TrellisLdpTest extends AbstractApplicationLdpTests {
             CLIENT.property(READ_TIMEOUT, 5000);
 
         } catch (final IOException ex) {
-
+            LOGGER.error("Error initializing Trellis", ex);
+            fail(ex.getMessage());
         }
     }
 

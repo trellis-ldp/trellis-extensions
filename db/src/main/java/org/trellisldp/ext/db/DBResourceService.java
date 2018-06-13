@@ -22,9 +22,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.empty;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.TRELLIS_SESSION_BASE_URL;
@@ -41,6 +39,10 @@ import static org.trellisldp.vocabulary.Trellis.PreferServerManaged;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -56,7 +58,6 @@ import org.apache.commons.lang3.Range;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
-import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
@@ -82,6 +83,7 @@ import org.trellisldp.vocabulary.FOAF;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
 import org.trellisldp.vocabulary.PROV;
+import org.trellisldp.vocabulary.Trellis;
 import org.trellisldp.vocabulary.XSD;
 
 /**
@@ -161,7 +163,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         return supplyAsync(() -> {
             dataset.add(PreferServerManaged, identifier, DC.type, DeletedResource);
             dataset.add(PreferServerManaged, identifier, type, LDP.Resource);
-            return storeAndNotify(identifier, session, ixnModel, dataset, OperationType.DELETE, null);
+
+            storeAndNotify(identifier, session, ixnModel, dataset, OperationType.DELETE, null).forEach(event ->
+                    eventService.ifPresent(svc -> svc.emit(event)));
+            return true;
         });
     }
 
@@ -308,11 +313,17 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                     dataset.add(PreferServerManaged, binary.getIdentifier(), DC.extent, size));
         }
 
-        return storeAndNotify(identifier, session, ixnModel, dataset, opType, binary);
+        storeAndNotify(identifier, session, ixnModel, dataset, opType, binary).forEach(event ->
+                eventService.ifPresent(svc -> svc.emit(event)));
+        return true;
     }
 
-    private Boolean storeAndNotify(final IRI identifier, final Session session, final IRI ixnModel,
+    private List<Event> storeAndNotify(final IRI identifier, final Session session, final IRI ixnModel,
             final Dataset dataset, final OperationType opType, final Binary binary) {
+
+        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
+        final List<Event> events = new ArrayList<>();
+        final Set<String> modified = new HashSet<>();
         try {
             jdbi.useTransaction(handle -> {
                 handle.execute("DELETE FROM metadata WHERE id = ?", identifier.getIRIString());
@@ -324,6 +335,67 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
                         opType == OperationType.DELETE,
                         dataset.stream(of(PreferAccessControl), null, null, null).findFirst().isPresent());
+
+                final Optional<IRI> inbox = dataset.stream(of(Trellis.PreferUserManaged), identifier, LDP.inbox, null)
+                    .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x).findFirst();
+
+                final List<IRI> targetTypes = new ArrayList<>();
+                targetTypes.add(ixnModel);
+                dataset.stream(null, identifier, type, null).filter(q -> q.getGraphName().filter(gn ->
+                            Trellis.PreferUserManaged.equals(gn) || Trellis.PreferServerManaged.equals(gn)).isPresent())
+                    .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x).forEach(targetTypes::add);
+
+                modified.add(identifier.getIRIString());
+                events.add(new SimpleEvent(getUrl(identifier, baseUrl),
+                            asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
+                            targetTypes, inbox.orElse(null)));
+
+                getContainer(identifier).map(IRI::getIRIString).ifPresent(parent -> {
+                    handle.select("SELECT m.interactionModel, l.member "
+                                + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
+                                + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
+                            final String parentModel = (String) results.getOrDefault("interactionmodel", "");
+                            final String member = (String) results.get("member");
+                            if (!modified.contains(member)) {
+                                if (OperationType.REPLACE == opType) {
+                                    if (parentModel.equals(LDP.IndirectContainer.getIRIString())
+                                            && handle.execute("UPDATE metadata SET modified = ? WHERE id = ?",
+                                                session.getCreated().toEpochMilli(), member) == 1) {
+                                        modified.add(member);
+                                        final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
+                                                + "WHERE id = ?", member).mapTo(String.class).findFirst()
+                                            .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
+                                        events.add(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
+                                                    asList(session.getAgent()), asList(PROV.Activity, AS.Update),
+                                                    types, null));
+                                    }
+                                } else {
+                                    if (parentModel.endsWith("Container") && !modified.contains(parent)
+                                            && handle.execute("UPDATE metadata SET modified = ? WHERE id = ?",
+                                                session.getCreated().toEpochMilli(), parent) == 1) {
+
+                                        modified.add(parent);
+                                        events.add(new SimpleEvent(getUrl(rdf.createIRI(parent), baseUrl),
+                                                    asList(session.getAgent()), asList(PROV.Activity, AS.Update),
+                                                    asList(rdf.createIRI(parentModel)), null));
+                                    }
+
+                                    if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
+                                            || parentModel.equals(LDP.DirectContainer.getIRIString()))
+                                            && !modified.contains(member)
+                                            && handle.execute("UPDATE metadata SET modified = ? WHERE id = ?",
+                                                    session.getCreated().toEpochMilli(), member) == 1) {
+                                        final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
+                                                + "WHERE id = ?", member).mapTo(String.class).findFirst()
+                                            .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
+                                        events.add(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
+                                                    asList(session.getAgent()), asList(PROV.Activity, AS.Update),
+                                                    types, null));
+                                    }
+                                }
+                            }
+                        });
+                });
 
                 handle.execute("DELETE FROM ldp WHERE id = ?", identifier.getIRIString());
                 if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
@@ -417,43 +489,11 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 mementoService.ifPresent(svc -> get(identifier).ifPresent(res ->
                             svc.put(identifier, session.getCreated(), res.stream())));
             }
-            emitEvents(identifier, session, opType, dataset);
         } catch (final Exception ex) {
             LOGGER.error("Could not update data: {}", ex.getMessage());
             throw new RuntimeTrellisException(ex);
         }
-        return true;
-    }
-
-    private void emitEventsForAdjacentResources(final EventService svc, final IRI parent, final Session session,
-                        final OperationType opType, final Instant time) {
-        final Literal eventTime = rdf.createLiteral(time.toString(), XSD.dateTime);
-        // TODO - determine which resources changed, send events for each
-    }
-
-    private void emitEvents(final IRI identifier, final Session session, final OperationType opType,
-            final Dataset dataset) {
-
-        // Get the base URL
-        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
-        final IRI inbox = dataset.getGraph(PreferUserManaged)
-            .flatMap(graph -> graph.stream(null, LDP.inbox, null).map(Triple::getObject)
-                    .filter(term -> term instanceof IRI).map(term -> (IRI) term).findFirst())
-            .orElse(null);
-        final List<IRI> targetTypes = dataset.stream()
-            .filter(quad -> quad.getGraphName().filter(isUserGraph.or(isServerGraph)).isPresent())
-            .filter(quad -> quad.getPredicate().equals(type))
-            .flatMap(quad -> quad.getObject() instanceof IRI ? Stream.of((IRI) quad.getObject()) : empty())
-            .distinct().collect(toList());
-
-        eventService.ifPresent(svc -> {
-            final Event evt = new SimpleEvent(getUrl(identifier, baseUrl),
-                        asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
-                        targetTypes, inbox);
-            svc.emit(evt);
-            getContainer(identifier).ifPresent(parent ->
-                    emitEventsForAdjacentResources(svc, parent, session, opType, evt.getCreated()));
-        });
+        return events;
     }
 
     private enum OperationType {
