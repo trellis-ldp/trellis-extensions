@@ -24,3 +24,7 @@ wget https://www.amazontrust.com/repository/AmazonRootCA3.pem
 keytool -import -alias amazon3 -storepass changeit -noprompt -keystore ${JAVA_HOME}/lib/security/cacerts -file AmazonRootCA3.pem
 wget https://www.amazontrust.com/repository/AmazonRootCA4.pem
 keytool -import -alias amazon4 -storepass changeit -noprompt -keystore ${JAVA_HOME}/lib/security/cacerts -file AmazonRootCA4.pem
+
+# Install GoDaddy's root cacerts
+wget https://certs.godaddy.com/repository/gdroot-g2.crt
+keytool -import -alias godaddy2 -storepass changeit -noprompt -keystore ${JAVA_HOME}/lib/security/cacerts -file gdroot-g2.crt
