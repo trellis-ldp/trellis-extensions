@@ -72,6 +72,12 @@ install {
     enabled = false
 }
 
+test {
+    jacoco {
+        enabled = false;
+    }
+}
+
 uploadArchives {
     // There is no need to store these artifacts on maven central
     enabled = false
