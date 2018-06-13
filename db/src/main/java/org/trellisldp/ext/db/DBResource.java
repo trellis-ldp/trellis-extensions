@@ -298,7 +298,7 @@ public class DBResource implements Resource {
         final Map<String, String> extras = new HashMap<>();
         jdbi.useHandle(handle ->
                 handle.select(extraQuery, identifier.getIRIString())
-                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString("predicate"), rs.getString("object")))
+                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString(PREDICATE), rs.getString(OBJECT)))
                       .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
 
         final String query
@@ -311,29 +311,29 @@ public class DBResource implements Resource {
             + "WHERE m.id = ?";
         jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> {
-                    final ResourceData data = new ResourceData();
-                    data.interactionModel = rs.getString("interactionModel");
-                    data.modified = rs.getLong("modified");
-                    data.isPartOf = rs.getString("isPartOf");
-                    data.hasAcl = rs.getBoolean("hasAcl");
-                    data.isDeleted = rs.getBoolean("isDeleted");
+                    final ResourceData d = new ResourceData();
+                    d.interactionModel = rs.getString("interactionModel");
+                    d.modified = rs.getLong("modified");
+                    d.isPartOf = rs.getString("isPartOf");
+                    d.hasAcl = rs.getBoolean("hasAcl");
+                    d.isDeleted = rs.getBoolean("isDeleted");
 
-                    data.membershipResource = rs.getString(MEMBERSHIP_RESOURCE);
-                    data.hasMemberRelation = rs.getString(HAS_MEMBER_RELATION);
-                    data.isMemberOfRelation = rs.getString(IS_MEMBER_OF_RELATION);
-                    data.insertedContentRelation = rs.getString(INSERTED_CONTENT_RELATION);
+                    d.membershipResource = rs.getString(MEMBERSHIP_RESOURCE);
+                    d.hasMemberRelation = rs.getString(HAS_MEMBER_RELATION);
+                    d.isMemberOfRelation = rs.getString(IS_MEMBER_OF_RELATION);
+                    d.insertedContentRelation = rs.getString(INSERTED_CONTENT_RELATION);
                     final String binaryLocation = rs.getString("location");
                     final Long binaryModified = rs.getLong("binaryModified");
                     final String binaryFormat = rs.getString("format");
                     final Long binarySize = rs.getLong("size");
 
-                    if (LDP.NonRDFSource.getIRIString().equals(data.interactionModel) && nonNull(binaryLocation)
+                    if (LDP.NonRDFSource.getIRIString().equals(d.interactionModel) && nonNull(binaryLocation)
                             && nonNull(binaryModified)) {
-                        data.binary = new Binary(rdf.createIRI(binaryLocation), ofEpochMilli(binaryModified),
+                        d.binary = new Binary(rdf.createIRI(binaryLocation), ofEpochMilli(binaryModified),
                                 binaryFormat, binarySize);
                     }
-                    return data;
-                }).findFirst()).ifPresent(data -> this.data = data);
+                    return d;
+                }).findFirst()).ifPresent(d -> this.data = d);
     }
 
     private static RDFTerm getObject(final String value, final String lang, final String datatype) {
