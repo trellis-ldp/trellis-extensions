@@ -355,9 +355,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             final String parentModel = (String) results.getOrDefault("interactionmodel", "");
                             final String member = (String) results.get(MEMBER);
                             if (!modified.contains(member)) {
+                                final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
                                 if (OperationType.REPLACE == opType) {
                                     if (parentModel.equals(LDP.IndirectContainer.getIRIString())
-                                            && handle.execute("UPDATE metadata SET modified = ? WHERE id = ?",
+                                            && handle.execute(updateMetadataQuery,
                                                 session.getCreated().toEpochMilli(), member) == 1) {
                                         modified.add(member);
                                         final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
@@ -369,7 +370,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                     }
                                 } else {
                                     if (parentModel.endsWith("Container") && !modified.contains(parent)
-                                            && handle.execute("UPDATE metadata SET modified = ? WHERE id = ?",
+                                            && handle.execute(updateMetadataQuery,
                                                 session.getCreated().toEpochMilli(), parent) == 1) {
 
                                         modified.add(parent);
@@ -381,7 +382,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                     if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
                                             || parentModel.equals(LDP.DirectContainer.getIRIString()))
                                             && !modified.contains(member)
-                                            && handle.execute("UPDATE metadata SET modified = ? WHERE id = ?",
+                                            && handle.execute(updateMetadataQuery,
                                                     session.getCreated().toEpochMilli(), member) == 1) {
                                         final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
                                                 + "WHERE id = ?", member).mapTo(String.class).findFirst()
@@ -423,9 +424,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
                 handle.execute("DELETE FROM resource WHERE id = ?", identifier.getIRIString());
                 dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-                    final PreparedBatch batch = handle.prepareBatch(
-                            "INSERT INTO resource (id, subject, predicate, object, lang, datatype) " +
-                            "VALUES (?, ?, ?, ?, ?, ?)");
+                    final String resourceQuery
+                        = "INSERT INTO resource (id, subject, predicate, object, lang, datatype) "
+                        + "VALUES (?, ?, ?, ?, ?, ?)";
+                    final PreparedBatch batch = handle.prepareBatch(resourceQuery);
                     graph.stream().sequential().forEach(triple -> {
                         batch.bind(0, identifier.getIRIString())
                              .bind(1, ((IRI) triple.getSubject()).getIRIString())

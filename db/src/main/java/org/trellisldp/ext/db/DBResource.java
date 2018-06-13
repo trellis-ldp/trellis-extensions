@@ -64,7 +64,6 @@ public class DBResource implements Resource {
     private static final String MEMBERSHIP_RESOURCE = "membershipResource";
     private static final String HAS_MEMBER_RELATION = "hasMemberRelation";
     private static final String IS_MEMBER_OF_RELATION = "isMemberOfRelation";
-    private static final String INSERTED_CONTENT_RELATION = "insertedContentRelation";
 
     private final IRI identifier;
     private final Jdbi jdbi;
@@ -238,9 +237,8 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
-            = "SELECT l.isMemberOfRelation, l.membershipResource "
-            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
-            + "WHERE m.id = ? AND l.insertedContentRelation = ?";
+            = "SELECT l.isMemberOfRelation, l.membershipResource FROM ldp AS l "
+            + "INNER JOIN metadata AS m ON l.id = m.isPartOf WHERE m.id = ? AND l.insertedContentRelation = ?";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
@@ -252,9 +250,8 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
-            = "SELECT l.membershipResource, l.hasMemberRelation, m.id "
-            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
-            + "WHERE l.member = ? AND l.insertedContentRelation = ?";
+            = "SELECT l.membershipResource, l.hasMemberRelation, m.id FROM ldp AS l "
+            + "INNER JOIN metadata AS m ON l.id = m.isPartOf WHERE l.member = ? AND l.insertedContentRelation = ?";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
