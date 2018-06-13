@@ -348,7 +348,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
                             targetTypes, inbox.orElse(null)));
 
-                getContainer(identifier).map(IRI::getIRIString).ifPresent(parent -> {
+                getContainer(identifier).map(IRI::getIRIString).ifPresent(parent ->
                     handle.select("SELECT m.interactionModel, l.member "
                                 + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
                                 + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
@@ -392,8 +392,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                     }
                                 }
                             }
-                        });
-                });
+                        }));
 
                 handle.execute("DELETE FROM ldp WHERE id = ?", identifier.getIRIString());
                 if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {

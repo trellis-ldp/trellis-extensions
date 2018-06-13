@@ -13,7 +13,6 @@
  */
 package org.trellisldp.ext.db;
 
-import static java.time.Instant.ofEpochMilli;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -71,8 +70,7 @@ public class DBResource implements Resource {
     private final Jdbi jdbi;
     private final Map<IRI, Supplier<Stream<Quad>>> graphMapper = new HashMap<>();
 
-    // Resource data fields.
-    private ResourceData data = new ResourceData();
+    private ResourceData data;
 
     /**
      * Create a DB-based Resource.
@@ -126,7 +124,7 @@ public class DBResource implements Resource {
      * @return true if this resource exists; false otherwise
      */
     protected Boolean exists() {
-        return nonNull(getModified()) && nonNull(getInteractionModel());
+        return nonNull(data) && nonNull(getModified()) && nonNull(getInteractionModel());
     }
 
     @Override
@@ -147,52 +145,52 @@ public class DBResource implements Resource {
 
     @Override
     public IRI getInteractionModel() {
-        return ofNullable(data.interactionModel).map(rdf::createIRI).orElse(null);
+        return data.getInteractionModel();
     }
 
     @Override
     public Optional<IRI> getMembershipResource() {
-        return ofNullable(data.membershipResource).map(rdf::createIRI);
+        return data.getMembershipResource();
     }
 
     @Override
     public Optional<IRI> getMemberRelation() {
-        return ofNullable(data.hasMemberRelation).map(rdf::createIRI);
+        return data.getHasMemberRelation();
     }
 
     @Override
     public Optional<IRI> getMemberOfRelation() {
-        return ofNullable(data.isMemberOfRelation).map(rdf::createIRI);
+        return data.getIsMemberOfRelation();
     }
 
     @Override
     public Optional<IRI> getInsertedContentRelation() {
-        return ofNullable(data.insertedContentRelation).map(rdf::createIRI);
+        return data.getInsertedContentRelation();
     }
 
     @Override
     public Optional<Binary> getBinary() {
-        return ofNullable(data.binary);
+        return data.getBinary();
     }
 
     @Override
     public Instant getModified() {
-        return ofNullable(data.modified).map(Instant::ofEpochMilli).orElse(null);
+        return data.getModified();
     }
 
     @Override
     public Boolean hasAcl() {
-        return data.hasAcl;
+        return data.hasAcl();
     }
 
     @Override
     public Boolean isDeleted() {
-        return data.isDeleted;
+        return data.isDeleted();
     }
 
     @Override
     public Stream<Map.Entry<String,String>> getExtraLinkRelations() {
-        return data.extra.entrySet().stream();
+        return data.getExtra().entrySet().stream();
     }
 
     private Stream<Quad> fetchMembershipQuads() {
@@ -205,7 +203,7 @@ public class DBResource implements Resource {
         builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
         ofNullable(getModified()).map(m -> rdf.createLiteral(m.toString(), XSD.dateTime)).ifPresent(modified ->
                 builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.modified, modified)));
-        ofNullable(data.isPartOf).map(rdf::createIRI).ifPresent(parent ->
+        data.getIsPartOf().ifPresent(parent ->
                 builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.isPartOf, parent)));
         return builder.build();
     }
@@ -310,30 +308,7 @@ public class DBResource implements Resource {
             + "LEFT JOIN nonrdf AS nr ON m.id = nr.id "
             + "WHERE m.id = ?";
         jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
-                .map((rs, ctx) -> {
-                    final ResourceData d = new ResourceData();
-                    d.interactionModel = rs.getString("interactionModel");
-                    d.modified = rs.getLong("modified");
-                    d.isPartOf = rs.getString("isPartOf");
-                    d.hasAcl = rs.getBoolean("hasAcl");
-                    d.isDeleted = rs.getBoolean("isDeleted");
-
-                    d.membershipResource = rs.getString(MEMBERSHIP_RESOURCE);
-                    d.hasMemberRelation = rs.getString(HAS_MEMBER_RELATION);
-                    d.isMemberOfRelation = rs.getString(IS_MEMBER_OF_RELATION);
-                    d.insertedContentRelation = rs.getString(INSERTED_CONTENT_RELATION);
-                    final String binaryLocation = rs.getString("location");
-                    final Long binaryModified = rs.getLong("binaryModified");
-                    final String binaryFormat = rs.getString("format");
-                    final Long binarySize = rs.getLong("size");
-
-                    if (LDP.NonRDFSource.getIRIString().equals(d.interactionModel) && nonNull(binaryLocation)
-                            && nonNull(binaryModified)) {
-                        d.binary = new Binary(rdf.createIRI(binaryLocation), ofEpochMilli(binaryModified),
-                                binaryFormat, binarySize);
-                    }
-                    return d;
-                }).findFirst()).ifPresent(d -> this.data = d);
+                .map((rs, ctx) -> new ResourceData(rs, extras)).findFirst()).ifPresent(d -> this.data = d);
     }
 
     private static RDFTerm getObject(final String value, final String lang, final String datatype) {

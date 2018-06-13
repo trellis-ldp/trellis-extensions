@@ -13,27 +13,110 @@
  */
 package org.trellisldp.ext.db;
 
-import java.util.HashMap;
-import java.util.Map;
+import static java.time.Instant.ofEpochMilli;
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+import static org.trellisldp.api.RDFUtils.getInstance;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.Binary;
+import org.trellisldp.vocabulary.LDP;
 
 /**
  * A simple Data POJO.
  */
 class ResourceData {
 
-    public String interactionModel;
-    public Long modified;
-    public String isPartOf;
-    public Boolean hasAcl = false;
-    public Boolean isDeleted = false;
+    private static final RDF rdf = getInstance();
 
-    public String membershipResource;
-    public String hasMemberRelation;
-    public String isMemberOfRelation;
-    public String insertedContentRelation;
+    private String interactionModel;
+    private Long modified;
+    private String isPartOf;
+    private Boolean resourceHasAcl = false;
+    private Boolean resourceIsDeleted = false;
 
-    public Binary binary;
-    public Map<String, String> extra = new HashMap<>();
+    private String membershipResource;
+    private String hasMemberRelation;
+    private String isMemberOfRelation;
+    private String insertedContentRelation;
+
+    private Binary binary;
+    private Map<String, String> extra;
+
+    public ResourceData(final ResultSet rs, final Map<String, String> extra) throws SQLException {
+        this.interactionModel = rs.getString("interactionModel");
+        this.modified = rs.getLong("modified");
+        this.isPartOf = rs.getString("isPartOf");
+        this.resourceHasAcl = rs.getBoolean("hasAcl");
+        this.resourceIsDeleted = rs.getBoolean("isDeleted");
+
+        this.membershipResource = rs.getString("membershipResource");
+        this.hasMemberRelation = rs.getString("hasMemberRelation");
+        this.isMemberOfRelation = rs.getString("isMemberOfRelation");
+        this.insertedContentRelation = rs.getString("insertedContentRelation");
+
+        this.extra = extra;
+
+        final String binaryLocation = rs.getString("location");
+        final Long binaryModified = rs.getLong("binaryModified");
+        final String binaryFormat = rs.getString("format");
+        final Long binarySize = rs.getLong("size");
+
+        if (LDP.NonRDFSource.getIRIString().equals(this.interactionModel) && nonNull(binaryLocation)
+                && nonNull(binaryModified)) {
+            this.binary = new Binary(rdf.createIRI(binaryLocation), ofEpochMilli(binaryModified),
+                    binaryFormat, binarySize);
+        }
+    }
+
+    public IRI getInteractionModel() {
+        return ofNullable(interactionModel).map(rdf::createIRI).orElse(null);
+    }
+
+    public Instant getModified() {
+        return ofNullable(modified).map(Instant::ofEpochMilli).orElse(null);
+    }
+
+    public Optional<IRI> getIsPartOf() {
+        return ofNullable(isPartOf).map(rdf::createIRI);
+    }
+
+    public Boolean hasAcl() {
+        return resourceHasAcl;
+    }
+
+    public Boolean isDeleted() {
+        return resourceIsDeleted;
+    }
+
+    public Optional<IRI> getMembershipResource() {
+        return ofNullable(membershipResource).map(rdf::createIRI);
+    }
+
+    public Optional<IRI> getHasMemberRelation() {
+        return ofNullable(hasMemberRelation).map(rdf::createIRI);
+    }
+
+    public Optional<IRI> getIsMemberOfRelation() {
+        return ofNullable(isMemberOfRelation).map(rdf::createIRI);
+    }
+
+    public Optional<IRI> getInsertedContentRelation() {
+        return ofNullable(insertedContentRelation).map(rdf::createIRI);
+    }
+
+    public Optional<Binary> getBinary() {
+        return ofNullable(binary);
+    }
+
+    public Map<String, String> getExtra() {
+        return extra;
+    }
 }
