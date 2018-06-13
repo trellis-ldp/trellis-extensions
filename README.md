@@ -16,4 +16,4 @@ $ ./gradlew install
 
 For more information about Trellis, please visit either the
 [main source repository](https://github.com/trellis-ldp/trellis) or the
-(website)[https://www.trellisldp.org].
+[website](https://www.trellisldp.org).
