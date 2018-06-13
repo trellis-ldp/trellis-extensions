@@ -250,9 +250,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         jdbi.useTransaction(handle -> {
             if (handle.select("SELECT COUNT(*) FROM metadata").mapTo(Long.class).findOnly() == 0) {
                 final String auth = TRELLIS_DATA_PREFIX + "#auth";
-                handle.execute(
-                    "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
-                    "VALUES (?, ?, ?, ?, ?, ?)",
+                handle.execute("INSERT INTO metadata "
+                        + "(id, interactionModel, modified, isPartOf, isDeleted, hasAcl) VALUES (?, ?, ?, ?, ?, ?)",
                     TRELLIS_DATA_PREFIX, LDP.BasicContainer.getIRIString(), now().toEpochMilli(), null, false, true);
 
                 final PreparedBatch batch = handle.prepareBatch(
@@ -325,9 +324,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         try {
             jdbi.useTransaction(handle -> {
                 handle.execute("DELETE FROM metadata WHERE id = ?", identifier.getIRIString());
-                handle.execute(
-                        "INSERT INTO metadata (id, interactionModel, modified, isPartOf, isDeleted, hasAcl)" +
-                        "VALUES (?, ?, ?, ?, ?, ?)",
+                handle.execute("INSERT INTO metadata "
+                        + "(id, interactionModel, modified, isPartOf, isDeleted, hasAcl) VALUES (?, ?, ?, ?, ?, ?)",
                         identifier.getIRIString(), ixnModel.getIRIString(), session.getCreated().toEpochMilli(),
                         dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
                             .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
