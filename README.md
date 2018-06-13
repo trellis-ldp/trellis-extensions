@@ -1,8 +1,7 @@
 # Trellis Linked Data Server (relational database)
 
 Trellis is a scalable platform for building [linked data](https://www.w3.org/TR/ldp/) applications.
-The `trellis-ext-db` project implements an alternate
-persistence layer based on a relational database.
+The `trellis-ext-db` project implements a persistence layer based on a relational database.
 
 Postgresql and MySQL/MariaDB database connections are supported.
 
