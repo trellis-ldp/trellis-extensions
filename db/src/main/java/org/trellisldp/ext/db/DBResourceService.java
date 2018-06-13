@@ -98,8 +98,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public static final String BATCH_KEY = "trellis.ext.db.batchSize";
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
-    private static final String PARENT = "parent";
-    private static final String MODIFIED = "modified";
     private static final String MEMBER = "member";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
@@ -341,8 +339,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
                 final List<IRI> targetTypes = new ArrayList<>();
                 targetTypes.add(ixnModel);
-                dataset.stream(null, identifier, type, null).filter(q -> q.getGraphName().filter(gn ->
-                            Trellis.PreferUserManaged.equals(gn) || Trellis.PreferServerManaged.equals(gn)).isPresent())
+                dataset.stream(null, identifier, type, null)
+                    .filter(q -> q.getGraphName().filter(isUserGraph.or(isServerGraph)).isPresent())
                     .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x).forEach(targetTypes::add);
 
                 modified.add(identifier.getIRIString());
@@ -355,7 +353,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                 + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
                                 + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
                             final String parentModel = (String) results.getOrDefault("interactionmodel", "");
-                            final String member = (String) results.get("member");
+                            final String member = (String) results.get(MEMBER);
                             if (!modified.contains(member)) {
                                 if (OperationType.REPLACE == opType) {
                                     if (parentModel.equals(LDP.IndirectContainer.getIRIString())
