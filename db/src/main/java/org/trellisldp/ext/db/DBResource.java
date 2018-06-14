@@ -204,6 +204,18 @@ public class DBResource implements Resource {
                 builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.modified, modified)));
         data.getIsPartOf().ifPresent(parent ->
                 builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.isPartOf, parent)));
+        data.getBinary().ifPresent(binary -> {
+                builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.hasPart,
+                            binary.getIdentifier()));
+                builder.add(rdf.createQuad(Trellis.PreferServerManaged, binary.getIdentifier(), DC.modified,
+                            rdf.createLiteral(binary.getModified().toString(), XSD.dateTime)));
+                binary.getMimeType().ifPresent(format ->
+                        builder.add(rdf.createQuad(Trellis.PreferServerManaged, binary.getIdentifier(), DC.format,
+                                rdf.createLiteral(format))));
+                binary.getSize().ifPresent(size ->
+                        builder.add(rdf.createQuad(Trellis.PreferServerManaged, binary.getIdentifier(), DC.extent,
+                                rdf.createLiteral(size.toString(), XSD.long_))));
+        });
         return builder.build();
     }
 
