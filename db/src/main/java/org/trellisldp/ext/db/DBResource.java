@@ -222,9 +222,11 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
             = "SELECT l.membershipResource, l.hasMemberRelation, r.object, r.lang, r.datatype "
-            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "FROM ldp AS l "
+            + "INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "INNER JOIN metadata AS m2 ON l.id = m2.id "
             + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.insertedContentRelation "
-            + "WHERE l.member = ? AND m.interactionModel = ?";
+            + "WHERE l.member = ? AND m2.interactionModel = ? AND l.hasMemberRelation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
@@ -238,7 +240,8 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
             = "SELECT l.isMemberOfRelation, l.membershipResource FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.isPartOf WHERE m.id = ? AND l.insertedContentRelation = ?";
+            + "INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "WHERE m.id = ? AND l.insertedContentRelation = ? AND l.isMemberOfRelation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
@@ -251,7 +254,8 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
             = "SELECT l.membershipResource, l.hasMemberRelation, m.id FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.isPartOf WHERE l.member = ? AND l.insertedContentRelation = ?";
+            + "INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "WHERE l.member = ? AND l.insertedContentRelation = ? AND l.hasMemberRelation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
