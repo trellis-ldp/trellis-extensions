@@ -25,6 +25,7 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.io.IOException;
 
+import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
@@ -34,6 +35,8 @@ import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.id.UUIDGenerator;
+import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.Trellis;
 
 /**
  * ResourceService tests.
@@ -74,5 +77,14 @@ public class DBResourceTest {
     public void getNonExistent() {
         assertFalse(DBResource.findResource(pg.getPostgresDatabase(), rdf.createIRI(TRELLIS_DATA_PREFIX + "other"))
                 .isPresent());
+    }
+
+    @Test
+    public void getServerQuads() {
+        final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
+        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
+            assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
+                        triple.getSubject().equals(root) && triple.getObject().equals(LDP.BasicContainer)));
+        });
     }
 }
