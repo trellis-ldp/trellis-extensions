@@ -73,19 +73,10 @@ public class DBResource implements Resource {
 
     /**
      * Create a DB-based Resource.
-     * @param ds the datasource
-     * @param identifier the identifier
-     */
-    public DBResource(final DataSource ds, final IRI identifier) {
-        this(Jdbi.create(ds), identifier);
-    }
-
-    /**
-     * Create a DB-based Resource.
      * @param jdbi the jdbi object
      * @param identifier the identifier
      */
-    public DBResource(final Jdbi jdbi, final IRI identifier) {
+    protected DBResource(final Jdbi jdbi, final IRI identifier) {
         this.identifier = identifier;
         this.jdbi = jdbi;
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
