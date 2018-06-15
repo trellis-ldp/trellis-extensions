@@ -15,26 +15,35 @@ package org.trellisldp.ext.db;
 
 import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.Instant.now;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.vocabulary.RDF.type;
 
 import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.io.IOException;
 
+import org.apache.commons.rdf.api.Dataset;
+import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.Test;
+import org.trellisldp.api.Binary;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.id.UUIDGenerator;
+import org.trellisldp.vocabulary.ACL;
+import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
@@ -46,6 +55,8 @@ public class DBResourceTest {
     private static final RDF rdf = getInstance();
 
     private static final IdentifierService idService = new UUIDGenerator();
+
+    private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
 
     private static EmbeddedPostgres pg = null;
 
@@ -70,7 +81,7 @@ public class DBResourceTest {
 
     @Test
     public void getRoot() {
-        assertTrue(DBResource.findResource(pg.getPostgresDatabase(), rdf.createIRI(TRELLIS_DATA_PREFIX)).isPresent());
+        assertTrue(DBResource.findResource(pg.getPostgresDatabase(), root).isPresent());
     }
 
     @Test
@@ -81,10 +92,67 @@ public class DBResourceTest {
 
     @Test
     public void getServerQuads() {
-        final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
         DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
-            assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
-                        triple.getSubject().equals(root) && triple.getObject().equals(LDP.BasicContainer)));
+            final Graph serverManaged = rdf.createGraph();
+            res.stream(Trellis.PreferServerManaged).forEach(serverManaged::add);
+            assertTrue(serverManaged.contains(root, type, LDP.BasicContainer));
         });
+    }
+
+    @Test
+    public void getMembershipQuads() {
+        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res ->
+            assertEquals(0L, res.stream(LDP.PreferMembership).count()));
+    }
+
+    @Test
+    public void testScan() {
+        assertTrue(svc.scan().anyMatch(triple ->
+                    triple.getSubject().equals(root) && triple.getPredicate().equals(type) &&
+                    triple.getObject().equals(LDP.BasicContainer)));
+    }
+
+    @Test
+    public void testCompact() {
+        assertThrows(UnsupportedOperationException.class, () -> svc.compact(root, now(), now()));
+    }
+
+    @Test
+    public void testPurge() {
+        assertThrows(UnsupportedOperationException.class, () -> svc.purge(root));
+    }
+
+    @Test
+    public void getBinary() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "binary");
+        final IRI binaryIri = rdf.createIRI("http://example.com/resource");
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferServerManaged, identifier, DC.isPartOf, root);
+        final Binary binary = new Binary(binaryIri, now(), "text/plain", 10L);
+        assertTrue(svc.create(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.NonRDFSource, dataset, root,
+                binary).get());
+        svc.get(identifier).ifPresent(res -> {
+            assertTrue(res.getBinary().isPresent());
+            assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
+                    triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
+                    triple.getObject().equals(binaryIri)));
+        });
+    }
+
+    @Test
+    public void getAclQuads() {
+        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
+            final Graph acl = rdf.createGraph();
+            res.stream(Trellis.PreferAccessControl).forEach(acl::add);
+            assertTrue(acl.contains(null, ACL.mode, ACL.Read));
+            assertTrue(acl.contains(null, ACL.mode, ACL.Write));
+            assertTrue(acl.contains(null, ACL.mode, ACL.Control));
+        });
+    }
+
+    @Test
+    public void getExtraLinkRelations() {
+        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res ->
+            assertEquals(0L, res.getExtraLinkRelations().count()));
     }
 }
