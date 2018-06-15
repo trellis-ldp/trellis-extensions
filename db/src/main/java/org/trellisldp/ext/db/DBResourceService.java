@@ -19,6 +19,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -42,7 +43,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -424,53 +424,66 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
+    private Optional<Event> updateAdjacentReplacement(final Handle handle, final String parentModel,
+            final String member, final Session session) {
+
+        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
+        final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
+        if (parentModel.equals(LDP.IndirectContainer.getIRIString())
+                && handle.execute(updateMetadataQuery, session.getCreated().toEpochMilli(), member) == 1) {
+            return handle.select("SELECT interactionModel FROM metadata "
+                    + "WHERE id = ?", member).mapTo(String.class).findFirst().map(rdf::createIRI)
+                .map(type -> new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
+                                        asList(session.getAgent()), asList(PROV.Activity, AS.Update),
+                                        asList(type), null));
+        }
+        return empty();
+    }
+
+    private Stream<Event> updateAdjacentCreateDelete(final Handle handle, final String parent,
+            final String parentModel, final String member, final Session session) {
+        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
+        final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
+        final Stream.Builder<Event> builder = Stream.builder();
+        if (parentModel.endsWith("Container")
+                && handle.execute(updateMetadataQuery,
+                    session.getCreated().toEpochMilli(), parent) == 1) {
+
+            builder.accept(new SimpleEvent(getUrl(rdf.createIRI(parent), baseUrl),
+                        asList(session.getAgent()), asList(PROV.Activity, AS.Update),
+                        asList(rdf.createIRI(parentModel)), null));
+        }
+
+        if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
+                || parentModel.equals(LDP.DirectContainer.getIRIString()))
+                && handle.execute(updateMetadataQuery,
+                        session.getCreated().toEpochMilli(), member) == 1) {
+            final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
+                    + "WHERE id = ?", member).mapTo(String.class).findFirst()
+                .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
+            builder.accept(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
+                        asList(session.getAgent()), asList(PROV.Activity, AS.Update),
+                        types, null));
+        }
+        return builder.build();
+    }
+
+
     private List<Event> updateAdjacentResources(final Handle handle, final IRI identifier, final String parent,
-            final Session session, final OperationType opType, final Optional<String> baseUrl) {
-        final Set<String> modified = new HashSet<>();
+            final Session session, final OperationType opType) {
+        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
         final List<Event> events = new ArrayList<>();
-        modified.add(identifier.getIRIString());
         handle.select("SELECT m.interactionModel, l.member "
                     + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
                     + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
                 final String parentModel = (String) results.getOrDefault("interactionmodel", "");
                 final String member = (String) results.get(MEMBER);
-                if (!modified.contains(member)) {
+                if (!identifier.getIRIString().equals(member)) {
                     final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
                     if (OperationType.REPLACE == opType) {
-                        if (parentModel.equals(LDP.IndirectContainer.getIRIString())
-                                && handle.execute(updateMetadataQuery,
-                                    session.getCreated().toEpochMilli(), member) == 1) {
-                            modified.add(member);
-                            final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
-                                    + "WHERE id = ?", member).mapTo(String.class).findFirst()
-                                .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
-                            events.add(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
-                                        asList(session.getAgent()), asList(PROV.Activity, AS.Update),
-                                        types, null));
-                        }
-                    } else {
-                        if (parentModel.endsWith("Container") && !modified.contains(parent)
-                                && handle.execute(updateMetadataQuery,
-                                    session.getCreated().toEpochMilli(), parent) == 1) {
-
-                            modified.add(parent);
-                            events.add(new SimpleEvent(getUrl(rdf.createIRI(parent), baseUrl),
-                                        asList(session.getAgent()), asList(PROV.Activity, AS.Update),
-                                        asList(rdf.createIRI(parentModel)), null));
-                        }
-
-                        if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
-                                || parentModel.equals(LDP.DirectContainer.getIRIString()))
-                                && !modified.contains(member)
-                                && handle.execute(updateMetadataQuery,
-                                        session.getCreated().toEpochMilli(), member) == 1) {
-                            final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
-                                    + "WHERE id = ?", member).mapTo(String.class).findFirst()
-                                .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
-                            events.add(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
-                                        asList(session.getAgent()), asList(PROV.Activity, AS.Update),
-                                        types, null));
-                        }
+                        updateAdjacentReplacement(handle, parentModel, member, session).ifPresent(events::add);
+                    } else if (!parent.equals(member)) {
+                        updateAdjacentCreateDelete(handle, parent, parentModel, member, session).forEach(events::add);
                     }
                 }
             });
@@ -504,7 +517,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                             targetTypes, inbox.orElse(null)));
 
                 getContainer(identifier).map(IRI::getIRIString).ifPresent(parent ->
-                    updateAdjacentResources(handle, identifier, parent, session, opType, baseUrl).forEach(events::add));
+                    updateAdjacentResources(handle, identifier, parent, session, opType).forEach(events::add));
 
                 updateLdp(handle, identifier, ixnModel, dataset);
                 updateNonRdf(handle, identifier, binary);
