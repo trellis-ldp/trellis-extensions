@@ -170,6 +170,7 @@ public class TrellisEventTest extends AbstractApplicationEventTests implements M
     @AfterAll
     public static void cleanup() throws Exception {
         APP.after();
+        pg.close();
     }
 
     @Override

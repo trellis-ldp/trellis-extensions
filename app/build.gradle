@@ -56,6 +56,10 @@ dependencies {
     testCompile("org.trellisldp:trellis-test:$trellisVersion")
 }
 
+test {
+	maxParallelForks = Runtime.runtime.availableProcessors() / 2
+}
+
 jar {
     manifest {
         description project.description

@@ -90,7 +90,8 @@ public class TrellisMementoTest extends AbstractApplicationMementoTests {
     }
 
     @AfterAll
-    public static void cleanup() {
+    public static void cleanup() throws IOException {
         APP.after();
+        pg.close();
     }
 }
