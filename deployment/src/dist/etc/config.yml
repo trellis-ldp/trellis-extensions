@@ -24,8 +24,34 @@ logging:
     org.trellisldp: INFO
     io.dropwizard: INFO
 
-# This may refer to a remote Triplestore, e.g. https://example.org/sparql
-resources: /opt/trellis/data/rdf
+# Database configuration
+database:
+  # The name of your JDBC driver
+  # driverClass: com.mysql.cj.jdbc.Driver
+  driverClass: org.postgresql.Driver
+
+  # The database username
+  user: changeme
+
+  # The database password
+  password: changeme
+
+  # The JDBC URL
+  # url: jdbc:mysql://db.example.com/db-name
+  url: jdbc:postgresql://db.example.com/db-name
+
+  properties:
+    charSet: UTF-8
+    serverTimezone: UTC
+    useSSL: false
+  maxWaitForConnection: 1s
+  validationQuery: "SELECT 1"
+  validationQueryTimeout: 3s
+  minSize: 8
+  maxSize: 32
+  checkConnectionWhileIdle: false
+  evictionInterval: 10s
+  minIdleTime: 1 minute
 
 binaries: /opt/trellis/data/binaries
 

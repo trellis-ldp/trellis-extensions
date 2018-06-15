@@ -9,11 +9,11 @@
 To install Trellis as a systemd service on linux, follow these steps:
 
 1. Move the unpacked Trellis directory to a location such as `/opt/trellis`.
-   If you choose a different location, please update the `./etc/trellis.service` script.
+   If you choose a different location, please update the `./etc/trellis-db.service` script.
 
 2. Edit the `./etc/environment` file as desired (optional).
 
-3. Edit the `./etc/config.yml` file as desired (optional).
+3. Edit the `./etc/config.yml` file as desired. The database connection MUST be configured.
 
 4. Create a trellis user:
 
@@ -26,7 +26,7 @@ To install Trellis as a systemd service on linux, follow these steps:
 
 6. Install the systemd file:
 
-        $ sudo systemctl link /opt/trellis/etc/trellis.service
+        $ sudo systemctl link /opt/trellis/etc/trellis-db.service
 
 7. Reload systemd to see the changes
 
@@ -34,7 +34,7 @@ To install Trellis as a systemd service on linux, follow these steps:
 
 8. Start the trellis service
 
-        $ sudo systemctl start trellis
+        $ sudo systemctl start trellis-db
 
 To check that trellis is running, check the URL: `http://localhost:8080`
 
