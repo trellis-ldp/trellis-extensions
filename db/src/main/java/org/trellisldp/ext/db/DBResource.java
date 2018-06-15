@@ -225,8 +225,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
             = "SELECT l.membershipResource, l.hasMemberRelation, r.object, r.lang, r.datatype "
-            + "FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
             + "INNER JOIN metadata AS m2 ON l.id = m2.id "
             + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.insertedContentRelation "
             + "WHERE l.member = ? AND m2.interactionModel = ? AND l.hasMemberRelation IS NOT NULL";
