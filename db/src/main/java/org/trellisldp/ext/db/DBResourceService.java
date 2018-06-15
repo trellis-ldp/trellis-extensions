@@ -100,6 +100,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
     private static final String MEMBER = "member";
+    private static final String UPDATE_METADATA_QUERY = "UPDATE metadata SET modified = ? WHERE id = ?";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
@@ -428,9 +429,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final String member, final Session session) {
 
         final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
-        final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
         if (parentModel.equals(LDP.IndirectContainer.getIRIString())
-                && handle.execute(updateMetadataQuery, session.getCreated().toEpochMilli(), member) == 1) {
+                && handle.execute(UPDATE_METADATA_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
             return handle.select("SELECT interactionModel FROM metadata "
                     + "WHERE id = ?", member).mapTo(String.class).findFirst().map(rdf::createIRI)
                 .map(type -> new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
@@ -443,10 +443,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     private Stream<Event> updateAdjacentCreateDelete(final Handle handle, final String parent,
             final String parentModel, final String member, final Session session) {
         final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
-        final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
         final Stream.Builder<Event> builder = Stream.builder();
-        if (parentModel.endsWith("Container")
-                && handle.execute(updateMetadataQuery,
+        if (parentModel.endsWith("Container") && handle.execute(UPDATE_METADATA_QUERY,
                     session.getCreated().toEpochMilli(), parent) == 1) {
 
             builder.accept(new SimpleEvent(getUrl(rdf.createIRI(parent), baseUrl),
@@ -456,8 +454,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
         if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
                 || parentModel.equals(LDP.DirectContainer.getIRIString()))
-                && handle.execute(updateMetadataQuery,
-                        session.getCreated().toEpochMilli(), member) == 1) {
+                && handle.execute(UPDATE_METADATA_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
             final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
                     + "WHERE id = ?", member).mapTo(String.class).findFirst()
                 .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
@@ -471,7 +468,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     private List<Event> updateAdjacentResources(final Handle handle, final IRI identifier, final String parent,
             final Session session, final OperationType opType) {
-        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
         final List<Event> events = new ArrayList<>();
         handle.select("SELECT m.interactionModel, l.member "
                     + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
@@ -479,7 +475,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 final String parentModel = (String) results.getOrDefault("interactionmodel", "");
                 final String member = (String) results.get(MEMBER);
                 if (!identifier.getIRIString().equals(member)) {
-                    final String updateMetadataQuery = "UPDATE metadata SET modified = ? WHERE id = ?";
                     if (OperationType.REPLACE == opType) {
                         updateAdjacentReplacement(handle, parentModel, member, session).ifPresent(events::add);
                     } else if (!parent.equals(member)) {
