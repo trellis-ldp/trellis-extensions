@@ -16,7 +16,6 @@ package org.trellisldp.ext.app.db;
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singleton;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -29,7 +28,6 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
-import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
@@ -37,14 +35,14 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.AfterAll;
 import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationLdpTests;
+import org.trellisldp.test.AbstractApplicationAuditTests;
 
 /**
- * Run LDP-Related Tests.
+ * Audit tests.
  */
-public class TrellisLdpTest extends AbstractApplicationLdpTests {
+public class TrellisAuditTest extends AbstractApplicationAuditTests {
 
-    private static final Logger LOGGER = getLogger(TrellisLdpTest.class);
+    private static final Logger LOGGER = getLogger(TrellisAuditTest.class);
 
     private static EmbeddedPostgres pg = null;
 
@@ -81,6 +79,11 @@ public class TrellisLdpTest extends AbstractApplicationLdpTests {
     }
 
     @Override
+    public String getJwtSecret() {
+        return "secret";
+    }
+
+    @Override
     public Client getClient() {
         return CLIENT;
     }
@@ -88,11 +91,6 @@ public class TrellisLdpTest extends AbstractApplicationLdpTests {
     @Override
     public String getBaseURL() {
         return "http://localhost:" + APP.getLocalPort() + "/";
-    }
-
-    @Override
-    public Set<String> supportedJsonLdProfiles() {
-        return singleton("http://www.w3.org/ns/anno.jsonld");
     }
 
     @AfterAll
