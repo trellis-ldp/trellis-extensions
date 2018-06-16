@@ -299,7 +299,7 @@ public class DBResource implements Resource {
         final Map<String, String> extras = new HashMap<>();
         jdbi.useHandle(handle ->
                 handle.select(extraQuery, identifier.getIRIString())
-                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString(PREDICATE), rs.getString(OBJECT)))
+                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString(OBJECT), rs.getString(PREDICATE)))
                       .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
 
         final String query

@@ -18,6 +18,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
@@ -41,10 +42,13 @@ import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
 import org.trellisldp.api.ResourceService;
+import org.trellisldp.api.Session;
 import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.DC;
+import org.trellisldp.vocabulary.FOAF;
 import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.OA;
 import org.trellisldp.vocabulary.Trellis;
 
 /**
@@ -82,6 +86,13 @@ public class DBResourceTest {
     @Test
     public void getRoot() {
         assertTrue(DBResource.findResource(pg.getPostgresDatabase(), root).isPresent());
+    }
+
+    @Test
+    public void testReinit() {
+        final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase(), idService,
+                new NoopMementoService(), new NoopEventService());
+        assertNotNull(svc2);
     }
 
     @Test
@@ -151,8 +162,56 @@ public class DBResourceTest {
     }
 
     @Test
-    public void getExtraLinkRelations() {
-        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res ->
-            assertEquals(0L, res.getExtraLinkRelations().count()));
+    public void testAuthQuads() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "auth#acl");
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Read);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Write);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Control);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Append);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.agentClass, FOAF.Agent);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.accessTo,
+                rdf.createIRI(TRELLIS_DATA_PREFIX + "auth"));
+
+        assertTrue(svc.create(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                null).get());
+        svc.get(identifier).ifPresent(res -> {
+            assertEquals(6L, res.stream(Trellis.PreferAccessControl).count());
+        });
+    }
+
+    @Test
+    public void testEmptyAudit() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+
+        final Session session = new SimpleSession(Trellis.AnonymousAgent);
+        assertTrue(svc.create(identifier, session, LDP.RDFSource, rdf.createDataset(), root, null).get());
+        assertTrue(svc.add(identifier, session, rdf.createDataset()).get());
+        assertTrue(svc.get(identifier).isPresent());
+        svc.get(identifier).ifPresent(res -> assertEquals(0L, res.stream(Trellis.PreferAudit).count()));
+    }
+
+    @Test
+    public void getExtraLinkRelations() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "extras");
+        final String inbox = "http://example.com/inbox";
+        final String annotations = "http://example.com/annotations";
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferUserManaged, identifier, LDP.inbox, rdf.createIRI(inbox));
+        dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
+        assertTrue(svc.create(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                null).get());
+        svc.get(identifier).ifPresent(res -> {
+            assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
+                    triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
+                    triple.getObject().equals(rdf.createIRI(inbox))));
+        });
+        DBResource.findResource(pg.getPostgresDatabase(), identifier).ifPresent(res -> {
+            assertEquals(2L, res.getExtraLinkRelations().count());
+            assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(annotations)
+                        && rel.getValue().equals(OA.annotationService.getIRIString())));
+            assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(inbox)
+                        && rel.getValue().equals(LDP.inbox.getIRIString())));
+        });
     }
 }
