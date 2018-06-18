@@ -29,6 +29,7 @@ import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
@@ -213,5 +214,24 @@ public class DBResourceTest {
             assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(inbox)
                         && rel.getValue().equals(LDP.inbox.getIRIString())));
         });
+    }
+
+    @Test
+    public void testAddErrorCondition() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
+        final Session session = new SimpleSession(Trellis.AnonymousAgent);
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferAudit, rdf.createBlankNode(), type, rdf.createLiteral("Invalid quad"));
+        assertThrows(ExecutionException.class, () -> svc.add(identifier, session, dataset).get());
+    }
+
+    @Test
+    public void testCreateErrorCondition() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
+        final Session session = new SimpleSession(Trellis.AnonymousAgent);
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferServerManaged, rdf.createBlankNode(), type, rdf.createLiteral("Invalid quad"));
+        assertThrows(ExecutionException.class, () ->
+                svc.create(identifier, null, LDP.Container, dataset, null, null).get());
     }
 }

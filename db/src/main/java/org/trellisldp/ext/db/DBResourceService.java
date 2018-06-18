@@ -489,7 +489,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     private List<Event> storeAndNotify(final IRI identifier, final Session session, final IRI ixnModel,
             final Dataset dataset, final OperationType opType, final Binary binary) {
 
-        final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
         final List<Event> events = new ArrayList<>();
         try {
             jdbi.useTransaction(handle -> {
@@ -507,6 +506,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                     .filter(q -> q.getGraphName().filter(isUserGraph.or(isServerGraph)).isPresent())
                     .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x).forEach(targetTypes::add);
 
+                final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
                 events.add(new SimpleEvent(getUrl(identifier, baseUrl),
                             asList(session.getAgent()), asList(PROV.Activity, OperationType.asIRI(opType)),
                             targetTypes, inbox.orElse(null)));
