@@ -62,8 +62,8 @@ class ResourceData {
 
         this.extra = extra;
 
-        DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("location"), rs.getLong("binaryModified"),
-                rs.getString("format"), rs.getLong("size")).ifPresent(binary -> this.binary = binary);
+        this.binary = DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("location"),
+                rs.getLong("binaryModified"), rs.getString("format"), rs.getLong("size")).orElse(null);
     }
 
     public IRI getInteractionModel() {
