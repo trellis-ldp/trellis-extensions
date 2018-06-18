@@ -14,8 +14,10 @@
 package org.trellisldp.ext.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.trellisldp.vocabulary.RDF.langString;
 
 import org.apache.commons.rdf.api.IRI;
@@ -23,6 +25,7 @@ import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.jupiter.api.Test;
+import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.XSD;
 
 /**
@@ -76,6 +79,18 @@ public class DBUtilsTest {
         assertEquals(langString.getIRIString(), DBUtils.getObjectDatatype(rdf.createLiteral(lexicalForm, "en")));
         assertEquals(XSD.string_.getIRIString(), DBUtils.getObjectDatatype(rdf.createLiteral(lexicalForm)));
         assertNull(DBUtils.getObjectDatatype(rdf.createIRI("http://example.com/")));
+    }
+
+    @Test
+    public void testGetBinary() {
+        assertTrue(DBUtils.getBinary(LDP.NonRDFSource, "file:///path/to/resource",
+                    1529417263892L, "text/plain", 10L).isPresent());
+        assertFalse(DBUtils.getBinary(LDP.RDFSource, "file:///path/to/resource",
+                    1529417263892L, "text/plain", 10L).isPresent());
+        assertFalse(DBUtils.getBinary(LDP.NonRDFSource, null,
+                    1529417263892L, "text/plain", 10L).isPresent());
+        assertFalse(DBUtils.getBinary(LDP.NonRDFSource, "file:///path/to/resource",
+                    null, "text/plain", 10L).isPresent());
     }
 
 }

@@ -14,7 +14,6 @@
 package org.trellisldp.ext.db;
 
 import static java.time.Instant.ofEpochMilli;
-import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import static org.trellisldp.api.RDFUtils.getInstance;
 
@@ -27,7 +26,6 @@ import java.util.Optional;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.Binary;
-import org.trellisldp.vocabulary.LDP;
 
 /**
  * A simple Data POJO.
@@ -64,16 +62,8 @@ class ResourceData {
 
         this.extra = extra;
 
-        final String binaryLocation = rs.getString("location");
-        final Long binaryModified = rs.getLong("binaryModified");
-        final String binaryFormat = rs.getString("format");
-        final Long binarySize = rs.getLong("size");
-
-        if (LDP.NonRDFSource.getIRIString().equals(this.interactionModel) && nonNull(binaryLocation)
-                && nonNull(binaryModified)) {
-            this.binary = new Binary(rdf.createIRI(binaryLocation), ofEpochMilli(binaryModified),
-                    binaryFormat, binarySize);
-        }
+        DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("location"), rs.getLong("binaryModified"),
+                rs.getString("format"), rs.getLong("size")).ifPresent(binary -> this.binary = binary);
     }
 
     public IRI getInteractionModel() {

@@ -13,12 +13,20 @@
  */
 package org.trellisldp.ext.db;
 
+import static java.time.Instant.ofEpochMilli;
+import static java.util.Objects.nonNull;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static org.trellisldp.api.RDFUtils.getInstance;
+
+import java.util.Optional;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.trellisldp.api.Binary;
+import org.trellisldp.vocabulary.LDP;
 
 /**
  * Utilities for the DB resource service.
@@ -56,6 +64,14 @@ final class DBUtils {
             return ((Literal) term).getDatatype().getIRIString();
         }
         return null;
+    }
+
+    public static Optional<Binary> getBinary(final IRI ixnModel, final String location, final Long modified,
+            final String format, final Long size) {
+        if (LDP.NonRDFSource.equals(ixnModel) && nonNull(location) && nonNull(modified)) {
+            return of(new Binary(rdf.createIRI(location), ofEpochMilli(modified), format, size));
+        }
+        return empty();
     }
 
     private DBUtils() {
