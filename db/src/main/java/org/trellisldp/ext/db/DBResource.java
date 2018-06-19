@@ -105,16 +105,7 @@ public class DBResource implements Resource {
      */
     public static Optional<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
         final DBResource res = new DBResource(jdbi, identifier);
-        res.fetchData();
-        return res.exists() ? of(res) : empty();
-    }
-
-    /**
-     * Test whether this resource exists.
-     * @return true if this resource exists; false otherwise
-     */
-    protected Boolean exists() {
-        return nonNull(data) && nonNull(getModified()) && nonNull(getInteractionModel());
+        return res.fetchData() ? of(res) : empty();
     }
 
     @Override
@@ -293,7 +284,7 @@ public class DBResource implements Resource {
     /**
      * Fetch data for this resource.
      */
-    protected void fetchData() {
+    protected Boolean fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
         final String extraQuery = "SELECT predicate, object FROM extra WHERE subject = ?";
         final Map<String, String> extras = new HashMap<>();
@@ -310,8 +301,13 @@ public class DBResource implements Resource {
             + "LEFT JOIN ldp AS l ON m.id = l.id "
             + "LEFT JOIN nonrdf AS nr ON m.id = nr.id "
             + "WHERE m.id = ?";
-        jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
-                .map((rs, ctx) -> new ResourceData(rs, extras)).findFirst()).ifPresent(d -> this.data = d);
+        final Optional<ResourceData> rd = jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
+                .map((rs, ctx) -> new ResourceData(rs, extras)).findFirst());
+        if (rd.isPresent()) {
+            this.data = rd.get();
+            return true;
+        }
+        return false;
     }
 
     private static RDFTerm getObject(final String value, final String lang, final String datatype) {

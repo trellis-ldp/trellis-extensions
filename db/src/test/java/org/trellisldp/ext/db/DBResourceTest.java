@@ -154,6 +154,24 @@ public class DBResourceTest {
     }
 
     @Test
+    public void getRootContent() throws Exception {
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferUserManaged, root, DC.title, rdf.createLiteral("A title", "eng"));
+        assertTrue(svc.replace(root, new SimpleSession(Trellis.AnonymousAgent), LDP.BasicContainer, dataset, null,
+                    null).get());
+        svc.get(root).ifPresent(res -> {
+            assertEquals(LDP.BasicContainer, res.getInteractionModel());
+            assertFalse(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
+                    triple.getSubject().equals(root) && triple.getPredicate().equals(DC.isPartOf)));
+            assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
+                    triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
+                    && triple.getObject().equals(rdf.createLiteral("A title", "eng"))));
+        });
+
+
+    }
+
+    @Test
     public void getAclQuads() {
         DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
             final Graph acl = rdf.createGraph();
@@ -303,7 +321,7 @@ public class DBResourceTest {
         assertTrue(svc2.create(identifier, session1, LDP.RDFSource, dataset, root, null).get());
 
         meanwhile();
-        dataset.add(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("A title"));
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("A title", "eng"));
         assertTrue(svc2.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
                     null).get());
 
