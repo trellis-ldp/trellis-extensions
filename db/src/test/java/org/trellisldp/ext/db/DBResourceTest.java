@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.test.TestUtils.meanwhile;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import com.google.common.io.Resources;
@@ -44,6 +45,7 @@ import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.Session;
+import org.trellisldp.file.FileMementoService;
 import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.DC;
@@ -233,5 +235,85 @@ public class DBResourceTest {
         dataset.add(Trellis.PreferServerManaged, rdf.createBlankNode(), type, rdf.createLiteral("Invalid quad"));
         assertThrows(ExecutionException.class, () ->
                 svc.create(identifier, null, LDP.Container, dataset, null, null).get());
+    }
+
+    @Test
+    public void testCreateNoMementos() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final String inbox = "http://example.com/inbox";
+        final String annotations = "http://example.com/annotations";
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferUserManaged, identifier, LDP.inbox, rdf.createIRI(inbox));
+        dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
+        assertTrue(svc.create(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                null).get());
+
+        meanwhile();
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("A title"));
+        assertTrue(svc.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                    null).get());
+
+        meanwhile();
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.description, rdf.createLiteral("A description"));
+        assertTrue(svc.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                    null).get());
+        assertTrue(svc.getMementos(identifier).isEmpty());
+    }
+
+    @Test
+    public void testCreateNullMementos() throws Exception {
+        final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase(), idService,
+                null, new NoopEventService());
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final String inbox = "http://example.com/inbox";
+        final String annotations = "http://example.com/annotations";
+        final Dataset dataset = rdf.createDataset();
+        dataset.add(Trellis.PreferUserManaged, identifier, LDP.inbox, rdf.createIRI(inbox));
+        dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
+        final Session session1 = new SimpleSession(Trellis.AnonymousAgent);
+        assertTrue(svc2.create(identifier, session1, LDP.RDFSource, dataset, root, null).get());
+
+        meanwhile();
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("A title"));
+        assertTrue(svc2.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                    null).get());
+
+        meanwhile();
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.description, rdf.createLiteral("A description"));
+        assertTrue(svc2.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                    null).get());
+        assertTrue(svc2.getMementos(identifier).isEmpty());
+        assertTrue(svc2.get(identifier, now()).isPresent());
+        assertTrue(svc2.get(identifier, session1.getCreated()).isPresent());
+        assertTrue(svc2.get(identifier, session1.getCreated().minusSeconds(10L)).isPresent());
+    }
+
+    @Test
+    public void testCreateMementos() throws Exception {
+        final String path = getResource("mementos").getFile();
+        final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase(), idService,
+                new FileMementoService(path), new NoopEventService());
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final String inbox = "http://example.com/inbox";
+        final String annotations = "http://example.com/annotations";
+        final Dataset dataset = rdf.createDataset();
+        final Session session1 = new SimpleSession(Trellis.AnonymousAgent);
+        dataset.add(Trellis.PreferUserManaged, identifier, LDP.inbox, rdf.createIRI(inbox));
+        dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
+        assertTrue(svc2.create(identifier, session1, LDP.RDFSource, dataset, root, null).get());
+
+        meanwhile();
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("A title"));
+        assertTrue(svc2.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                    null).get());
+
+        meanwhile();
+        dataset.add(Trellis.PreferUserManaged, identifier, DC.description, rdf.createLiteral("A description"));
+        assertTrue(svc2.replace(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.RDFSource, dataset, root,
+                    null).get());
+        assertEquals(3L, svc2.getMementos(identifier).size());
+        assertTrue(svc2.get(identifier, now()).isPresent());
+        assertTrue(svc2.get(identifier, session1.getCreated()).isPresent());
+        assertFalse(svc2.get(identifier, session1.getCreated().minusSeconds(10L)).isPresent());
     }
 }
