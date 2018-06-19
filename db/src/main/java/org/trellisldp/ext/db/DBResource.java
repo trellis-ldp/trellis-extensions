@@ -283,6 +283,7 @@ public class DBResource implements Resource {
 
     /**
      * Fetch data for this resource.
+     * @return true if data was found; false otherwise
      */
     protected Boolean fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
