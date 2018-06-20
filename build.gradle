@@ -157,127 +157,135 @@ subprojects { subproj ->
         }
     }
 
-    if (subproj.name != 'trellis-db-deployment') {
-        publishing {
-            publications {
-                mavenJava(MavenPublication) {
-                    pom.packaging = 'jar'
-                    pom.withXml {
-                        def root = asNode()
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                pom.packaging = 'jar'
+                pom.withXml {
+                    def root = asNode()
 
-                        // eliminate test-scoped dependencies
-                        root.dependencies.removeAll { dep -> dep.scope == "test" }
+                    // eliminate test-scoped dependencies
+                    root.dependencies.removeAll { dep -> dep.scope == "test" }
 
-                        // add items for maven central
-                        root.children().last() + {
-                            resolveStrategy = Closure.DELEGATE_FIRST
-                            url 'https://www.trellisldp.org'
-                            inceptionYear '2017'
-                            name 'Trellis Linked Data Server: database extension'
-                            description 'A database persistence layer for the Trellis linked data server'
+                    // add items for maven central
+                    root.children().last() + {
+                        resolveStrategy = Closure.DELEGATE_FIRST
+                        url 'https://www.trellisldp.org'
+                        inceptionYear '2017'
+                        name 'Trellis Linked Data Server: database extension'
+                        description 'A database persistence layer for the Trellis linked data server'
 
-                            organization {
-                                name project.vendor
-                                url project.homepage
-                            }
+                        organization {
+                            name project.vendor
+                            url project.homepage
+                        }
 
-                            developers {
-                                developer {
-                                    id 'acoburn'
-                                    name 'Aaron Coburn'
-                                    email 'acoburn (at) apache (dot) org'
-                                    roles {
-                                        role 'developer'
-                                    }
-                                    timezone '-5'
+                        developers {
+                            developer {
+                                id 'acoburn'
+                                name 'Aaron Coburn'
+                                email 'acoburn (at) apache (dot) org'
+                                roles {
+                                    role 'developer'
                                 }
-                            }
-
-                            scm {
-                                connection 'scm:git:git://github.com/trellis-ldp/trellis-ext-db.git'
-                                developerConnection 'scm:git:git@github.com/trellis-ldp/trellis-ext-db.git'
-                                url 'https://github.com/trellis-ldp/trellis-ext-db'
-                                tag 'HEAD'
-                            }
-
-                            licenses {
-                                license {
-                                    name 'Apache License, Version 2.0'
-                                    url 'http://www.apache.org/licenses/LICENSE-2.0'
-                                    comments 'Copyright (c) 2017-2018 Trellis LDP'
-                                }
+                                timezone '-5'
                             }
                         }
 
-                        def pomFile = file("${project.buildDir}/generated-pom.xml")
-                        writeTo(pomFile)
-                        def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-                        if (pomAscFile.file) {
-                            artifact(pomAscFile) {
+                        scm {
+                            connection 'scm:git:git://github.com/trellis-ldp/trellis-ext-db.git'
+                            developerConnection 'scm:git:git@github.com/trellis-ldp/trellis-ext-db.git'
+                            url 'https://github.com/trellis-ldp/trellis-ext-db'
+                            tag 'HEAD'
+                        }
+
+                        licenses {
+                            license {
+                                name 'Apache License, Version 2.0'
+                                url 'http://www.apache.org/licenses/LICENSE-2.0'
+                                comments 'Copyright (c) 2017-2018 Trellis LDP'
+                            }
+                        }
+                    }
+
+                    def pomFile = file("${project.buildDir}/generated-pom.xml")
+                    writeTo(pomFile)
+                    def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                    if (pomAscFile.file) {
+                        artifact(pomAscFile) {
+                            classifier = null
+                            extension = 'pom.asc'
+                        }
+                    }
+                }
+
+                groupId 'org.trellisldp.ext'
+
+                from components.java
+
+                artifact(sourceJar) {
+                    classifier = 'sources'
+                }
+
+                artifact(javadocJar) {
+                    classifier = 'javadoc'
+                }
+
+                project.tasks.signArchives.signatureFiles.each {
+                    if (it.file) {
+                        artifact(it) {
+                            def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
+                            if (matcher.find()) {
+                                classifier = matcher.group(1)
+                            } else {
                                 classifier = null
-                                extension = 'pom.asc'
                             }
-                        }
-                    }
-
-                    groupId 'org.trellisldp.ext'
-
-                    from components.java
-
-                    artifact(sourceJar) {
-                        classifier = 'sources'
-                    }
-
-                    artifact(javadocJar) {
-                        classifier = 'javadoc'
-                    }
-
-                    project.tasks.signArchives.signatureFiles.each {
-                        if (it.file) {
-                            artifact(it) {
-                                def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-                                if (matcher.find()) {
-                                    classifier = matcher.group(1)
-                                } else {
-                                    classifier = null
-                                }
-                                extension = 'jar.asc'
-                            }
+                            extension = 'jar.asc'
                         }
                     }
                 }
             }
-            repositories {
-                maven {
-                    def sonatypeUsername = project.hasProperty('ossrhUsername') ? ossrhUsername : ""
-                    def sonatypePassword = project.hasProperty('ossrhPassword') ? ossrhPassword : ""
-                    if (version.endsWith("SNAPSHOT")) {
-                        url "https://oss.sonatype.org/content/repositories/snapshots/"
-                    } else {
-                        url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-                    }
-                    credentials {
-                        username sonatypeUsername
-                        password sonatypePassword
-                    }
+        }
+        repositories {
+            maven {
+                def sonatypeUsername = project.hasProperty('ossrhUsername') ? ossrhUsername : ""
+                def sonatypePassword = project.hasProperty('ossrhPassword') ? ossrhPassword : ""
+                if (version.endsWith("SNAPSHOT")) {
+                    url "https://oss.sonatype.org/content/repositories/snapshots/"
+                } else {
+                    url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                }
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
                 }
             }
         }
-
-        model {
-            tasks.generatePomFileForMavenJavaPublication {
-                destination = file("$buildDir/generated-pom.xml")
-            }
-            tasks.publishMavenJavaPublicationToMavenLocal {
-                dependsOn project.tasks.signArchives
-            }
-            tasks.publishMavenJavaPublicationToMavenRepository {
-                dependsOn project.tasks.signArchives
-            }
-        }
-        task install(dependsOn: [assemble, publishToMavenLocal])
-        task upload(dependsOn: [assemble, publish])
     }
+
+    model {
+        tasks.generatePomFileForMavenJavaPublication {
+            destination = file("$buildDir/generated-pom.xml")
+        }
+        tasks.publishMavenJavaPublicationToMavenLocal {
+            dependsOn project.tasks.signArchives
+        }
+        tasks.publishMavenJavaPublicationToMavenRepository {
+            dependsOn project.tasks.signArchives
+        }
+    }
+    tasks.withType(PublishToMavenRepository) {
+        onlyIf {
+            subproj.name != "trellis-db-deployment"
+        }
+    }
+    tasks.withType(PublishToMavenLocal) {
+        onlyIf {
+            subproj.name != "trellis-db-deployment"
+        }
+    }
+    task install(dependsOn: [assemble, publishToMavenLocal])
+    task upload(dependsOn: [assemble, publish])
 
     processResources {
         outputs.upToDateWhen { false }
