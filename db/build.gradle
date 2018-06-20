@@ -1,10 +1,10 @@
 apply plugin: 'java-library'
 apply plugin: 'osgi'
 
-description = 'Trellis JDBC extension'
+description = 'Trellis database extension'
 
 ext {
-    moduleName = 'org.trellisldp.ext.jdbc'
+    moduleName = 'org.trellisldp.ext.db'
 }
 
 dependencies {
