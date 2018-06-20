@@ -160,6 +160,7 @@ subprojects { subproj ->
         publishing {
             publications {
                 mavenJava(MavenPublication) {
+                    pom.packaging = 'jar'
                     pom.withXml {
                         def root = asNode()
 
@@ -206,13 +207,7 @@ subprojects { subproj ->
                                 }
                             }
                         }
-                    }
 
-                    groupId 'org.trellisldp.ext'
-
-                    from components.java
-
-                    pom.withXml {
                         def pomFile = file("${project.buildDir}/generated-pom.xml")
                         writeTo(pomFile)
                         def pomAscFile = signing.sign(pomFile).signatureFiles[0]
@@ -223,6 +218,10 @@ subprojects { subproj ->
                             }
                         }
                     }
+
+                    groupId 'org.trellisldp.ext'
+
+                    from components.java
 
                     artifact(sourceJar) {
                         classifier = 'sources'
@@ -275,8 +274,8 @@ subprojects { subproj ->
                 dependsOn project.tasks.signArchives
             }
         }
-        task install(dependsOn: publishToMavenLocal)
-        task upload(dependsOn: publish)
+        task install(dependsOn: [assemble, publishToMavenLocal])
+        task upload(dependsOn: [assemble, publish])
     }
 
     processResources {
@@ -287,7 +286,7 @@ subprojects { subproj ->
     }
 
     signing {
-        required { !version.endsWith("SNAPSHOT") }
+        required { !version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publish") }
         sign configurations.archives
     }
 

@@ -80,5 +80,13 @@ task copyDistTask(type: Copy) {
     into 'src/dist'
 }
 
-assembleDist.dependsOn copyDistTask
+assembleDist {
+    dependsOn copyDistTask
+    dependsOn buildRpm
+    dependsOn buildDeb
+    dependsOn signArchives
+    dependsOn signBuildRpm
+    dependsOn signBuildDeb
+}
 
+task install(dependsOn: assemble)
