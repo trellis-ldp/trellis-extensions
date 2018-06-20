@@ -90,6 +90,7 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
 
     @Override
     protected Optional<BinaryService.MultipartCapable> getMultipartUploadService() {
+        // TODO - this will be removed in v0.8.0
         return empty();
     }
 
