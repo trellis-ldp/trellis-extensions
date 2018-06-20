@@ -219,8 +219,6 @@ subprojects { subproj ->
                     }
                 }
 
-                groupId 'org.trellisldp.ext'
-
                 from components.java
 
                 artifact(sourceJar) {
@@ -233,14 +231,17 @@ subprojects { subproj ->
 
                 project.tasks.signArchives.signatureFiles.each {
                     if (it.file) {
-                        artifact(it) {
-                            def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-                            if (matcher.find()) {
+                        def matcher = it =~ /-(sources|javadoc|features|configuration)\.(jar|xml|cfg)\.asc$/
+                        if (matcher.find()) {
+                            artifact(it) {
                                 classifier = matcher.group(1)
-                            } else {
-                                classifier = null
+                                extension = matcher.group(2) + ".asc"
                             }
-                            extension = 'jar.asc'
+                        } else if (it.getPath().endsWith('.jar.asc')) {
+                            artifact(it) {
+                                classifier = null
+                                extension = "jar.asc"
+                            }
                         }
                     }
                 }
