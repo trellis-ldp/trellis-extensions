@@ -1,3 +1,4 @@
+enableFeaturePreview('STABLE_PUBLISHING')
 rootProject.name = 'trellis-ext-db'
 include ':trellis-db'
 include ':trellis-db-app'
