@@ -84,7 +84,6 @@ assembleDist {
     dependsOn copyDistTask
     dependsOn buildRpm
     dependsOn buildDeb
-    dependsOn signArchives
     dependsOn signBuildRpm
     dependsOn signBuildDeb
 }
