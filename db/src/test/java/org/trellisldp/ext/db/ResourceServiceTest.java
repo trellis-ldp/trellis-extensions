@@ -13,18 +13,16 @@
  */
 package org.trellisldp.ext.db;
 
-import static com.google.common.io.Resources.getResource;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.trellisldp.api.RDFUtils.getInstance;
 
-import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
-import org.jdbi.v3.core.Jdbi;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
@@ -32,6 +30,12 @@ import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.Session;
 import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.test.AbstractResourceServiceTests;
+
+import liquibase.Contexts;
+import liquibase.Liquibase;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
 
 /**
  * ResourceService tests.
@@ -48,10 +52,17 @@ public class ResourceServiceTest extends AbstractResourceServiceTests {
             pg = EmbeddedPostgres.builder()
                 .setDataDirectory("./build/pgdata-" + new RandomStringGenerator.Builder()
                 .withinRange('a', 'z').build().generate(10)).start();
-            // SET UP DATABASE
-            Jdbi.create(pg.getPostgresDatabase()).useHandle(handle ->
-                handle.execute(Resources.toString(getResource("create.pgsql"), UTF_8)));
-        } catch (final IOException ex) {
+
+            // Set up database migrations
+            try (final Connection c = pg.getPostgresDatabase().getConnection()) {
+                final Liquibase liquibase = new Liquibase("migrations.yml",
+                        new ClassLoaderResourceAccessor(),
+                        new JdbcConnection(c));
+                final Contexts ctx = null;
+                liquibase.update(ctx);
+            }
+
+        } catch (final IOException | SQLException | LiquibaseException ex) {
 
         }
     }

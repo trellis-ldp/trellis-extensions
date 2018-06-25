@@ -80,7 +80,8 @@ public class DBResourceTest {
             pg = EmbeddedPostgres.builder()
                 .setDataDirectory("./build/pgdata-" + new RandomStringGenerator.Builder()
                 .withinRange('a', 'z').build().generate(10)).start();
-            // SET UP DATABASE
+
+            // Set up database migrations
             try (final Connection c = pg.getPostgresDatabase().getConnection()) {
                 final Liquibase liquibase = new Liquibase("migrations.yml",
                         new ClassLoaderResourceAccessor(),
@@ -88,9 +89,6 @@ public class DBResourceTest {
                 final Contexts ctx = null;
                 liquibase.update(ctx);
             }
-
-            //Jdbi.create(pg.getPostgresDatabase()).useHandle(handle ->
-                //handle.execute(Resources.toString(getResource("create.pgsql"), UTF_8)));
 
             svc = new DBResourceService(pg.getPostgresDatabase(), idService,
                 new NoopMementoService(), new NoopEventService());
