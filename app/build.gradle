@@ -47,6 +47,7 @@ dependencies {
     runtime("javax.activation:activation:$activationVersion")
     runtime("org.yaml:snakeyaml:$snakeyamlVersion")
 
+    testCompile("com.h2database:h2:$h2Version")
     testCompile("ch.qos.logback:logback-classic:$logbackVersion")
     testCompile("com.google.guava:guava:$guavaVersion")
     testCompile("com.opentable.components:otj-pg-embedded:$otjPgVersion")

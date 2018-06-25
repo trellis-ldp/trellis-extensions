@@ -36,6 +36,7 @@ ext {
     checkstyleVersion = '8.10'
     commonsTextVersion = '1.4'
     guavaVersion = '25.1-jre'
+    h2Version = '1.4.197'
     jaxbVersion = '2.3.0'
     jacocoVersion = '0.8.1'
     junitPlatformVersion = '1.2.0'
