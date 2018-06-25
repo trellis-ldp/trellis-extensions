@@ -20,7 +20,10 @@ import static java.util.concurrent.TimeUnit.HOURS;
 
 import com.google.common.cache.Cache;
 
+import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.jdbi3.JdbiFactory;
+import io.dropwizard.migrations.MigrationsBundle;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import java.util.Optional;
@@ -92,6 +95,20 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
     protected Optional<BinaryService.MultipartCapable> getMultipartUploadService() {
         // TODO - this will be removed in v0.8.0
         return empty();
+    }
+
+    @Override
+    public void initialize(final Bootstrap<AppConfiguration> bootstrap) {
+        bootstrap.addBundle(new MigrationsBundle<AppConfiguration>() {
+            @Override
+            public DataSourceFactory getDataSourceFactory(final AppConfiguration config) {
+                return config.getDataSourceFactory();
+            }
+            @Override
+            public String getMigrationsFileName() {
+                return "migrations.yml";
+            }
+        });
     }
 
     @Override

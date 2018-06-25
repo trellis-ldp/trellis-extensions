@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS metadata (
     id VARCHAR(1024) NOT NULL PRIMARY KEY,
-    interactionModel VARCHAR(255) NOT NULL,
+    interaction_model VARCHAR(255) NOT NULL,
     modified BIGINT NOT NULL,
-    isPartOf VARCHAR(1024),
-    isDeleted BOOLEAN default FALSE,
-    hasAcl BOOLEAN default FALSE
+    is_part_of VARCHAR(1024),
+    deleted BOOLEAN default FALSE,
+    acl BOOLEAN default FALSE
 );
 
 CREATE TABLE IF NOT EXISTS resource (
@@ -43,10 +43,10 @@ CREATE INDEX IF NOT EXISTS acl_idx ON acl (id);
 CREATE TABLE IF NOT EXISTS ldp (
     id VARCHAR(1024) NOT NULL PRIMARY KEY,
     member VARCHAR(1024) NOT NULL,
-    membershipResource VARCHAR(1024) NOT NULL,
-    hasMemberRelation VARCHAR(255),
-    isMemberOfRelation VARCHAR(255),
-    insertedContentRelation VARCHAR(255) default 'http://www.w3.org/ns/ldp#MemberSubject'
+    membership_resource VARCHAR(1024) NOT NULL,
+    has_member_relation VARCHAR(255),
+    is_member_of_relation VARCHAR(255),
+    inserted_content_relation VARCHAR(255) default 'http://www.w3.org/ns/ldp#MemberSubject'
 );
 
 CREATE INDEX IF NOT EXISTS ldp_idx ON ldp (member);
@@ -66,4 +66,14 @@ CREATE TABLE IF NOT EXISTS nonrdf (
     format VARCHAR(255),
     size BIGINT
 );
+
+INSERT INTO metadata (id, interaction_model, modified, acl)
+    VALUES ('trellis:data/', 'http://www.w3.org/ns/ldp#BasicContainer', 0, TRUE);
+
+INSERT INTO acl (id, subject, predicate, object)
+    VALUES ('trellis:data/', 'trellis:data/#auth', 'http://www.w3.org/ns/auth/acl#mode', 'http://www.w3.org/ns/auth/acl#Read'),
+        ('trellis:data/', 'trellis:data/#auth', 'http://www.w3.org/ns/auth/acl#mode', 'http://www.w3.org/ns/auth/acl#Write'),
+        ('trellis:data/', 'trellis:data/#auth', 'http://www.w3.org/ns/auth/acl#mode', 'http://www.w3.org/ns/auth/acl#Control'),
+        ('trellis:data/', 'trellis:data/#auth', 'http://www.w3.org/ns/auth/acl#agentClass', 'http://xmlns.com/foaf/0.1/Agent'),
+        ('trellis:data/', 'trellis:data/#auth', 'http://www.w3.org/ns/auth/acl#accessTo', 'trellis:data/');
 

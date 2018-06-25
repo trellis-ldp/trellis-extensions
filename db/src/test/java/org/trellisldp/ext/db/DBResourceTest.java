@@ -14,7 +14,6 @@
 package org.trellisldp.ext.db;
 
 import static com.google.common.io.Resources.getResource;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,10 +25,11 @@ import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.meanwhile;
 import static org.trellisldp.vocabulary.RDF.type;
 
-import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -37,7 +37,6 @@ import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
-import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.Test;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.IdentifierService;
@@ -53,6 +52,13 @@ import org.trellisldp.vocabulary.FOAF;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
 import org.trellisldp.vocabulary.Trellis;
+
+import liquibase.Contexts;
+import liquibase.Liquibase;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
+
 
 /**
  * ResourceService tests.
@@ -75,13 +81,21 @@ public class DBResourceTest {
                 .setDataDirectory("./build/pgdata-" + new RandomStringGenerator.Builder()
                 .withinRange('a', 'z').build().generate(10)).start();
             // SET UP DATABASE
-            Jdbi.create(pg.getPostgresDatabase()).useHandle(handle ->
-                handle.execute(Resources.toString(getResource("create.pgsql"), UTF_8)));
+            try (final Connection c = pg.getPostgresDatabase().getConnection()) {
+                final Liquibase liquibase = new Liquibase("migrations.yml",
+                        new ClassLoaderResourceAccessor(),
+                        new JdbcConnection(c));
+                final Contexts ctx = null;
+                liquibase.update(ctx);
+            }
+
+            //Jdbi.create(pg.getPostgresDatabase()).useHandle(handle ->
+                //handle.execute(Resources.toString(getResource("create.pgsql"), UTF_8)));
 
             svc = new DBResourceService(pg.getPostgresDatabase(), idService,
                 new NoopMementoService(), new NoopEventService());
 
-        } catch (final IOException ex) {
+        } catch (final IOException | SQLException | LiquibaseException ex) {
 
         }
     }

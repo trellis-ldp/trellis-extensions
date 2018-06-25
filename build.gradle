@@ -23,7 +23,8 @@ ext {
     slf4jVersion = '1.7.25'
     activeMqVersion = '5.15.4'
     jmsApiVersion = '2.0.1'
-    dropwizardVersion = '1.3.4'
+    dropwizardVersion = '1.3.5'
+    snakeyamlVersion = '1.21'
 
     /* Databases */
     mysqlVersion = '8.0.11'
@@ -39,6 +40,7 @@ ext {
     jacocoVersion = '0.8.1'
     junitPlatformVersion = '1.2.0'
     junitVersion = '5.2.0'
+    liquibaseVersion = '3.6.1'
     logbackVersion = '1.2.3'
     mockitoVersion = '2.19.0'
     otjPgVersion = '0.12.0'

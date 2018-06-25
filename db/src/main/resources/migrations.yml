@@ -1,0 +1,267 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1
+        author: acoburn
+        changes:
+            - createTable:
+                tableName: acl
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: subject
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: predicate
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: object
+                        type: VARCHAR(16383)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: lang
+                        type: VARCHAR(20)
+                    - column:
+                        name: datatype
+                        type: VARCHAR(255)
+            - createIndex:
+                indexName: idx_acl
+                tableName: acl
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                unique: false
+            - createTable:
+                tableName: extra
+                columns:
+                    - column:
+                        name: subject
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: predicate
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: object
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+            - createIndex:
+                indexName: idx_extra
+                tableName: extra
+                columns:
+                    - column:
+                        name: subject
+                        type: VARCHAR(1024)
+                unique: false
+            - createTable:
+                tableName: ldp
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: member
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: membership_resource
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: has_member_relation
+                        type: VARCHAR(1024)
+                    - column:
+                        name: is_member_of_relation
+                        type: VARCHAR(1024)
+                    - column:
+                        name: inserted_content_relation
+                        type: VARCHAR(1024)
+                        defaultValue: "http://www.w3.org/ns/ldp#MemberSubject"
+            - createIndex:
+                indexName: idx_ldp
+                tableName: ldp
+                columns:
+                    - column:
+                        name: member
+                        type: VARCHAR(1024)
+                unique: false
+            - createTable:
+                tableName: log
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: subject
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: predicate
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: object
+                        type: VARCHAR(16383)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: lang
+                        type: VARCHAR(20)
+                    - column:
+                        name: datatype
+                        type: VARCHAR(255)
+            - createIndex:
+                indexName: idx_log
+                tableName: log
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                unique: false
+            - createTable:
+                tableName: metadata
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: interaction_model
+                        type: VARCHAR(255)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: modified
+                        type: BIGINT
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: is_part_of
+                        type: VARCHAR(1024)
+                    - column:
+                        name: deleted
+                        type: BOOLEAN
+                        defaultValue: FALSE
+                    - column:
+                        name: acl
+                        type: BOOLEAN
+                        defaultValue: FALSE
+            - createTable:
+                tableName: nonrdf
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: location
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: modified
+                        type: BIGINT
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: format
+                        type: VARCHAR(255)
+                    - column:
+                        name: size
+                        type: BIGINT
+            - createTable:
+                tableName: resource
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: subject
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: predicate
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: object
+                        type: VARCHAR(16383)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: lang
+                        type: VARCHAR(20)
+                    - column:
+                        name: datatype
+                        type: VARCHAR(255)
+            - createIndex:
+                indexName: idx_resource
+                tableName: resource
+                columns:
+                    - column:
+                        name: id
+                        type: VARCHAR(1024)
+                unique: false
+            - loadData:
+                tableName: metadata
+                columns:
+                    - column:
+                        name: id
+                        type: STRING
+                    - column:
+                        name: interaction_model
+                        type: STRING
+                    - column:
+                        name: modified
+                        type: NUMERIC
+                    - column:
+                        name: acl
+                        type: BOOLEAN
+                file: org/trellisldp/ext/db/initial_metadata.csv
+            - loadData:
+                tableName: acl
+                columns:
+                    - column:
+                        name: id
+                        type: STRING
+                    - column:
+                        name: subject
+                        type: STRING
+                    - column:
+                        name: predicate
+                        type: STRING
+                    - column:
+                        name: object
+                        type: STRING
+                file: org/trellisldp/ext/db/initial_acl.csv
+

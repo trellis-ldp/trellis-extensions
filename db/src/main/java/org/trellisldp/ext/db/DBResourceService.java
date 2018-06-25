@@ -13,7 +13,6 @@
  */
 package org.trellisldp.ext.db;
 
-import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableSet;
@@ -25,7 +24,6 @@ import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toSet;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.TRELLIS_SESSION_BASE_URL;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.ext.db.DBUtils.getBaseIRI;
@@ -77,10 +75,8 @@ import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.api.Session;
 import org.trellisldp.audit.DefaultAuditService;
-import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.DC;
-import org.trellisldp.vocabulary.FOAF;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
 import org.trellisldp.vocabulary.PROV;
@@ -145,7 +141,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         this.mementoService = ofNullable(mementoService);
         this.supportedIxnModels = unmodifiableSet(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource, LDP.Container,
                 LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer).stream().collect(toSet()));
-        init();
     }
 
     @Override
@@ -185,10 +180,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public Stream<Triple> scan() {
-        final String query = "SELECT id, interactionModel FROM metadata";
+        final String query = "SELECT id, interaction_model FROM metadata";
         return jdbi.withHandle(handle -> handle.createQuery(query).map((rs, ctx) ->
                     rdf.createTriple(rdf.createIRI(rs.getString("id")), type,
-                        rdf.createIRI(rs.getString("interactionModel")))).stream());
+                        rdf.createIRI(rs.getString("interaction_model")))).stream());
     }
 
     @Override
@@ -248,31 +243,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         return supportedIxnModels;
     }
 
-    private void init() {
-        jdbi.useTransaction(handle -> {
-            if (handle.select("SELECT COUNT(*) FROM metadata").mapTo(Long.class).findOnly() == 0) {
-                final String auth = TRELLIS_DATA_PREFIX + "#auth";
-                handle.execute("INSERT INTO metadata "
-                        + "(id, interactionModel, modified, isPartOf, isDeleted, hasAcl) VALUES (?, ?, ?, ?, ?, ?)",
-                    TRELLIS_DATA_PREFIX, LDP.BasicContainer.getIRIString(), now().toEpochMilli(), null, false, true);
-
-                final PreparedBatch batch = handle.prepareBatch(
-                    "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, NULL, NULL)");
-                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                     .bind(3, ACL.Read.getIRIString()).add();
-                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                     .bind(3, ACL.Write.getIRIString()).add();
-                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.mode.getIRIString())
-                     .bind(3, ACL.Control.getIRIString()).add();
-                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.agentClass.getIRIString())
-                     .bind(3, FOAF.Agent.getIRIString()).add();
-                batch.bind(0, TRELLIS_DATA_PREFIX).bind(1, auth).bind(2, ACL.accessTo.getIRIString())
-                     .bind(3, TRELLIS_DATA_PREFIX).add();
-                batch.execute();
-            }
-        });
-    }
-
     private Boolean createOrReplace(final IRI identifier, final Session session, final IRI ixnModel,
                     final Dataset dataset, final OperationType opType, final IRI container, final Binary binary) {
 
@@ -318,12 +288,12 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private static void updateMetadata(final Handle handle, final IRI identifier, final IRI ixnModel,
-            final Session session, final Boolean isDelete, final Boolean hasAcl, final String container) {
+            final Session session, final Boolean isDelete, final Boolean acl, final String container) {
         handle.execute("DELETE FROM metadata WHERE id = ?", identifier.getIRIString());
         handle.execute("INSERT INTO metadata "
-                + "(id, interactionModel, modified, isPartOf, isDeleted, hasAcl) VALUES (?, ?, ?, ?, ?, ?)",
+                + "(id, interaction_model, modified, is_part_of, deleted, acl) VALUES (?, ?, ?, ?, ?, ?)",
                 identifier.getIRIString(), ixnModel.getIRIString(), session.getCreated().toEpochMilli(),
-                container, isDelete, hasAcl);
+                container, isDelete, acl);
     }
 
     private static void updateNonRdf(final Handle handle, final IRI identifier, final Binary binary) {
@@ -409,8 +379,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final Dataset dataset) {
         handle.execute("DELETE FROM ldp WHERE id = ?", identifier.getIRIString());
         if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
-            handle.execute("INSERT INTO ldp (id, member, membershipResource, hasMemberRelation, " +
-                    "isMemberOfRelation, insertedContentRelation) VALUES (?, ?, ?, ?, ?, ?)",
+            handle.execute("INSERT INTO ldp (id, member, membership_resource, has_member_relation, " +
+                    "is_member_of_relation, inserted_content_relation) VALUES (?, ?, ?, ?, ?, ?)",
                     identifier.getIRIString(),
                     dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
                         .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null),
@@ -431,7 +401,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
         if (parentModel.equals(LDP.IndirectContainer.getIRIString())
                 && handle.execute(UPDATE_METADATA_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
-            return handle.select("SELECT interactionModel FROM metadata "
+            return handle.select("SELECT interaction_model FROM metadata "
                     + "WHERE id = ?", member).mapTo(String.class).findFirst().map(rdf::createIRI)
                 .map(type -> new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
                                         asList(session.getAgent()), asList(PROV.Activity, AS.Update),
@@ -455,7 +425,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
                 || parentModel.equals(LDP.DirectContainer.getIRIString()))
                 && handle.execute(UPDATE_METADATA_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
-            final List<IRI> types = handle.select("SELECT interactionModel FROM metadata "
+            final List<IRI> types = handle.select("SELECT interaction_model FROM metadata "
                     + "WHERE id = ?", member).mapTo(String.class).findFirst()
                 .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
             builder.accept(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
@@ -469,10 +439,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     private List<Event> updateAdjacentResources(final Handle handle, final IRI identifier, final String parent,
             final Session session, final OperationType opType) {
         final List<Event> events = new ArrayList<>();
-        handle.select("SELECT m.interactionModel, l.member "
+        handle.select("SELECT m.interaction_model, l.member "
                     + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
                     + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
-                final String parentModel = (String) results.getOrDefault("interactionmodel", "");
+                final String parentModel = (String) results.getOrDefault("interaction_model", "");
                 final String member = (String) results.get(MEMBER);
                 if (!identifier.getIRIString().equals(member)) {
                     if (OperationType.REPLACE == opType) {

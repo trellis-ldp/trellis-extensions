@@ -49,21 +49,21 @@ class ResourceData {
     private Map<String, String> extra;
 
     public ResourceData(final ResultSet rs, final Map<String, String> extra) throws SQLException {
-        this.interactionModel = rs.getString("interactionModel");
+        this.interactionModel = rs.getString("interaction_model");
         this.modified = rs.getLong("modified");
-        this.isPartOf = rs.getString("isPartOf");
-        this.resourceHasAcl = rs.getBoolean("hasAcl");
-        this.resourceIsDeleted = rs.getBoolean("isDeleted");
+        this.isPartOf = rs.getString("is_part_of");
+        this.resourceHasAcl = rs.getBoolean("acl");
+        this.resourceIsDeleted = rs.getBoolean("deleted");
 
-        this.membershipResource = rs.getString("membershipResource");
-        this.hasMemberRelation = rs.getString("hasMemberRelation");
-        this.isMemberOfRelation = rs.getString("isMemberOfRelation");
-        this.insertedContentRelation = rs.getString("insertedContentRelation");
+        this.membershipResource = rs.getString("membership_resource");
+        this.hasMemberRelation = rs.getString("has_member_relation");
+        this.isMemberOfRelation = rs.getString("is_member_of_relation");
+        this.insertedContentRelation = rs.getString("inserted_content_relation");
 
         this.extra = extra;
 
         this.binary = DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("location"),
-                rs.getLong("binaryModified"), rs.getString("format"), rs.getLong("size")).orElse(null);
+                rs.getLong("binary_modified"), rs.getString("format"), rs.getLong("size")).orElse(null);
     }
 
     public IRI getInteractionModel() {
@@ -71,7 +71,7 @@ class ResourceData {
     }
 
     public Instant getModified() {
-        return ofNullable(modified).map(Instant::ofEpochMilli).orElse(null);
+        return ofNullable(modified).filter(x -> x > 0).map(Instant::ofEpochMilli).orElseGet(Instant::now);
     }
 
     public Optional<IRI> getIsPartOf() {

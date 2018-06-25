@@ -16,7 +16,6 @@ package org.trellisldp.ext.db;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -61,9 +60,9 @@ public class DBResource implements Resource {
     private static final String DATATYPE = "datatype";
     private static final String SUBJECT = "subject";
     private static final String PREDICATE = "predicate";
-    private static final String MEMBERSHIP_RESOURCE = "membershipResource";
-    private static final String HAS_MEMBER_RELATION = "hasMemberRelation";
-    private static final String IS_MEMBER_OF_RELATION = "isMemberOfRelation";
+    private static final String MEMBERSHIP_RESOURCE = "membership_resource";
+    private static final String HAS_MEMBER_RELATION = "has_member_relation";
+    private static final String IS_MEMBER_OF_RELATION = "is_member_of_relation";
 
     private final IRI identifier;
     private final Jdbi jdbi;
@@ -182,7 +181,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchServerQuads() {
         final Stream.Builder<Quad> builder = builder();
         builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
-        ofNullable(getModified()).map(m -> rdf.createLiteral(m.toString(), XSD.dateTime)).ifPresent(modified ->
+        of(getModified()).map(m -> rdf.createLiteral(m.toString(), XSD.dateTime)).ifPresent(modified ->
                 builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.modified, modified)));
         data.getIsPartOf().ifPresent(parent ->
                 builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.isPartOf, parent)));
@@ -215,11 +214,11 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
-            = "SELECT l.membershipResource, l.hasMemberRelation, r.object, r.lang, r.datatype "
-            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.isPartOf "
+            = "SELECT l.membership_resource, l.has_member_relation, r.object, r.lang, r.datatype "
+            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.is_part_of "
             + "INNER JOIN metadata AS m2 ON l.id = m2.id "
-            + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.insertedContentRelation "
-            + "WHERE l.member = ? AND m2.interactionModel = ? AND l.hasMemberRelation IS NOT NULL";
+            + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.inserted_content_relation "
+            + "WHERE l.member = ? AND m2.interaction_model = ? AND l.has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
@@ -232,9 +231,9 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
-            = "SELECT l.isMemberOfRelation, l.membershipResource FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.isPartOf "
-            + "WHERE m.id = ? AND l.insertedContentRelation = ? AND l.isMemberOfRelation IS NOT NULL";
+            = "SELECT l.is_member_of_relation, l.membership_resource FROM ldp AS l "
+            + "INNER JOIN metadata AS m ON l.id = m.is_part_of "
+            + "WHERE m.id = ? AND l.inserted_content_relation = ? AND l.is_member_of_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
@@ -246,9 +245,9 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
-            = "SELECT l.membershipResource, l.hasMemberRelation, m.id FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.isPartOf "
-            + "WHERE l.member = ? AND l.insertedContentRelation = ? AND l.hasMemberRelation IS NOT NULL";
+            = "SELECT l.membership_resource, l.has_member_relation, m.id FROM ldp AS l "
+            + "INNER JOIN metadata AS m ON l.id = m.is_part_of "
+            + "WHERE l.member = ? AND l.inserted_content_relation = ? AND l.has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
@@ -261,7 +260,7 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
-            final String query = "SELECT id FROM metadata where isPartOf = ?";
+            final String query = "SELECT id FROM metadata where is_part_of = ?";
             return jdbi.withHandle(handle -> handle.select(query,
                         getIdentifier().getIRIString())
                     .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment, getIdentifier(),
@@ -295,9 +294,9 @@ public class DBResource implements Resource {
                       .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
 
         final String query
-            = "SELECT m.interactionModel, m.modified, m.isPartOf, m.isDeleted, m.hasAcl, "
-            + "l.membershipResource, l.hasMemberRelation, l.isMemberOfRelation, l.insertedContentRelation, "
-            + "nr.location, nr.modified AS binaryModified, nr.format, nr.size "
+            = "SELECT m.interaction_model, m.modified, m.is_part_of, m.deleted, m.acl, "
+            + "l.membership_resource, l.has_member_relation, l.is_member_of_relation, l.inserted_content_relation, "
+            + "nr.location, nr.modified AS binary_modified, nr.format, nr.size "
             + "FROM metadata AS m "
             + "LEFT JOIN ldp AS l ON m.id = l.id "
             + "LEFT JOIN nonrdf AS nr ON m.id = nr.id "

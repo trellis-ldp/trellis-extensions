@@ -15,13 +15,11 @@ package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import io.dropwizard.client.JerseyClientBuilder;
@@ -32,7 +30,6 @@ import java.io.IOException;
 import javax.ws.rs.client.Client;
 
 import org.apache.commons.text.RandomStringGenerator;
-import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.AfterAll;
 import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationAuthTests;
@@ -56,9 +53,6 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
             pg = EmbeddedPostgres.builder()
                 .setDataDirectory(resourceFilePath("data") + "/pgdata-" + new RandomStringGenerator.Builder()
                 .withinRange('a', 'z').build().generate(10)).start();
-            // SET UP DATABASE
-            Jdbi.create(pg.getPostgresDatabase()).useHandle(handle ->
-                handle.execute(Resources.toString(Resources.getResource("create.pgsql"), UTF_8)));
 
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
@@ -69,12 +63,13 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
                         config("namespaces", resourceFilePath("data/namespaces.json")));
 
             APP.before();
+            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
 
             CLIENT = new JerseyClientBuilder(APP.getEnvironment()).build("test client");
             CLIENT.property(CONNECT_TIMEOUT, 5000);
             CLIENT.property(READ_TIMEOUT, 5000);
 
-        } catch (final IOException ex) {
+        } catch (final Exception ex) {
             LOGGER.error("Error initializing Trellis", ex);
             fail(ex.getMessage());
         }

@@ -10,9 +10,10 @@ ext {
 dependencies {
     compile("io.dropwizard:dropwizard-auth:$dropwizardVersion")
     compile("io.dropwizard:dropwizard-core:$dropwizardVersion")
-    compile("io.dropwizard:dropwizard-metrics:$dropwizardVersion")
     compile("io.dropwizard:dropwizard-http2:$dropwizardVersion")
     compile("io.dropwizard:dropwizard-jdbi3:$dropwizardVersion")
+    compile("io.dropwizard:dropwizard-metrics:$dropwizardVersion")
+    compile("io.dropwizard:dropwizard-migrations:$dropwizardVersion")
     compile("javax.jms:javax.jms-api:$jmsApiVersion")
     compile("org.apache.activemq:activemq-client:$activeMqVersion")
     compile("org.apache.commons:commons-rdf-jena:$commonsRdfVersion")
@@ -44,6 +45,7 @@ dependencies {
 
     runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
     runtime("javax.activation:activation:$activationVersion")
+    runtime("org.yaml:snakeyaml:$snakeyamlVersion")
 
     testCompile("ch.qos.logback:logback-classic:$logbackVersion")
     testCompile("com.google.guava:guava:$guavaVersion")

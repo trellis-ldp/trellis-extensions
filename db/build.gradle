@@ -28,6 +28,9 @@ dependencies {
     testImplementation("org.trellisldp:trellis-id:$trellisVersion")
     testImplementation("org.trellisldp:trellis-test:$trellisVersion")
     testImplementation("com.google.guava:guava:$guavaVersion")
+    testImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
+    testImplementation("org.yaml:snakeyaml:$snakeyamlVersion")
+
 }
 
 jar {

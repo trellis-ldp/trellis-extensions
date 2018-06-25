@@ -26,7 +26,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.readEntityAsGraph;
 
-import com.google.common.io.Resources;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import io.dropwizard.client.JerseyClientBuilder;
@@ -52,7 +51,6 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
-import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,9 +83,6 @@ public class TrellisEventTest extends AbstractApplicationEventTests implements M
             pg = EmbeddedPostgres.builder()
                 .setDataDirectory(resourceFilePath("data") + "/pgdata-" + new RandomStringGenerator.Builder()
                 .withinRange('a', 'z').build().generate(10)).start();
-            // SET UP DATABASE
-            Jdbi.create(pg.getPostgresDatabase()).useHandle(handle ->
-                handle.execute(Resources.toString(Resources.getResource("create.pgsql"), UTF_8)));
 
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
@@ -99,6 +94,7 @@ public class TrellisEventTest extends AbstractApplicationEventTests implements M
                         config("namespaces", resourceFilePath("data/namespaces.json")));
 
             APP.before();
+            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
 
             CLIENT = new JerseyClientBuilder(APP.getEnvironment()).build("test client");
             CLIENT.property(CONNECT_TIMEOUT, 5000);
