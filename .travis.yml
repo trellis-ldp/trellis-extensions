@@ -9,6 +9,15 @@ addons:
     token:
       secure: "HeVW/tPm3fd6qrPXsabHf5lInRQdF9zRzVZJdtsFJyLQ2XOcpXhDH9d+hGYvzrbP8lJNqGih0setCoIm4TBn79/YR/ONuuHDFoYE9SrB/mimVkZYQ6VX4HRcaY3lzn8jzupS8Tph4vvLZa3Evs6QXFr/R+mcH7H7EDd5Ns/AE1omveK24nTYShgzO1KYshspmFXPD4MNL1ol67bqMAft9IkmRouzPPu/Fc/8mev67FEz1GVApzdwxSidpYC8yzXDzzNv8vS0NuTQlPJXG4YopK76o9xhDZerxurhe53Q/gA/wyTXk4sPGnKirNBSJwHIj6tz4aapnKaW3/YDoiXa+IXyLxkqr6qJOnjU3a7y27idHpYIHgFuh1w5zzgCsixy16fg7ci7FTFWpN0kOAqGaT5eATKT/qTvBDQrZovBmmA/01Nqum/zAqRlB1UNP5mV5M2HgQw7UkGtA2NfSL4QqPwiGHoyHJVP5j7CagtgP5CHayRQvmFGpOJTBcTAEKXKxyqOBMpGGwqTuQgIkqWjrlr0A0/UqFha/2GjcTyiKfkUa4GMhsltcP7+SQA9vbR/NaN/v6WwZSyGN5HYT5DpnZlsuDOfd/svdXwrSVmT7ChaGh8pfmn4W6aMeIBlWulI94svMEb332g53Q84whjxVBn/+36dy19+C+jNs3expUo="
 
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -rf $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
 matrix:
   fast_finish: true
 
