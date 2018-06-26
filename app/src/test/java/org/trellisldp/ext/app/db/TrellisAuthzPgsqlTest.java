@@ -19,10 +19,7 @@ import static java.io.File.separator;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
-
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
@@ -31,35 +28,32 @@ import java.io.IOException;
 
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationAuditTests;
+import org.trellisldp.test.AbstractApplicationAuthTests;
 
 /**
- * Audit tests.
+ * Authorization tests.
  */
-@DisabledOnOs(WINDOWS)
-public class TrellisAuditTest extends AbstractApplicationAuditTests {
+@EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
+public class TrellisAuthzPgsqlTest extends AbstractApplicationAuthTests {
 
-    private static final Logger LOGGER = getLogger(TrellisAuditTest.class);
-
-    private static EmbeddedPostgres pg = null;
+    private static Logger LOGGER = getLogger(TrellisAuthzPgsqlTest.class);
 
     private static DropwizardTestSupport<AppConfiguration> APP;
 
     private static Client CLIENT;
 
     static {
-        try {
-            pg = EmbeddedPostgres.builder()
-                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
-                        .Builder().withinRange('a', 'z').build().generate(10)).start();
 
+        try {
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres"),
+                        config("database.url", "jdbc:postgresql://localhost/trellis"),
+                        config("database.user", "postgres"),
+                        config("database.password", ""),
+                        config("auth.basic.usersFile", resourceFilePath("users.auth")),
                         config("binaries", resourceFilePath("data") + separator + "binaries"),
                         config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
@@ -78,11 +72,6 @@ public class TrellisAuditTest extends AbstractApplicationAuditTests {
     }
 
     @Override
-    public String getJwtSecret() {
-        return "secret";
-    }
-
-    @Override
     public Client getClient() {
         return CLIENT;
     }
@@ -92,9 +81,23 @@ public class TrellisAuditTest extends AbstractApplicationAuditTests {
         return "http://localhost:" + APP.getLocalPort() + "/";
     }
 
+    @Override
+    public String getUser1Credentials() {
+        return "acoburn:secret";
+    }
+
+    @Override
+    public String getUser2Credentials() {
+        return "user:password";
+    }
+
+    @Override
+    public String getJwtSecret() {
+        return "secret";
+    }
+
     @AfterAll
     public static void cleanup() throws IOException {
         APP.after();
-        pg.close();
     }
 }

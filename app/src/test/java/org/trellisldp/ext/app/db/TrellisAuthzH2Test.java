@@ -16,52 +16,43 @@ package org.trellisldp.ext.app.db;
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static java.io.File.separator;
-import static java.util.Collections.singleton;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
-
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
-import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationLdpTests;
+import org.trellisldp.test.AbstractApplicationAuthTests;
 
 /**
- * Run LDP-Related Tests.
+ * Authorization tests.
  */
-@DisabledOnOs(WINDOWS)
-public class TrellisLdpTest extends AbstractApplicationLdpTests {
+public class TrellisAuthzH2Test extends AbstractApplicationAuthTests {
 
-    private static final Logger LOGGER = getLogger(TrellisLdpTest.class);
-
-    private static EmbeddedPostgres pg = null;
+    private static Logger LOGGER = getLogger(TrellisAuthzH2Test.class);
 
     private static DropwizardTestSupport<AppConfiguration> APP;
 
     private static Client CLIENT;
 
     static {
-        try {
-            pg = EmbeddedPostgres.builder()
-                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
-                        .Builder().withinRange('a', 'z').build().generate(10)).start();
 
+        try {
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres"),
+                        config("database.url", "jdbc:h2:file:./build/data/h2-"
+                             + new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(10)),
+                        config("database.driverClass", "org.h2.Driver"),
+                        config("auth.basic.usersFile", resourceFilePath("users.auth")),
                         config("binaries", resourceFilePath("data") + separator + "binaries"),
                         config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
@@ -90,13 +81,22 @@ public class TrellisLdpTest extends AbstractApplicationLdpTests {
     }
 
     @Override
-    public Set<String> supportedJsonLdProfiles() {
-        return singleton("http://www.w3.org/ns/anno.jsonld");
+    public String getUser1Credentials() {
+        return "acoburn:secret";
+    }
+
+    @Override
+    public String getUser2Credentials() {
+        return "user:password";
+    }
+
+    @Override
+    public String getJwtSecret() {
+        return "secret";
     }
 
     @AfterAll
     public static void cleanup() throws IOException {
         APP.after();
-        pg.close();
     }
 }

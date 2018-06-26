@@ -56,6 +56,7 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationEventTests;
@@ -64,9 +65,10 @@ import org.trellisldp.test.AbstractApplicationEventTests;
  * Event tests.
  */
 @DisabledOnOs(WINDOWS)
-public class TrellisEventTest extends AbstractApplicationEventTests implements MessageListener {
+@DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
+public class TrellisEventEmbeddedPgsqlTest extends AbstractApplicationEventTests implements MessageListener {
 
-    private static final Logger LOGGER = getLogger(TrellisEventTest.class);
+    private static final Logger LOGGER = getLogger(TrellisEventEmbeddedPgsqlTest.class);
 
     private static EmbeddedPostgres pg = null;
 

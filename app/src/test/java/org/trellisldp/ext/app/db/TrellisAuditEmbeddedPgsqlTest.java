@@ -33,17 +33,19 @@ import javax.ws.rs.client.Client;
 
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationAuthTests;
+import org.trellisldp.test.AbstractApplicationAuditTests;
 
 /**
- * Authorization tests.
+ * Audit tests.
  */
 @DisabledOnOs(WINDOWS)
-public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
+@DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
+public class TrellisAuditEmbeddedPgsqlTest extends AbstractApplicationAuditTests {
 
-    private static Logger LOGGER = getLogger(TrellisAuthorizationTest.class);
+    private static final Logger LOGGER = getLogger(TrellisAuditEmbeddedPgsqlTest.class);
 
     private static EmbeddedPostgres pg = null;
 
@@ -52,7 +54,6 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
     private static Client CLIENT;
 
     static {
-
         try {
             pg = EmbeddedPostgres.builder()
                 .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
@@ -61,7 +62,6 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
                         config("database.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres"),
-                        config("auth.basic.usersFile", resourceFilePath("users.auth")),
                         config("binaries", resourceFilePath("data") + separator + "binaries"),
                         config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
@@ -80,6 +80,11 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
     }
 
     @Override
+    public String getJwtSecret() {
+        return "secret";
+    }
+
+    @Override
     public Client getClient() {
         return CLIENT;
     }
@@ -87,21 +92,6 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
     @Override
     public String getBaseURL() {
         return "http://localhost:" + APP.getLocalPort() + "/";
-    }
-
-    @Override
-    public String getUser1Credentials() {
-        return "acoburn:secret";
-    }
-
-    @Override
-    public String getUser2Credentials() {
-        return "user:password";
-    }
-
-    @Override
-    public String getJwtSecret() {
-        return "secret";
     }
 
     @AfterAll

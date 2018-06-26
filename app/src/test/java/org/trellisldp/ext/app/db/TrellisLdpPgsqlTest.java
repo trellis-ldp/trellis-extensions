@@ -16,52 +16,46 @@ package org.trellisldp.ext.app.db;
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static java.io.File.separator;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.awaitility.Awaitility.setDefaultPollInterval;
+import static java.util.Collections.singleton;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
-
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationMementoTests;
+import org.trellisldp.test.AbstractApplicationLdpTests;
 
-@DisabledOnOs(WINDOWS)
-public class TrellisMementoTest extends AbstractApplicationMementoTests {
+/**
+ * Run LDP-Related Tests.
+ */
+@EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
+public class TrellisLdpPgsqlTest extends AbstractApplicationLdpTests {
 
-    private static final Logger LOGGER = getLogger(TrellisMementoTest.class);
-
-    private static EmbeddedPostgres pg = null;
+    private static final Logger LOGGER = getLogger(TrellisLdpPgsqlTest.class);
 
     private static DropwizardTestSupport<AppConfiguration> APP;
 
     private static Client CLIENT;
 
     static {
-
         try {
-            pg = EmbeddedPostgres.builder()
-                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
-                        .Builder().withinRange('a', 'z').build().generate(10)).start();
-
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres"),
-                        config("binaries", resourceFilePath("data") + separator + "binaries3"),
-                        config("mementos", resourceFilePath("data") + separator + "mementos3"),
+                        config("database.url", "jdbc:postgresql://localhost/trellis"),
+                        config("database.user", "postgres"),
+                        config("database.password", ""),
+                        config("binaries", resourceFilePath("data") + separator + "binaries"),
+                        config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
 
             APP.before();
@@ -70,7 +64,6 @@ public class TrellisMementoTest extends AbstractApplicationMementoTests {
             CLIENT = new JerseyClientBuilder(APP.getEnvironment()).build("test client");
             CLIENT.property(CONNECT_TIMEOUT, 5000);
             CLIENT.property(READ_TIMEOUT, 5000);
-            setDefaultPollInterval(100L, MILLISECONDS);
 
         } catch (final Exception ex) {
             LOGGER.error("Error initializing Trellis", ex);
@@ -88,9 +81,13 @@ public class TrellisMementoTest extends AbstractApplicationMementoTests {
         return "http://localhost:" + APP.getLocalPort() + "/";
     }
 
+    @Override
+    public Set<String> supportedJsonLdProfiles() {
+        return singleton("http://www.w3.org/ns/anno.jsonld");
+    }
+
     @AfterAll
     public static void cleanup() throws IOException {
         APP.after();
-        pg.close();
     }
 }

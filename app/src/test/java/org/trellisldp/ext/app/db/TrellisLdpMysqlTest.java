@@ -16,6 +16,7 @@ package org.trellisldp.ext.app.db;
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static java.io.File.separator;
+import static java.util.Collections.singleton;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -25,34 +26,35 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationAuthTests;
+import org.trellisldp.test.AbstractApplicationLdpTests;
 
 /**
- * Authorization tests.
+ * Run LDP-Related Tests.
  */
-public class TrellisAuthorizationH2Test extends AbstractApplicationAuthTests {
+@EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
+public class TrellisLdpMysqlTest extends AbstractApplicationLdpTests {
 
-    private static Logger LOGGER = getLogger(TrellisAuthorizationH2Test.class);
+    private static final Logger LOGGER = getLogger(TrellisLdpMysqlTest.class);
 
     private static DropwizardTestSupport<AppConfiguration> APP;
 
     private static Client CLIENT;
 
     static {
-
         try {
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:h2:file:./build/data/h2-"
-                             + new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(10)),
-                        config("database.driverClass", "org.h2.Driver"),
-                        config("auth.basic.usersFile", resourceFilePath("users.auth")),
+                        config("database.url", "jdbc:mysql://localhost/trellis"),
+                        config("database.driverClass", "com.mysql.cj.jdbc.Driver"),
+                        config("database.user", "travis"),
+                        config("database.password", ""),
                         config("binaries", resourceFilePath("data") + separator + "binaries"),
                         config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
@@ -81,18 +83,8 @@ public class TrellisAuthorizationH2Test extends AbstractApplicationAuthTests {
     }
 
     @Override
-    public String getUser1Credentials() {
-        return "acoburn:secret";
-    }
-
-    @Override
-    public String getUser2Credentials() {
-        return "user:password";
-    }
-
-    @Override
-    public String getJwtSecret() {
-        return "secret";
+    public Set<String> supportedJsonLdProfiles() {
+        return singleton("http://www.w3.org/ns/anno.jsonld");
     }
 
     @AfterAll

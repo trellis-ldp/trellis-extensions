@@ -8,17 +8,17 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: subject
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
@@ -38,24 +38,24 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                 unique: false
             - createTable:
                 tableName: extra
                 columns:
                     - column:
                         name: subject
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: object
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
             - createIndex:
@@ -64,36 +64,36 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: subject
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                 unique: false
             - createTable:
                 tableName: ldp
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             primaryKey: true
                             nullable: false
                     - column:
                         name: member
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: membership_resource
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: has_member_relation
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                     - column:
                         name: is_member_of_relation
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                     - column:
                         name: inserted_content_relation
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         defaultValue: "http://www.w3.org/ns/ldp#MemberSubject"
             - createIndex:
                 indexName: idx_ldp
@@ -101,24 +101,24 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: member
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                 unique: false
             - createTable:
                 tableName: log
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: subject
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
@@ -138,14 +138,14 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                 unique: false
             - createTable:
                 tableName: metadata
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             primaryKey: true
                             nullable: false
@@ -161,7 +161,7 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: is_part_of
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                     - column:
                         name: deleted
                         type: BOOLEAN
@@ -175,13 +175,13 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             primaryKey: true
                             nullable: false
                     - column:
                         name: location
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
@@ -200,17 +200,17 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: subject
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                         constraints:
                             nullable: false
                     - column:
@@ -230,7 +230,7 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(1024)
+                        type: VARCHAR(255)
                 unique: false
             - loadData:
                 tableName: metadata
