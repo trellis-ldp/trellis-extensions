@@ -8,6 +8,7 @@ test_script:
     - gradlew.bat check
 
 cache:
+    - .gradle
     - C:\Users\appveyor\.gradle
 
 environment:
