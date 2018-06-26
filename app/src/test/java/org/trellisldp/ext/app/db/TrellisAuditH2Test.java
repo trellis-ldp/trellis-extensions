@@ -15,6 +15,7 @@ package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
+import static java.io.File.separator;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -47,11 +48,11 @@ public class TrellisAuditH2Test extends AbstractApplicationAuditTests {
         try {
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:h2:" + resourceFilePath("data") + "h2-"
+                        config("database.url", "jdbc:h2:file:./build/data/h2-"
                              + new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(10)),
                         config("database.driverClass", "org.h2.Driver"),
-                        config("binaries", resourceFilePath("data") + "/binaries"),
-                        config("mementos", resourceFilePath("data") + "/mementos"),
+                        config("binaries", resourceFilePath("data") + separator + "binaries"),
+                        config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
 
             APP.before();

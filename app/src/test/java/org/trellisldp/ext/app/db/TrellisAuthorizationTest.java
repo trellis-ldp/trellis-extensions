@@ -15,9 +15,11 @@ package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
+import static java.io.File.separator;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
@@ -31,12 +33,14 @@ import javax.ws.rs.client.Client;
 
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationAuthTests;
 
 /**
  * Authorization tests.
  */
+@DisabledOnOs(WINDOWS)
 public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
 
     private static Logger LOGGER = getLogger(TrellisAuthorizationTest.class);
@@ -51,15 +55,15 @@ public class TrellisAuthorizationTest extends AbstractApplicationAuthTests {
 
         try {
             pg = EmbeddedPostgres.builder()
-                .setDataDirectory(resourceFilePath("data") + "/pgdata-" + new RandomStringGenerator.Builder()
-                .withinRange('a', 'z').build().generate(10)).start();
+                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
+                        .Builder().withinRange('a', 'z').build().generate(10)).start();
 
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
                         config("database.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres"),
                         config("auth.basic.usersFile", resourceFilePath("users.auth")),
-                        config("binaries", resourceFilePath("data") + "/binaries"),
-                        config("mementos", resourceFilePath("data") + "/mementos"),
+                        config("binaries", resourceFilePath("data") + separator + "binaries"),
+                        config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
 
             APP.before();

@@ -15,6 +15,7 @@ package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
+import static java.io.File.separator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.commons.rdf.api.RDFSyntax.JSONLD;
@@ -22,6 +23,7 @@ import static org.awaitility.Awaitility.setDefaultPollInterval;
 import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
 import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.readEntityAsGraph;
@@ -54,12 +56,14 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationEventTests;
 
 /**
  * Event tests.
  */
+@DisabledOnOs(WINDOWS)
 public class TrellisEventTest extends AbstractApplicationEventTests implements MessageListener {
 
     private static final Logger LOGGER = getLogger(TrellisEventTest.class);
@@ -81,16 +85,16 @@ public class TrellisEventTest extends AbstractApplicationEventTests implements M
             BROKER.start();
 
             pg = EmbeddedPostgres.builder()
-                .setDataDirectory(resourceFilePath("data") + "/pgdata-" + new RandomStringGenerator.Builder()
-                .withinRange('a', 'z').build().generate(10)).start();
+                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
+                        .Builder().withinRange('a', 'z').build().generate(10)).start();
 
             APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
                         resourceFilePath("trellis-config.yml"),
                         config("database.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres"),
                         config("notifications.type", "JMS"),
                         config("notifications.connectionString", "vm://localhost"),
-                        config("binaries", resourceFilePath("data") + "/binaries"),
-                        config("mementos", resourceFilePath("data") + "/mementos"),
+                        config("binaries", resourceFilePath("data") + separator + "binaries"),
+                        config("mementos", resourceFilePath("data") + separator + "mementos"),
                         config("namespaces", resourceFilePath("data/namespaces.json")));
 
             APP.before();

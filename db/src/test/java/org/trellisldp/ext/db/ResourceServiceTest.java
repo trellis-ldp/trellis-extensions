@@ -13,6 +13,8 @@
  */
 package org.trellisldp.ext.db;
 
+import static java.io.File.separator;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.trellisldp.api.RDFUtils.getInstance;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
@@ -23,6 +25,7 @@ import java.sql.SQLException;
 
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
@@ -40,6 +43,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 /**
  * ResourceService tests.
  */
+@DisabledOnOs(WINDOWS)
 public class ResourceServiceTest extends AbstractResourceServiceTests {
 
     private static final RDF rdf = getInstance();
@@ -50,8 +54,8 @@ public class ResourceServiceTest extends AbstractResourceServiceTests {
     static {
         try {
             pg = EmbeddedPostgres.builder()
-                .setDataDirectory("./build/pgdata-" + new RandomStringGenerator.Builder()
-                .withinRange('a', 'z').build().generate(10)).start();
+                .setDataDirectory("build" + separator + "pgdata-" + new RandomStringGenerator
+                            .Builder().withinRange('a', 'z').build().generate(10)).start();
 
             // Set up database migrations
             try (final Connection c = pg.getPostgresDatabase().getConnection()) {

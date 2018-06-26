@@ -14,12 +14,14 @@
 package org.trellisldp.ext.db;
 
 import static com.google.common.io.Resources.getResource;
+import static java.io.File.separator;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.meanwhile;
@@ -38,6 +40,7 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
@@ -63,6 +66,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 /**
  * ResourceService tests.
  */
+@DisabledOnOs(WINDOWS)
 public class DBResourceTest {
 
     private static final RDF rdf = getInstance();
@@ -78,8 +82,8 @@ public class DBResourceTest {
     static {
         try {
             pg = EmbeddedPostgres.builder()
-                .setDataDirectory("./build/pgdata-" + new RandomStringGenerator.Builder()
-                .withinRange('a', 'z').build().generate(10)).start();
+                .setDataDirectory("build" + separator + "pgdata-" + new RandomStringGenerator
+                            .Builder().withinRange('a', 'z').build().generate(10)).start();
 
             // Set up database migrations
             try (final Connection c = pg.getPostgresDatabase().getConnection()) {
