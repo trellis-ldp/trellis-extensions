@@ -1,0 +1,8 @@
+#!/bin/sh
+
+echo "Updating Trellis database schema"
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+eval "$DIR/trellis-db db migrate $DIR/../etc/config.yml"
+
