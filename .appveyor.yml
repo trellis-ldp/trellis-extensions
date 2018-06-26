@@ -8,9 +8,7 @@ test_script:
     - gradlew.bat check
 
 cache:
-    - C:\Users\appveyor\.m2\wrapper -> .mvn\wrapper\maven-wrapper.properties
-    - cnf\cache\stable
-    - maven\target\m2
+    - C:\Users\appveyor\.gradle
 
 environment:
     matrix:
