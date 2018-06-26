@@ -13,12 +13,12 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: subject
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
@@ -50,12 +50,12 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
                         name: object
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
             - createIndex:
@@ -82,18 +82,18 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: membership_resource
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
                         name: has_member_relation
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                     - column:
                         name: is_member_of_relation
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                     - column:
                         name: inserted_content_relation
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         defaultValue: "http://www.w3.org/ns/ldp#MemberSubject"
             - createIndex:
                 indexName: idx_ldp
@@ -113,12 +113,12 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: subject
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
@@ -161,7 +161,7 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: is_part_of
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                     - column:
                         name: deleted
                         type: BOOLEAN
@@ -181,7 +181,7 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: location
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
@@ -205,12 +205,12 @@ databaseChangeLog:
                             nullable: false
                     - column:
                         name: subject
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
                         name: predicate
-                        type: VARCHAR(255)
+                        type: VARCHAR(1024)
                         constraints:
                             nullable: false
                     - column:
