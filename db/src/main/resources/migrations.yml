@@ -1,4 +1,14 @@
 databaseChangeLog:
+    - property:
+        name: id.length
+        value: 1024
+        dbms: postgresql,h2,derby,oracle,mssql,sqlite
+
+    - property:
+        name: id.length
+        value: 255
+        dbms: mysql
+
     - changeSet:
         id: 1
         author: acoburn
@@ -8,7 +18,7 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
                     - column:
@@ -38,14 +48,14 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                 unique: false
             - createTable:
                 tableName: extra
                 columns:
                     - column:
                         name: subject
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
                     - column:
@@ -64,20 +74,20 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: subject
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                 unique: false
             - createTable:
                 tableName: ldp
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             primaryKey: true
                             nullable: false
                     - column:
                         name: member
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
                     - column:
@@ -101,14 +111,14 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: member
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                 unique: false
             - createTable:
                 tableName: log
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
                     - column:
@@ -138,14 +148,14 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                 unique: false
             - createTable:
                 tableName: metadata
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             primaryKey: true
                             nullable: false
@@ -175,7 +185,7 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             primaryKey: true
                             nullable: false
@@ -200,7 +210,7 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
                     - column:
@@ -230,7 +240,7 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: id
-                        type: VARCHAR(255)
+                        type: VARCHAR(${id.length})
                 unique: false
             - loadData:
                 tableName: metadata
