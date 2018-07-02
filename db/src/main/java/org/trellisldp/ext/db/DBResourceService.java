@@ -440,7 +440,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final Session session, final OperationType opType) {
         final List<Event> events = new ArrayList<>();
         handle.select("SELECT m.interaction_model, l.member "
-                    + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id "
+                    + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id AND l.has_member_relation IS NOT NULL "
                     + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
                 final String parentModel = (String) results.getOrDefault("interaction_model", "");
                 final String member = (String) results.get(MEMBER);
@@ -474,7 +474,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 targetTypes.add(ixnModel);
                 dataset.stream(null, identifier, type, null)
                     .filter(q -> q.getGraphName().filter(isUserGraph.or(isServerGraph)).isPresent())
-                    .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x).forEach(targetTypes::add);
+                    .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x)
+                    .filter(x -> !ixnModel.equals(x)).forEach(targetTypes::add);
 
                 final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
                 events.add(new SimpleEvent(getUrl(identifier, baseUrl),
