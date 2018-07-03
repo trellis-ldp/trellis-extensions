@@ -15,6 +15,7 @@ package org.trellisldp.ext.db;
 
 import static java.io.File.separator;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.getInstance;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
@@ -26,6 +27,7 @@ import java.sql.SQLException;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.slf4j.Logger;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.NoopMementoService;
@@ -46,6 +48,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 @DisabledOnOs(WINDOWS)
 public class ResourceServiceTest extends AbstractResourceServiceTests {
 
+    private static final Logger LOGGER = getLogger(ResourceServiceTest.class);
     private static final RDF rdf = getInstance();
     private static final IdentifierService idService = new UUIDGenerator();
 
@@ -65,9 +68,8 @@ public class ResourceServiceTest extends AbstractResourceServiceTests {
                 final Contexts ctx = null;
                 liquibase.update(ctx);
             }
-
         } catch (final IOException | SQLException | LiquibaseException ex) {
-
+            LOGGER.error("Error setting up tests", ex);
         }
     }
 

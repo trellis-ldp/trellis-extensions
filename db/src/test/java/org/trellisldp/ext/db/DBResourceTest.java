@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.meanwhile;
@@ -41,6 +42,7 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.NoopEventService;
@@ -62,13 +64,13 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 
-
 /**
  * ResourceService tests.
  */
 @DisabledOnOs(WINDOWS)
 public class DBResourceTest {
 
+    private static final Logger LOGGER = getLogger(DBResourceTest.class);
     private static final RDF rdf = getInstance();
 
     private static final IdentifierService idService = new UUIDGenerator();
@@ -98,7 +100,7 @@ public class DBResourceTest {
                 new NoopMementoService(), new NoopEventService());
 
         } catch (final IOException | SQLException | LiquibaseException ex) {
-
+            LOGGER.error("Error setting up tests", ex);
         }
     }
 
@@ -183,8 +185,6 @@ public class DBResourceTest {
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
                     && triple.getObject().equals(rdf.createLiteral("A title", "eng"))));
         });
-
-
     }
 
     @Test
