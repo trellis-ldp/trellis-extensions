@@ -41,7 +41,7 @@ ext {
     jacocoVersion = '0.8.1'
     junitPlatformVersion = '1.2.0'
     junitVersion = '5.2.0'
-    liquibaseVersion = '3.6.1'
+    liquibaseVersion = '3.6.2'
     logbackVersion = '1.2.3'
     mockitoVersion = '2.19.0'
     otjPgVersion = '0.12.0'
