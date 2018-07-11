@@ -96,7 +96,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
     private static final String MEMBER = "member";
-    private static final String UPDATE_METADATA_QUERY = "UPDATE metadata SET modified = ? WHERE id = ?";
+    private static final String UPDATE_RESOURCE_QUERY = "UPDATE resource SET modified = ? WHERE id = ?";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
@@ -180,7 +180,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public Stream<Triple> scan() {
-        final String query = "SELECT id, interaction_model FROM metadata";
+        final String query = "SELECT id, interaction_model FROM resource";
         return jdbi.withHandle(handle -> handle.createQuery(query).map((rs, ctx) ->
                     rdf.createTriple(rdf.createIRI(rs.getString("id")), type,
                         rdf.createIRI(rs.getString("interaction_model")))).stream());
@@ -287,10 +287,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         return true;
     }
 
-    private static void updateMetadata(final Handle handle, final IRI identifier, final IRI ixnModel,
+    private static void updateResource(final Handle handle, final IRI identifier, final IRI ixnModel,
             final Session session, final Boolean isDelete, final Boolean acl, final String container) {
-        handle.execute("DELETE FROM metadata WHERE id = ?", identifier.getIRIString());
-        handle.execute("INSERT INTO metadata "
+        handle.execute("DELETE FROM resource WHERE id = ?", identifier.getIRIString());
+        handle.execute("INSERT INTO resource "
                 + "(id, interaction_model, modified, is_part_of, deleted, acl) VALUES (?, ?, ?, ?, ?, ?)",
                 identifier.getIRIString(), ixnModel.getIRIString(), session.getCreated().toEpochMilli(),
                 container, isDelete, acl);
@@ -352,10 +352,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private static void updateResource(final Handle handle, final IRI identifier, final Dataset dataset) {
-        handle.execute("DELETE FROM resource WHERE id = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM description WHERE id = ?", identifier.getIRIString());
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
             final String resourceQuery
-                = "INSERT INTO resource (id, subject, predicate, object, lang, datatype) "
+                = "INSERT INTO description (id, subject, predicate, object, lang, datatype) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
             final PreparedBatch batch = handle.prepareBatch(resourceQuery);
             graph.stream().sequential().forEach(triple -> {
@@ -400,8 +400,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
         final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
         if (parentModel.equals(LDP.IndirectContainer.getIRIString())
-                && handle.execute(UPDATE_METADATA_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
-            return handle.select("SELECT interaction_model FROM metadata "
+                && handle.execute(UPDATE_RESOURCE_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
+            return handle.select("SELECT interaction_model FROM resource "
                     + "WHERE id = ?", member).mapTo(String.class).findFirst().map(rdf::createIRI)
                 .map(type -> new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
                                         asList(session.getAgent()), asList(PROV.Activity, AS.Update),
@@ -414,7 +414,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final String parentModel, final String member, final Session session) {
         final Optional<String> baseUrl = session.getProperty(TRELLIS_SESSION_BASE_URL);
         final Stream.Builder<Event> builder = Stream.builder();
-        if (parentModel.endsWith("Container") && handle.execute(UPDATE_METADATA_QUERY,
+        if (parentModel.endsWith("Container") && handle.execute(UPDATE_RESOURCE_QUERY,
                     session.getCreated().toEpochMilli(), parent) == 1) {
 
             builder.accept(new SimpleEvent(getUrl(rdf.createIRI(parent), baseUrl),
@@ -424,8 +424,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
         if ((parentModel.equals(LDP.IndirectContainer.getIRIString())
                 || parentModel.equals(LDP.DirectContainer.getIRIString()))
-                && handle.execute(UPDATE_METADATA_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
-            final List<IRI> types = handle.select("SELECT interaction_model FROM metadata "
+                && handle.execute(UPDATE_RESOURCE_QUERY, session.getCreated().toEpochMilli(), member) == 1) {
+            final List<IRI> types = handle.select("SELECT interaction_model FROM resource "
                     + "WHERE id = ?", member).mapTo(String.class).findFirst()
                 .map(rdf::createIRI).map(Arrays::asList).orElseGet(Collections::emptyList);
             builder.accept(new SimpleEvent(getUrl(rdf.createIRI(member), baseUrl),
@@ -440,7 +440,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final Session session, final OperationType opType) {
         final List<Event> events = new ArrayList<>();
         handle.select("SELECT m.interaction_model, l.member "
-                    + "FROM metadata AS m LEFT JOIN ldp AS l ON l.id = m.id AND l.has_member_relation IS NOT NULL "
+                    + "FROM resource AS m LEFT JOIN ldp AS l ON l.id = m.id AND l.has_member_relation IS NOT NULL "
                     + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
                 final String parentModel = (String) results.getOrDefault("interaction_model", "");
                 final String member = (String) results.get(MEMBER);
@@ -462,7 +462,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         final List<Event> events = new ArrayList<>();
         try {
             jdbi.useTransaction(handle -> {
-                updateMetadata(handle, identifier, ixnModel, session, opType == OperationType.DELETE,
+                updateResource(handle, identifier, ixnModel, session, opType == OperationType.DELETE,
                         dataset.contains(of(PreferAccessControl), null, null, null),
                         dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
                             .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null));

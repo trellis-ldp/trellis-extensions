@@ -151,7 +151,7 @@ databaseChangeLog:
                         type: VARCHAR(${id.length})
                 unique: false
             - createTable:
-                tableName: metadata
+                tableName: resource
                 columns:
                     - column:
                         name: id
@@ -206,7 +206,7 @@ databaseChangeLog:
                         name: size
                         type: BIGINT
             - createTable:
-                tableName: resource
+                tableName: description
                 columns:
                     - column:
                         name: id
@@ -235,15 +235,15 @@ databaseChangeLog:
                         name: datatype
                         type: VARCHAR(255)
             - createIndex:
-                indexName: idx_resource
-                tableName: resource
+                indexName: idx_description
+                tableName: description
                 columns:
                     - column:
                         name: id
                         type: VARCHAR(${id.length})
                 unique: false
             - loadData:
-                tableName: metadata
+                tableName: resource
                 columns:
                     - column:
                         name: id
@@ -257,7 +257,7 @@ databaseChangeLog:
                     - column:
                         name: acl
                         type: BOOLEAN
-                file: org/trellisldp/ext/db/initial_metadata.csv
+                file: org/trellisldp/ext/db/initial_resource.csv
             - loadData:
                 tableName: acl
                 columns:

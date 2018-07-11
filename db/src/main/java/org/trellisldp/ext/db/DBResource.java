@@ -201,7 +201,7 @@ public class DBResource implements Resource {
     }
 
     private Stream<Quad> fetchUserQuads() {
-        return fetchQuadsFromTable("resource", Trellis.PreferUserManaged);
+        return fetchQuadsFromTable("description", Trellis.PreferUserManaged);
     }
 
     private Stream<Quad> fetchAuditQuads() {
@@ -214,11 +214,11 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
-            = "SELECT l.membership_resource, l.has_member_relation, r.object, r.lang, r.datatype "
-            + "FROM ldp AS l INNER JOIN metadata AS m ON l.id = m.is_part_of "
-            + "INNER JOIN metadata AS m2 ON l.id = m2.id "
-            + "INNER JOIN resource AS r ON m.id = r.id AND r.predicate = l.inserted_content_relation "
-            + "WHERE l.member = ? AND m2.interaction_model = ? AND l.has_member_relation IS NOT NULL";
+            = "SELECT l.membership_resource, l.has_member_relation, d.object, d.lang, d.datatype "
+            + "FROM ldp AS l INNER JOIN resource AS r ON l.id = r.is_part_of "
+            + "INNER JOIN resource AS r2 ON l.id = r2.id "
+            + "INNER JOIN description AS d ON r.id = d.id AND d.predicate = l.inserted_content_relation "
+            + "WHERE l.member = ? AND r2.interaction_model = ? AND l.has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
@@ -232,8 +232,8 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
             = "SELECT l.is_member_of_relation, l.membership_resource FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.is_part_of "
-            + "WHERE m.id = ? AND l.inserted_content_relation = ? AND l.is_member_of_relation IS NOT NULL";
+            + "INNER JOIN resource AS r ON l.id = r.is_part_of "
+            + "WHERE r.id = ? AND l.inserted_content_relation = ? AND l.is_member_of_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
@@ -245,8 +245,8 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
-            = "SELECT l.membership_resource, l.has_member_relation, m.id FROM ldp AS l "
-            + "INNER JOIN metadata AS m ON l.id = m.is_part_of "
+            = "SELECT l.membership_resource, l.has_member_relation, r.id FROM ldp AS l "
+            + "INNER JOIN resource AS r ON l.id = r.is_part_of "
             + "WHERE l.member = ? AND l.inserted_content_relation = ? AND l.has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
@@ -260,7 +260,7 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
-            final String query = "SELECT id FROM metadata where is_part_of = ?";
+            final String query = "SELECT id FROM resource where is_part_of = ?";
             return jdbi.withHandle(handle -> handle.select(query,
                         getIdentifier().getIRIString())
                     .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment, getIdentifier(),
@@ -294,13 +294,13 @@ public class DBResource implements Resource {
                       .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
 
         final String query
-            = "SELECT m.interaction_model, m.modified, m.is_part_of, m.deleted, m.acl, "
+            = "SELECT r.interaction_model, r.modified, r.is_part_of, r.deleted, r.acl, "
             + "l.membership_resource, l.has_member_relation, l.is_member_of_relation, l.inserted_content_relation, "
             + "nr.location, nr.modified AS binary_modified, nr.format, nr.size "
-            + "FROM metadata AS m "
-            + "LEFT JOIN ldp AS l ON m.id = l.id "
-            + "LEFT JOIN nonrdf AS nr ON m.id = nr.id "
-            + "WHERE m.id = ?";
+            + "FROM resource AS r "
+            + "LEFT JOIN ldp AS l ON r.id = l.id "
+            + "LEFT JOIN nonrdf AS nr ON r.id = nr.id "
+            + "WHERE r.id = ?";
         final Optional<ResourceData> rd = jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> new ResourceData(rs, extras)).findFirst());
         if (rd.isPresent()) {
