@@ -213,7 +213,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public Future<Boolean> add(final IRI id, final Session session, final Dataset dataset) {
-        final String q = "INSERT INTO log (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)";
+        final String q = "INSERT INTO log (resource_id, subject, predicate, object, lang, datatype) "
+            + "VALUES (?, ?, ?, ?, ?, ?)";
         return supplyAsync(() -> {
             try {
                 jdbi.useHandle(handle -> dataset.getGraph(PreferAudit).ifPresent(graph -> {
@@ -297,9 +298,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private static void updateNonRdf(final Handle handle, final IRI identifier, final Binary binary) {
-        handle.execute("DELETE FROM nonrdf WHERE id = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM nonrdf WHERE resource_id = ?", identifier.getIRIString());
         if (nonNull(binary)) {
-            handle.execute("INSERT INTO nonrdf (id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
+            handle.execute("INSERT INTO nonrdf (resource_id, location, modified, format, size) VALUES (?, ?, ?, ?, ?)",
                     identifier.getIRIString(),
                     binary.getIdentifier().getIRIString(),
                     binary.getModified().toEpochMilli(),
@@ -309,10 +310,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private static void updateAcl(final Handle handle, final IRI identifier, final Dataset dataset) {
-        handle.execute("DELETE FROM acl WHERE id = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM acl WHERE resource_id = ?", identifier.getIRIString());
         dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
             final PreparedBatch batch = handle.prepareBatch(
-                "INSERT INTO acl (id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
+                "INSERT INTO acl (resource_id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
             graph.stream().sequential().forEach(triple -> {
                 batch.bind(0, identifier.getIRIString())
                      .bind(1, ((IRI) triple.getSubject()).getIRIString())
@@ -331,10 +332,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private static void updateExtra(final Handle handle, final IRI identifier, final Dataset dataset) {
-        handle.execute("DELETE FROM extra WHERE subject = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM extra WHERE resource_id = ?", identifier.getIRIString());
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
             final PreparedBatch batch = handle.prepareBatch(
-                    "INSERT INTO extra (subject, predicate, object) VALUES (?, ?, ?)");
+                    "INSERT INTO extra (resource_id, predicate, object) VALUES (?, ?, ?)");
             graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
                 .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
                         batch.bind(0, identifier.getIRIString()).bind(1, LDP.inbox.getIRIString()).bind(2, iri)
@@ -352,10 +353,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private static void updateResource(final Handle handle, final IRI identifier, final Dataset dataset) {
-        handle.execute("DELETE FROM description WHERE id = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM description WHERE resource_id = ?", identifier.getIRIString());
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
             final String resourceQuery
-                = "INSERT INTO description (id, subject, predicate, object, lang, datatype) "
+                = "INSERT INTO description (resource_id, subject, predicate, object, lang, datatype) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
             final PreparedBatch batch = handle.prepareBatch(resourceQuery);
             graph.stream().sequential().forEach(triple -> {
@@ -377,9 +378,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     private static void updateLdp(final Handle handle, final IRI identifier, final IRI ixnModel,
             final Dataset dataset) {
-        handle.execute("DELETE FROM ldp WHERE id = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM ldp WHERE resource_id = ?", identifier.getIRIString());
         if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
-            handle.execute("INSERT INTO ldp (id, member, membership_resource, has_member_relation, " +
+            handle.execute("INSERT INTO ldp (resource_id, member, membership_resource, has_member_relation, " +
                     "is_member_of_relation, inserted_content_relation) VALUES (?, ?, ?, ?, ?, ?)",
                     identifier.getIRIString(),
                     dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
@@ -439,9 +440,10 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     private List<Event> updateAdjacentResources(final Handle handle, final IRI identifier, final String parent,
             final Session session, final OperationType opType) {
         final List<Event> events = new ArrayList<>();
-        handle.select("SELECT m.interaction_model, l.member "
-                    + "FROM resource AS m LEFT JOIN ldp AS l ON l.id = m.id AND l.has_member_relation IS NOT NULL "
-                    + "WHERE m.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
+        handle.select("SELECT r.interaction_model, l.member "
+                    + "FROM resource AS r "
+                    + "LEFT JOIN ldp AS l ON l.resource_id = r.id AND l.has_member_relation IS NOT NULL "
+                    + "WHERE r.id = ?", parent).mapToMap().findFirst().ifPresent(results -> {
                 final String parentModel = (String) results.getOrDefault("interaction_model", "");
                 final String member = (String) results.get(MEMBER);
                 if (!identifier.getIRIString().equals(member)) {

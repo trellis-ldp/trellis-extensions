@@ -17,7 +17,7 @@ databaseChangeLog:
                 tableName: acl
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
@@ -47,14 +47,14 @@ databaseChangeLog:
                 tableName: acl
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                 unique: false
             - createTable:
                 tableName: extra
                 columns:
                     - column:
-                        name: subject
+                        name: resource_id
                         type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
@@ -73,14 +73,14 @@ databaseChangeLog:
                 tableName: extra
                 columns:
                     - column:
-                        name: subject
+                        name: resource_id
                         type: VARCHAR(${id.length})
                 unique: false
             - createTable:
                 tableName: ldp
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                         constraints:
                             primaryKey: true
@@ -117,7 +117,7 @@ databaseChangeLog:
                 tableName: log
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
@@ -147,7 +147,7 @@ databaseChangeLog:
                 tableName: log
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                 unique: false
             - createTable:
@@ -184,7 +184,7 @@ databaseChangeLog:
                 tableName: nonrdf
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                         constraints:
                             primaryKey: true
@@ -209,7 +209,7 @@ databaseChangeLog:
                 tableName: description
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
@@ -239,7 +239,7 @@ databaseChangeLog:
                 tableName: description
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: VARCHAR(${id.length})
                 unique: false
             - loadData:
@@ -262,7 +262,7 @@ databaseChangeLog:
                 tableName: acl
                 columns:
                     - column:
-                        name: id
+                        name: resource_id
                         type: STRING
                     - column:
                         name: subject

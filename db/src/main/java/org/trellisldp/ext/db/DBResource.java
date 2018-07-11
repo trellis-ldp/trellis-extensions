@@ -215,9 +215,9 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
             = "SELECT l.membership_resource, l.has_member_relation, d.object, d.lang, d.datatype "
-            + "FROM ldp AS l INNER JOIN resource AS r ON l.id = r.is_part_of "
-            + "INNER JOIN resource AS r2 ON l.id = r2.id "
-            + "INNER JOIN description AS d ON r.id = d.id AND d.predicate = l.inserted_content_relation "
+            + "FROM ldp AS l INNER JOIN resource AS r ON l.resource_id = r.is_part_of "
+            + "INNER JOIN resource AS r2 ON l.resource_id = r2.id "
+            + "INNER JOIN description AS d ON r.id = d.resource_id AND d.predicate = l.inserted_content_relation "
             + "WHERE l.member = ? AND r2.interaction_model = ? AND l.has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
@@ -232,7 +232,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
             = "SELECT l.is_member_of_relation, l.membership_resource FROM ldp AS l "
-            + "INNER JOIN resource AS r ON l.id = r.is_part_of "
+            + "INNER JOIN resource AS r ON l.resource_id = r.is_part_of "
             + "WHERE r.id = ? AND l.inserted_content_relation = ? AND l.is_member_of_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
@@ -246,7 +246,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
             = "SELECT l.membership_resource, l.has_member_relation, r.id FROM ldp AS l "
-            + "INNER JOIN resource AS r ON l.id = r.is_part_of "
+            + "INNER JOIN resource AS r ON l.resource_id = r.is_part_of "
             + "WHERE l.member = ? AND l.inserted_content_relation = ? AND l.has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
@@ -272,7 +272,7 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchQuadsFromTable(final String tableName, final IRI graphName) {
         final String query = "SELECT subject, predicate, object, lang, datatype "
-                           + "FROM " + tableName + " WHERE id = ?";
+                           + "FROM " + tableName + " WHERE resource_id = ?";
         return jdbi.withHandle(handle -> handle.select(query, getIdentifier().getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(graphName, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
@@ -286,7 +286,7 @@ public class DBResource implements Resource {
      */
     protected Boolean fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
-        final String extraQuery = "SELECT predicate, object FROM extra WHERE subject = ?";
+        final String extraQuery = "SELECT predicate, object FROM extra WHERE resource_id = ?";
         final Map<String, String> extras = new HashMap<>();
         jdbi.useHandle(handle ->
                 handle.select(extraQuery, identifier.getIRIString())
@@ -298,8 +298,8 @@ public class DBResource implements Resource {
             + "l.membership_resource, l.has_member_relation, l.is_member_of_relation, l.inserted_content_relation, "
             + "nr.location, nr.modified AS binary_modified, nr.format, nr.size "
             + "FROM resource AS r "
-            + "LEFT JOIN ldp AS l ON r.id = l.id "
-            + "LEFT JOIN nonrdf AS nr ON r.id = nr.id "
+            + "LEFT JOIN ldp AS l ON r.id = l.resource_id "
+            + "LEFT JOIN nonrdf AS nr ON r.id = nr.resource_id "
             + "WHERE r.id = ?";
         final Optional<ResourceData> rd = jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> new ResourceData(rs, extras)).findFirst());
