@@ -2,11 +2,19 @@ databaseChangeLog:
     - property:
         name: id.length
         value: 1024
-        dbms: postgresql,h2,derby,oracle,mssql,sqlite
+        dbms: postgresql,h2
+    - property:
+        name: csv
+        value: ""
+        dbms: postgresql,h2
 
     - property:
         name: id.length
         value: 255
+        dbms: mysql
+    - property:
+        name: csv
+        value: "_mysql"
         dbms: mysql
 
     - changeSet:
@@ -14,11 +22,98 @@ databaseChangeLog:
         author: acoburn
         changes:
             - createTable:
+                tableName: resource
+                columns:
+                    - column:
+                        name: id
+                        type: BIGINT
+                        autoIncrement: true
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: subject
+                        type: VARCHAR(${id.length})
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: interaction_model
+                        type: VARCHAR(255)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: modified
+                        type: BIGINT
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: is_part_of
+                        type: VARCHAR(${id.length})
+                    - column:
+                        name: deleted
+                        type: BOOLEAN
+                        defaultValue: FALSE
+                    - column:
+                        name: acl
+                        type: BOOLEAN
+                        defaultValue: FALSE
+                    - column:
+                        name: binary_location
+                        type: VARCHAR(1024)
+                    - column:
+                        name: binary_modified
+                        type: BIGINT
+                    - column:
+                        name: binary_format
+                        type: VARCHAR(255)
+                    - column:
+                        name: binary_size
+                        type: BIGINT
+                    - column:
+                        name: ldp_member
+                        type: VARCHAR(${id.length})
+                    - column:
+                        name: ldp_membership_resource
+                        type: VARCHAR(1024)
+                    - column:
+                        name: ldp_has_member_relation
+                        type: VARCHAR(1024)
+                    - column:
+                        name: ldp_is_member_of_relation
+                        type: VARCHAR(1024)
+                    - column:
+                        name: ldp_inserted_content_relation
+                        type: VARCHAR(1024)
+            - createIndex:
+                indexName: idx_resource_ldp
+                tableName: resource
+                columns:
+                    - column:
+                        name: ldp_member
+                        type: VARCHAR(${id.length})
+                unique: false
+            - createIndex:
+                indexName: idx_resource_subject
+                tableName: resource
+                columns:
+                    - column:
+                        name: subject
+                        type: VARCHAR(${id.length})
+                unique: true
+            - createIndex:
+                indexName: idx_resource_parent
+                tableName: resource
+                columns:
+                    - column:
+                        name: is_part_of
+                        type: VARCHAR(${id.length})
+                unique: false
+            - createTable:
                 tableName: acl
                 columns:
                     - column:
                         name: resource_id
-                        type: VARCHAR(${id.length})
+                        type: BIGINT
                         constraints:
                             nullable: false
                     - column:
@@ -48,14 +143,23 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: resource_id
-                        type: VARCHAR(${id.length})
+                        type: BIGINT
                 unique: false
+            - addForeignKeyConstraint:
+                baseColumnNames: resource_id
+                baseTableName: acl
+                constraintName: fk_resource_acl
+                onDelete: CASCADE
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: resource
+                referencesUniqueColumn: true
             - createTable:
                 tableName: extra
                 columns:
                     - column:
                         name: resource_id
-                        type: VARCHAR(${id.length})
+                        type: BIGINT
                         constraints:
                             nullable: false
                     - column:
@@ -74,50 +178,22 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: resource_id
-                        type: VARCHAR(${id.length})
+                        type: BIGINT
                 unique: false
-            - createTable:
-                tableName: ldp
-                columns:
-                    - column:
-                        name: resource_id
-                        type: VARCHAR(${id.length})
-                        constraints:
-                            primaryKey: true
-                            nullable: false
-                    - column:
-                        name: member
-                        type: VARCHAR(${id.length})
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: membership_resource
-                        type: VARCHAR(1024)
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: has_member_relation
-                        type: VARCHAR(1024)
-                    - column:
-                        name: is_member_of_relation
-                        type: VARCHAR(1024)
-                    - column:
-                        name: inserted_content_relation
-                        type: VARCHAR(1024)
-                        defaultValue: "http://www.w3.org/ns/ldp#MemberSubject"
-            - createIndex:
-                indexName: idx_ldp
-                tableName: ldp
-                columns:
-                    - column:
-                        name: member
-                        type: VARCHAR(${id.length})
-                unique: false
+            - addForeignKeyConstraint:
+                baseColumnNames: resource_id
+                baseTableName: extra
+                constraintName: fk_resource_extra
+                onDelete: CASCADE
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: resource
+                referencesUniqueColumn: true
             - createTable:
                 tableName: log
                 columns:
                     - column:
-                        name: resource_id
+                        name: id
                         type: VARCHAR(${id.length})
                         constraints:
                             nullable: false
@@ -147,70 +223,15 @@ databaseChangeLog:
                 tableName: log
                 columns:
                     - column:
-                        name: resource_id
-                        type: VARCHAR(${id.length})
-                unique: false
-            - createTable:
-                tableName: resource
-                columns:
-                    - column:
                         name: id
                         type: VARCHAR(${id.length})
-                        constraints:
-                            primaryKey: true
-                            nullable: false
-                    - column:
-                        name: interaction_model
-                        type: VARCHAR(255)
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: modified
-                        type: BIGINT
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: is_part_of
-                        type: VARCHAR(1024)
-                    - column:
-                        name: deleted
-                        type: BOOLEAN
-                        defaultValue: FALSE
-                    - column:
-                        name: acl
-                        type: BOOLEAN
-                        defaultValue: FALSE
-            - createTable:
-                tableName: nonrdf
-                columns:
-                    - column:
-                        name: resource_id
-                        type: VARCHAR(${id.length})
-                        constraints:
-                            primaryKey: true
-                            nullable: false
-                    - column:
-                        name: location
-                        type: VARCHAR(1024)
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: modified
-                        type: BIGINT
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: format
-                        type: VARCHAR(255)
-                    - column:
-                        name: size
-                        type: BIGINT
+                unique: false
             - createTable:
                 tableName: description
                 columns:
                     - column:
                         name: resource_id
-                        type: VARCHAR(${id.length})
+                        type: BIGINT
                         constraints:
                             nullable: false
                     - column:
@@ -240,13 +261,25 @@ databaseChangeLog:
                 columns:
                     - column:
                         name: resource_id
-                        type: VARCHAR(${id.length})
+                        type: BIGINT
                 unique: false
+            - addForeignKeyConstraint:
+                baseColumnNames: resource_id
+                baseTableName: description
+                constraintName: fk_resource_description
+                onDelete: CASCADE
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: resource
+                referencesUniqueColumn: true
             - loadData:
                 tableName: resource
                 columns:
                     - column:
                         name: id
+                        type: NUMERIC
+                    - column:
+                        name: subject
                         type: STRING
                     - column:
                         name: interaction_model
@@ -257,13 +290,13 @@ databaseChangeLog:
                     - column:
                         name: acl
                         type: BOOLEAN
-                file: org/trellisldp/ext/db/initial_resource.csv
+                file: org/trellisldp/ext/db/initial_resource${csv}.csv
             - loadData:
                 tableName: acl
                 columns:
                     - column:
                         name: resource_id
-                        type: STRING
+                        type: NUMERIC
                     - column:
                         name: subject
                         type: STRING
@@ -273,5 +306,5 @@ databaseChangeLog:
                     - column:
                         name: object
                         type: STRING
-                file: org/trellisldp/ext/db/initial_acl.csv
+                file: org/trellisldp/ext/db/initial_acl${csv}.csv
 

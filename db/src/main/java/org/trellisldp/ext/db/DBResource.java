@@ -60,9 +60,9 @@ public class DBResource implements Resource {
     private static final String DATATYPE = "datatype";
     private static final String SUBJECT = "subject";
     private static final String PREDICATE = "predicate";
-    private static final String MEMBERSHIP_RESOURCE = "membership_resource";
-    private static final String HAS_MEMBER_RELATION = "has_member_relation";
-    private static final String IS_MEMBER_OF_RELATION = "is_member_of_relation";
+    private static final String MEMBERSHIP_RESOURCE = "ldp_membership_resource";
+    private static final String HAS_MEMBER_RELATION = "ldp_has_member_relation";
+    private static final String IS_MEMBER_OF_RELATION = "ldp_is_member_of_relation";
 
     private final IRI identifier;
     private final Jdbi jdbi;
@@ -205,7 +205,13 @@ public class DBResource implements Resource {
     }
 
     private Stream<Quad> fetchAuditQuads() {
-        return fetchQuadsFromTable("log", Trellis.PreferAudit);
+        final String query = "SELECT subject, predicate, object, lang, datatype "
+                           + "FROM log WHERE id = ?";
+        return jdbi.withHandle(handle -> handle.select(query, getIdentifier().getIRIString())
+                .map((rs, ctx) -> rdf.createQuad(Trellis.PreferAudit, rdf.createIRI(rs.getString(SUBJECT)),
+                        rdf.createIRI(rs.getString(PREDICATE)),
+                        getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
+                .stream());
     }
 
     private Stream<Quad> fetchAclQuads() {
@@ -214,11 +220,11 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
-            = "SELECT l.membership_resource, l.has_member_relation, d.object, d.lang, d.datatype "
-            + "FROM ldp AS l INNER JOIN resource AS r ON l.resource_id = r.is_part_of "
-            + "INNER JOIN resource AS r2 ON l.resource_id = r2.id "
-            + "INNER JOIN description AS d ON r.id = d.resource_id AND d.predicate = l.inserted_content_relation "
-            + "WHERE l.member = ? AND r2.interaction_model = ? AND l.has_member_relation IS NOT NULL";
+            = "SELECT r2.ldp_membership_resource, r2.ldp_has_member_relation, d.object, d.lang, d.datatype "
+            + "FROM resource AS r "
+            + "INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
+            + "INNER JOIN description AS d ON r.id = d.resource_id AND d.predicate = r2.ldp_inserted_content_relation "
+            + "WHERE r2.ldp_member = ? AND r2.interaction_model = ? AND r2.ldp_has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
@@ -231,9 +237,11 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
-            = "SELECT l.is_member_of_relation, l.membership_resource FROM ldp AS l "
-            + "INNER JOIN resource AS r ON l.resource_id = r.is_part_of "
-            + "WHERE r.id = ? AND l.inserted_content_relation = ? AND l.is_member_of_relation IS NOT NULL";
+            = "SELECT r2.ldp_is_member_of_relation, r2.ldp_membership_resource "
+            + "FROM resource AS r "
+            + "INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
+            + "WHERE r.subject = ? AND r2.ldp_inserted_content_relation = ? "
+            + "AND r2.ldp_is_member_of_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
@@ -245,26 +253,28 @@ public class DBResource implements Resource {
 
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
-            = "SELECT l.membership_resource, l.has_member_relation, r.id FROM ldp AS l "
-            + "INNER JOIN resource AS r ON l.resource_id = r.is_part_of "
-            + "WHERE l.member = ? AND l.inserted_content_relation = ? AND l.has_member_relation IS NOT NULL";
+            = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject "
+            + "FROM resource AS r "
+            + "INNER JOIN resource AS r2 ON r.subject = r2.is_part_of "
+            + "WHERE r.ldp_member = ? AND r.ldp_inserted_content_relation = ? "
+            + "AND r.ldp_has_member_relation IS NOT NULL";
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                         rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
-                        rdf.createIRI(rs.getString("id"))))
+                        rdf.createIRI(rs.getString(SUBJECT))))
                 .stream());
     }
 
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
-            final String query = "SELECT id FROM resource where is_part_of = ?";
+            final String query = "SELECT subject FROM resource WHERE is_part_of = ?";
             return jdbi.withHandle(handle -> handle.select(query,
                         getIdentifier().getIRIString())
                     .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment, getIdentifier(),
-                            LDP.contains, rdf.createIRI(rs.getString("id"))))
+                            LDP.contains, rdf.createIRI(rs.getString(SUBJECT))))
                     .stream());
         }
         return Stream.empty();
@@ -273,7 +283,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchQuadsFromTable(final String tableName, final IRI graphName) {
         final String query = "SELECT subject, predicate, object, lang, datatype "
                            + "FROM " + tableName + " WHERE resource_id = ?";
-        return jdbi.withHandle(handle -> handle.select(query, getIdentifier().getIRIString())
+        return jdbi.withHandle(handle -> handle.select(query, data.getId())
                 .map((rs, ctx) -> rdf.createQuad(graphName, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
                         getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
@@ -287,24 +297,23 @@ public class DBResource implements Resource {
     protected Boolean fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
         final String extraQuery = "SELECT predicate, object FROM extra WHERE resource_id = ?";
-        final Map<String, String> extras = new HashMap<>();
-        jdbi.useHandle(handle ->
-                handle.select(extraQuery, identifier.getIRIString())
-                      .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString(OBJECT), rs.getString(PREDICATE)))
-                      .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
-
         final String query
-            = "SELECT r.interaction_model, r.modified, r.is_part_of, r.deleted, r.acl, "
-            + "l.membership_resource, l.has_member_relation, l.is_member_of_relation, l.inserted_content_relation, "
-            + "nr.location, nr.modified AS binary_modified, nr.format, nr.size "
-            + "FROM resource AS r "
-            + "LEFT JOIN ldp AS l ON r.id = l.resource_id "
-            + "LEFT JOIN nonrdf AS nr ON r.id = nr.resource_id "
-            + "WHERE r.id = ?";
+            = "SELECT id, interaction_model, modified, is_part_of, deleted, acl, "
+            + "ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
+            + "ldp_inserted_content_relation, binary_location, binary_modified, binary_format, binary_size "
+            + "FROM resource "
+            + "WHERE subject = ?";
         final Optional<ResourceData> rd = jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
-                .map((rs, ctx) -> new ResourceData(rs, extras)).findFirst());
+                .map((rs, ctx) -> new ResourceData(rs)).findFirst());
         if (rd.isPresent()) {
             this.data = rd.get();
+            final Map<String, String> extras = new HashMap<>();
+            jdbi.useHandle(handle ->
+                    handle.select(extraQuery, this.data.getId())
+                          .map((rs, ctx) -> new SimpleImmutableEntry<>(rs.getString(OBJECT), rs.getString(PREDICATE)))
+                          .forEach(entry -> extras.put(entry.getKey(), entry.getValue())));
+
+            this.data.setExtra(extras);
             return true;
         }
         return false;

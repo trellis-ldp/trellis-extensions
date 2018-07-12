@@ -45,4 +45,4 @@ matrix:
   allow_failures:
     - jdk: oraclejdk11
 
-script: ./gradlew clean check install
+script: ./gradlew clean check install --info

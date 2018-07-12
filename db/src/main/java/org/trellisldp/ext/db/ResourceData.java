@@ -34,6 +34,7 @@ class ResourceData {
 
     private static final RDF rdf = getInstance();
 
+    private Integer id;
     private String interactionModel;
     private Long modified;
     private String isPartOf;
@@ -48,22 +49,25 @@ class ResourceData {
     private Binary binary;
     private Map<String, String> extra;
 
-    public ResourceData(final ResultSet rs, final Map<String, String> extra) throws SQLException {
+    public ResourceData(final ResultSet rs) throws SQLException {
         this.interactionModel = rs.getString("interaction_model");
+        this.id = rs.getInt("id");
         this.modified = rs.getLong("modified");
         this.isPartOf = rs.getString("is_part_of");
         this.resourceHasAcl = rs.getBoolean("acl");
         this.resourceIsDeleted = rs.getBoolean("deleted");
 
-        this.membershipResource = rs.getString("membership_resource");
-        this.hasMemberRelation = rs.getString("has_member_relation");
-        this.isMemberOfRelation = rs.getString("is_member_of_relation");
-        this.insertedContentRelation = rs.getString("inserted_content_relation");
+        this.membershipResource = rs.getString("ldp_membership_resource");
+        this.hasMemberRelation = rs.getString("ldp_has_member_relation");
+        this.isMemberOfRelation = rs.getString("ldp_is_member_of_relation");
+        this.insertedContentRelation = rs.getString("ldp_inserted_content_relation");
 
-        this.extra = extra;
+        this.binary = DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("binary_location"),
+                rs.getLong("binary_modified"), rs.getString("binary_format"), rs.getLong("binary_size")).orElse(null);
+    }
 
-        this.binary = DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("location"),
-                rs.getLong("binary_modified"), rs.getString("format"), rs.getLong("size")).orElse(null);
+    public Integer getId() {
+        return id;
     }
 
     public IRI getInteractionModel() {
@@ -108,5 +112,9 @@ class ResourceData {
 
     public Map<String, String> getExtra() {
         return extra;
+    }
+
+    public void setExtra(final Map<String, String> extra) {
+        this.extra = extra;
     }
 }
