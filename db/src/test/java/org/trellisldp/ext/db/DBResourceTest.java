@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
+import static org.trellisldp.api.RDFUtils.TRELLIS_SESSION_BASE_URL;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.meanwhile;
 import static org.trellisldp.vocabulary.RDF.type;
@@ -161,8 +162,9 @@ public class DBResourceTest {
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferServerManaged, identifier, DC.isPartOf, root);
         final Binary binary = new Binary(binaryIri, now(), "text/plain", 10L);
-        assertTrue(svc.create(identifier, new SimpleSession(Trellis.AnonymousAgent), LDP.NonRDFSource, dataset, root,
-                binary).get());
+        final Session session = new SimpleSession(Trellis.AnonymousAgent);
+        session.setProperty(TRELLIS_SESSION_BASE_URL, "http://example.com/");
+        assertTrue(svc.create(identifier, session, LDP.NonRDFSource, dataset, root, binary).get());
         svc.get(identifier).ifPresent(res -> {
             assertTrue(res.getBinary().isPresent());
             assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->

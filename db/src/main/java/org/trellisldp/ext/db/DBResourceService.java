@@ -214,24 +214,25 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public Future<Boolean> add(final IRI id, final Session session, final Dataset dataset) {
-        final String q = "INSERT INTO log (id, subject, predicate, object, lang, datatype) "
+        final String query
+            = "INSERT INTO log (id, subject, predicate, object, lang, datatype) "
             + "VALUES (?, ?, ?, ?, ?, ?)";
         return supplyAsync(() -> {
             try {
                 jdbi.useHandle(handle -> dataset.getGraph(PreferAudit).ifPresent(graph -> {
-                        final PreparedBatch batch = handle.prepareBatch(q);
-                        graph.stream().forEach(triple -> batch
-                                .bind(0, id.getIRIString())
-                                .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                                .bind(2, triple.getPredicate().getIRIString())
-                                .bind(3, getObjectValue(triple.getObject()))
-                                .bind(4, getObjectLang(triple.getObject()))
-                                .bind(5, getObjectDatatype(triple.getObject())).add());
-                        if (batch.size() > 0) {
-                            batch.execute();
+                        try (final PreparedBatch batch = handle.prepareBatch(query)) {
+                            graph.stream().forEach(triple -> batch
+                                    .bind(0, id.getIRIString())
+                                    .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                                    .bind(2, triple.getPredicate().getIRIString())
+                                    .bind(3, getObjectValue(triple.getObject()))
+                                    .bind(4, getObjectLang(triple.getObject()))
+                                    .bind(5, getObjectDatatype(triple.getObject())).add());
+                            if (batch.size() > 0) {
+                                batch.execute();
+                            }
                         }
                     }));
-
                 return true;
             } catch (final Exception ex) {
                 LOGGER.error("Error storing audit dataset: {}", ex.getMessage());
@@ -293,12 +294,12 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final Session session, final Boolean isDelete, final Dataset dataset, final Binary binary) {
 
         handle.execute("DELETE FROM resource WHERE subject = ?", identifier.getIRIString());
-        try (final Update update = handle.createUpdate("INSERT INTO resource "
-                    + "(subject, interaction_model, modified, deleted, is_part_of, acl, "
-                    + "ldp_member, ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
-                    + "ldp_inserted_content_relation, "
-                    + "binary_location, binary_modified, binary_format, binary_size) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        final String query
+            = "INSERT INTO resource (subject, interaction_model, modified, deleted, is_part_of, acl, "
+            + "ldp_member, ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
+            + "ldp_inserted_content_relation, binary_location, binary_modified, binary_format, binary_size) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (final Update update = handle.createUpdate(query)
                 .bind(0, identifier.getIRIString())
                 .bind(1, ixnModel.getIRIString())
                 .bind(2, session.getCreated().toEpochMilli())
@@ -326,21 +327,24 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     private static void updateAcl(final Handle handle, final Integer resourceId, final Dataset dataset) {
         dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
-            final PreparedBatch batch = handle.prepareBatch(
-                "INSERT INTO acl (resource_id, subject, predicate, object, lang, datatype) VALUES (?, ?, ?, ?, ?, ?)");
-            graph.stream().sequential().forEach(triple -> {
-                batch.bind(0, resourceId)
-                     .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                     .bind(2, triple.getPredicate().getIRIString())
-                     .bind(3, getObjectValue(triple.getObject()))
-                     .bind(4, getObjectLang(triple.getObject()))
-                     .bind(5, getObjectDatatype(triple.getObject())).add();
-                if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+            final String query
+                = "INSERT INTO acl (resource_id, subject, predicate, object, lang, datatype) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
+            try (final PreparedBatch batch = handle.prepareBatch(query)) {
+                graph.stream().sequential().forEach(triple -> {
+                    batch.bind(0, resourceId)
+                         .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                         .bind(2, triple.getPredicate().getIRIString())
+                         .bind(3, getObjectValue(triple.getObject()))
+                         .bind(4, getObjectLang(triple.getObject()))
+                         .bind(5, getObjectDatatype(triple.getObject())).add();
+                    if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+                        batch.execute();
+                    }
+                });
+                if (batch.size() > 0) {
                     batch.execute();
                 }
-            });
-            if (batch.size() > 0) {
-                batch.execute();
             }
         });
     }
@@ -348,46 +352,48 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     private static void updateExtra(final Handle handle, final Integer resourceId, final IRI identifier,
             final Dataset dataset) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-            final PreparedBatch batch = handle.prepareBatch(
-                    "INSERT INTO extra (resource_id, predicate, object) VALUES (?, ?, ?)");
-            graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
-                .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
-                        batch.bind(0, resourceId)
-                             .bind(1, LDP.inbox.getIRIString())
-                             .bind(2, iri)
-                             .add());
+            final String query = "INSERT INTO extra (resource_id, predicate, object) VALUES (?, ?, ?)";
+            try (final PreparedBatch batch = handle.prepareBatch(query)) {
+                graph.stream(identifier, LDP.inbox, null).map(Triple::getObject).filter(t -> t instanceof IRI)
+                    .map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
+                            batch.bind(0, resourceId)
+                                 .bind(1, LDP.inbox.getIRIString())
+                                 .bind(2, iri)
+                                 .add());
 
-            graph.stream(identifier, OA.annotationService, null).map(Triple::getObject)
-                 .filter(t -> t instanceof IRI).map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
-                        batch.bind(0, resourceId)
-                             .bind(1, OA.annotationService.getIRIString())
-                             .bind(2, iri).add());
+                graph.stream(identifier, OA.annotationService, null).map(Triple::getObject)
+                     .filter(t -> t instanceof IRI).map(t -> ((IRI) t).getIRIString()).findFirst().ifPresent(iri ->
+                            batch.bind(0, resourceId)
+                                 .bind(1, OA.annotationService.getIRIString())
+                                 .bind(2, iri).add());
 
-            if (batch.size() > 0) {
-                batch.execute();
+                if (batch.size() > 0) {
+                    batch.execute();
+                }
             }
         });
     }
 
     private static void updateDescription(final Handle handle, final Integer resourceId, final Dataset dataset) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-            final String resourceQuery
+            final String query
                 = "INSERT INTO description (resource_id, subject, predicate, object, lang, datatype) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
-            final PreparedBatch batch = handle.prepareBatch(resourceQuery);
-            graph.stream().sequential().forEach(triple -> {
-                batch.bind(0, resourceId)
-                     .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                     .bind(2, triple.getPredicate().getIRIString())
-                     .bind(3, getObjectValue(triple.getObject()))
-                     .bind(4, getObjectLang(triple.getObject()))
-                     .bind(5, getObjectDatatype(triple.getObject())).add();
-                if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+            try (final PreparedBatch batch = handle.prepareBatch(query)) {
+                graph.stream().sequential().forEach(triple -> {
+                    batch.bind(0, resourceId)
+                         .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                         .bind(2, triple.getPredicate().getIRIString())
+                         .bind(3, getObjectValue(triple.getObject()))
+                         .bind(4, getObjectLang(triple.getObject()))
+                         .bind(5, getObjectDatatype(triple.getObject())).add();
+                    if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+                        batch.execute();
+                    }
+                });
+                if (batch.size() > 0) {
                     batch.execute();
                 }
-            });
-            if (batch.size() > 0) {
-                batch.execute();
             }
         });
     }
@@ -518,5 +524,4 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         LOGGER.warn("No baseURL defined. Emitting message with resource's internal IRI: {}", identifier);
         return identifier.getIRIString();
     }
-
 }

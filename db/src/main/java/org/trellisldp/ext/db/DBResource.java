@@ -173,11 +173,17 @@ public class DBResource implements Resource {
         return data.getExtra().entrySet().stream();
     }
 
+    /**
+     * Combine the various membership-related quad streams.
+     */
     private Stream<Quad> fetchMembershipQuads() {
         return concat(fetchIndirectMemberQuads(),
                 concat(fetchDirectMemberQuads(), fetchDirectMemberQuadsInverse()));
     }
 
+    /**
+     * Fetch a stream of server quads.
+     */
     private Stream<Quad> fetchServerQuads() {
         final Stream.Builder<Quad> builder = builder();
         builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
@@ -200,13 +206,25 @@ public class DBResource implements Resource {
         return builder.build();
     }
 
+    /**
+     * Fetch a stream of user-managed quads.
+     */
     private Stream<Quad> fetchUserQuads() {
         return fetchQuadsFromTable("description", Trellis.PreferUserManaged);
     }
 
+    /**
+     * Fetch a stream of webac quads.
+     */
+    private Stream<Quad> fetchAclQuads() {
+        return fetchQuadsFromTable("acl", Trellis.PreferAccessControl);
+    }
+
+    /**
+     * Fetch a stream of the audit-related quads.
+     */
     private Stream<Quad> fetchAuditQuads() {
-        final String query = "SELECT subject, predicate, object, lang, datatype "
-                           + "FROM log WHERE id = ?";
+        final String query = "SELECT subject, predicate, object, lang, datatype FROM log WHERE id = ?";
         return jdbi.withHandle(handle -> handle.select(query, getIdentifier().getIRIString())
                 .map((rs, ctx) -> rdf.createQuad(Trellis.PreferAudit, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
@@ -214,10 +232,10 @@ public class DBResource implements Resource {
                 .stream());
     }
 
-    private Stream<Quad> fetchAclQuads() {
-        return fetchQuadsFromTable("acl", Trellis.PreferAccessControl);
-    }
-
+    /**
+     * Fetch a stream of membership quads based on indirect containment with a custom
+     * ldp:insertedContentRelation value.
+     */
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
             = "SELECT r2.ldp_membership_resource, r2.ldp_has_member_relation, d.object, d.lang, d.datatype "
@@ -234,6 +252,11 @@ public class DBResource implements Resource {
                 .stream());
     }
 
+    /**
+     * Fetch a stream of membership quads that are built with ldp:isMemberOfRelation
+     * and either direct or indirect containment where the ldp:insertedContentRelation
+     * is equal to ldp:MemberSubject.
+     */
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
             = "SELECT r2.ldp_is_member_of_relation, r2.ldp_membership_resource "
@@ -249,6 +272,10 @@ public class DBResource implements Resource {
                 .stream());
     }
 
+    /**
+     * Fetch a stream of membership quads that are built with ldp:hasMemberRelation
+     * and direct containment.
+     */
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
             = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject "
@@ -265,6 +292,9 @@ public class DBResource implements Resource {
                 .stream());
     }
 
+    /**
+     * Fetch a stream of containment quads for a resource.
+     */
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
             final String query = "SELECT subject FROM resource WHERE is_part_of = ?";
@@ -291,15 +321,14 @@ public class DBResource implements Resource {
      * Fetch data for this resource.
      * @return true if data was found; false otherwise
      */
-    protected Boolean fetchData() {
+    private Boolean fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
         final String extraQuery = "SELECT predicate, object FROM extra WHERE resource_id = ?";
         final String query
             = "SELECT id, interaction_model, modified, is_part_of, deleted, acl, "
             + "ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
             + "ldp_inserted_content_relation, binary_location, binary_modified, binary_format, binary_size "
-            + "FROM resource "
-            + "WHERE subject = ?";
+            + "FROM resource WHERE subject = ?";
         final Optional<ResourceData> rd = jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> new ResourceData(rs)).findFirst());
         if (rd.isPresent()) {
