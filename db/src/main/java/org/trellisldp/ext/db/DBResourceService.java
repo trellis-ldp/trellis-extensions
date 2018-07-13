@@ -293,34 +293,35 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final Session session, final Boolean isDelete, final Dataset dataset, final Binary binary) {
 
         handle.execute("DELETE FROM resource WHERE subject = ?", identifier.getIRIString());
-        final Update update = handle.createUpdate("INSERT INTO resource "
-                + "(subject, interaction_model, modified, deleted, is_part_of, acl, "
-                + "ldp_member, ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
-                + "ldp_inserted_content_relation, "
-                + "binary_location, binary_modified, binary_format, binary_size) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-            .bind(0, identifier.getIRIString())
-            .bind(1, ixnModel.getIRIString())
-            .bind(2, session.getCreated().toEpochMilli())
-            .bind(3, isDelete)
-            .bind(4, dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
-                    .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-            .bind(5, dataset.contains(of(PreferAccessControl), null, null, null))
-            .bind(6, dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
-                    .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-            .bind(7, dataset.stream(of(PreferServerManaged), identifier, LDP.membershipResource, null)
-                    .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-            .bind(8, dataset.stream(of(PreferServerManaged), identifier, LDP.hasMemberRelation, null)
-                    .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-            .bind(9, dataset.stream(of(PreferServerManaged), identifier, LDP.isMemberOfRelation, null)
-                    .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-            .bind(10, dataset.stream(of(PreferServerManaged), identifier, LDP.insertedContentRelation, null)
-                    .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-            .bind(11, ofNullable(binary).map(Binary::getIdentifier).map(IRI::getIRIString).orElse(null))
-            .bind(12, ofNullable(binary).map(Binary::getModified).map(Instant::toEpochMilli).orElse(null))
-            .bind(13, ofNullable(binary).flatMap(Binary::getMimeType).orElse(null))
-            .bind(14, ofNullable(binary).flatMap(Binary::getSize).orElse(null));
-        return update.executeAndReturnGeneratedKeys("id").mapTo(Integer.class).findOnly();
+        try (final Update update = handle.createUpdate("INSERT INTO resource "
+                    + "(subject, interaction_model, modified, deleted, is_part_of, acl, "
+                    + "ldp_member, ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
+                    + "ldp_inserted_content_relation, "
+                    + "binary_location, binary_modified, binary_format, binary_size) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                .bind(0, identifier.getIRIString())
+                .bind(1, ixnModel.getIRIString())
+                .bind(2, session.getCreated().toEpochMilli())
+                .bind(3, isDelete)
+                .bind(4, dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
+                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(5, dataset.contains(of(PreferAccessControl), null, null, null))
+                .bind(6, dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
+                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(7, dataset.stream(of(PreferServerManaged), identifier, LDP.membershipResource, null)
+                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(8, dataset.stream(of(PreferServerManaged), identifier, LDP.hasMemberRelation, null)
+                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(9, dataset.stream(of(PreferServerManaged), identifier, LDP.isMemberOfRelation, null)
+                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(10, dataset.stream(of(PreferServerManaged), identifier, LDP.insertedContentRelation, null)
+                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(11, ofNullable(binary).map(Binary::getIdentifier).map(IRI::getIRIString).orElse(null))
+                .bind(12, ofNullable(binary).map(Binary::getModified).map(Instant::toEpochMilli).orElse(null))
+                .bind(13, ofNullable(binary).flatMap(Binary::getMimeType).orElse(null))
+                .bind(14, ofNullable(binary).flatMap(Binary::getSize).orElse(null))) {
+            return update.executeAndReturnGeneratedKeys("id").mapTo(Integer.class).findOnly();
+        }
     }
 
     private static void updateAcl(final Handle handle, final Integer resourceId, final Dataset dataset) {
