@@ -28,7 +28,7 @@ ext {
 
     /* Databases */
     mysqlVersion = '8.0.11'
-    postgresVersion = '42.2.2'
+    postgresVersion = '42.2.3'
 
     /* Testing */
     activationVersion = '1.1.1'
