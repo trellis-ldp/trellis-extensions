@@ -2,11 +2,11 @@ databaseChangeLog:
     - property:
         name: id.length
         value: 1024
-        dbms: postgresql,h2
+        dbms: postgresql,h2,derby,oracle,mssql,sqlite
     - property:
         name: csv
         value: ""
-        dbms: postgresql,h2
+        dbms: postgresql,h2,derby,oracle,mssql,sqlite
 
     - property:
         name: id.length
@@ -155,6 +155,52 @@ databaseChangeLog:
                 referencedTableName: resource
                 referencesUniqueColumn: true
             - createTable:
+                tableName: description
+                columns:
+                    - column:
+                        name: resource_id
+                        type: BIGINT
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: subject
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: predicate
+                        type: VARCHAR(1024)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: object
+                        type: VARCHAR(16383)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: lang
+                        type: VARCHAR(20)
+                    - column:
+                        name: datatype
+                        type: VARCHAR(255)
+            - createIndex:
+                indexName: idx_description
+                tableName: description
+                columns:
+                    - column:
+                        name: resource_id
+                        type: BIGINT
+                unique: false
+            - addForeignKeyConstraint:
+                baseColumnNames: resource_id
+                baseTableName: description
+                constraintName: fk_resource_description
+                onDelete: CASCADE
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: resource
+                referencesUniqueColumn: true
+            - createTable:
                 tableName: extra
                 columns:
                     - column:
@@ -226,52 +272,6 @@ databaseChangeLog:
                         name: id
                         type: VARCHAR(${id.length})
                 unique: false
-            - createTable:
-                tableName: description
-                columns:
-                    - column:
-                        name: resource_id
-                        type: BIGINT
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: subject
-                        type: VARCHAR(1024)
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: predicate
-                        type: VARCHAR(1024)
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: object
-                        type: VARCHAR(16383)
-                        constraints:
-                            nullable: false
-                    - column:
-                        name: lang
-                        type: VARCHAR(20)
-                    - column:
-                        name: datatype
-                        type: VARCHAR(255)
-            - createIndex:
-                indexName: idx_description
-                tableName: description
-                columns:
-                    - column:
-                        name: resource_id
-                        type: BIGINT
-                unique: false
-            - addForeignKeyConstraint:
-                baseColumnNames: resource_id
-                baseTableName: description
-                constraintName: fk_resource_description
-                onDelete: CASCADE
-                onUpdate: RESTRICT
-                referencedColumnNames: id
-                referencedTableName: resource
-                referencesUniqueColumn: true
             - loadData:
                 tableName: resource
                 columns:
