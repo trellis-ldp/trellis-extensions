@@ -221,8 +221,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchIndirectMemberQuads() {
         final String query
             = "SELECT r2.ldp_membership_resource, r2.ldp_has_member_relation, d.object, d.lang, d.datatype "
-            + "FROM resource AS r "
-            + "INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
+            + "FROM resource AS r INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
             + "INNER JOIN description AS d ON r.id = d.resource_id AND d.predicate = r2.ldp_inserted_content_relation "
             + "WHERE r2.ldp_member = ? AND r2.interaction_model = ? AND r2.ldp_has_member_relation IS NOT NULL";
 
@@ -238,8 +237,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
         final String query
             = "SELECT r2.ldp_is_member_of_relation, r2.ldp_membership_resource "
-            + "FROM resource AS r "
-            + "INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
+            + "FROM resource AS r INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
             + "WHERE r.subject = ? AND r2.ldp_inserted_content_relation = ? "
             + "AND r2.ldp_is_member_of_relation IS NOT NULL";
 
@@ -254,8 +252,7 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
             = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject "
-            + "FROM resource AS r "
-            + "INNER JOIN resource AS r2 ON r.subject = r2.is_part_of "
+            + "FROM resource AS r INNER JOIN resource AS r2 ON r.subject = r2.is_part_of "
             + "WHERE r.ldp_member = ? AND r.ldp_inserted_content_relation = ? "
             + "AND r.ldp_has_member_relation IS NOT NULL";
 
