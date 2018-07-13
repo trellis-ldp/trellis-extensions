@@ -55,6 +55,7 @@ import javax.sql.DataSource;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Dataset;
+import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
@@ -325,28 +326,37 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
+    private static void updateDescription(final Handle handle, final Integer resourceId, final Dataset dataset) {
+        dataset.getGraph(PreferUserManaged).ifPresent(graph ->
+                batchUpdateTriples(handle, resourceId, "description", graph));
+    }
+
     private static void updateAcl(final Handle handle, final Integer resourceId, final Dataset dataset) {
-        dataset.getGraph(PreferAccessControl).ifPresent(graph -> {
-            final String query
-                = "INSERT INTO acl (resource_id, subject, predicate, object, lang, datatype) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
-            try (final PreparedBatch batch = handle.prepareBatch(query)) {
-                graph.stream().sequential().forEach(triple -> {
-                    batch.bind(0, resourceId)
-                         .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                         .bind(2, triple.getPredicate().getIRIString())
-                         .bind(3, getObjectValue(triple.getObject()))
-                         .bind(4, getObjectLang(triple.getObject()))
-                         .bind(5, getObjectDatatype(triple.getObject())).add();
-                    if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
-                        batch.execute();
-                    }
-                });
-                if (batch.size() > 0) {
+        dataset.getGraph(PreferAccessControl).ifPresent(graph ->
+                batchUpdateTriples(handle, resourceId, "acl", graph));
+    }
+
+    private static void batchUpdateTriples(final Handle handle, final Integer resourceId, final String table,
+            final Graph graph) {
+        final String query
+            = "INSERT INTO " + table + " (resource_id, subject, predicate, object, lang, datatype) "
+            + "VALUES (?, ?, ?, ?, ?, ?)";
+        try (final PreparedBatch batch = handle.prepareBatch(query)) {
+            graph.stream().sequential().forEach(triple -> {
+                batch.bind(0, resourceId)
+                     .bind(1, ((IRI) triple.getSubject()).getIRIString())
+                     .bind(2, triple.getPredicate().getIRIString())
+                     .bind(3, getObjectValue(triple.getObject()))
+                     .bind(4, getObjectLang(triple.getObject()))
+                     .bind(5, getObjectDatatype(triple.getObject())).add();
+                if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
                     batch.execute();
                 }
+            });
+            if (batch.size() > 0) {
+                batch.execute();
             }
-        });
+        }
     }
 
     private static void updateExtra(final Handle handle, final Integer resourceId, final IRI identifier,
@@ -367,30 +377,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                                  .bind(1, OA.annotationService.getIRIString())
                                  .bind(2, iri).add());
 
-                if (batch.size() > 0) {
-                    batch.execute();
-                }
-            }
-        });
-    }
-
-    private static void updateDescription(final Handle handle, final Integer resourceId, final Dataset dataset) {
-        dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
-            final String query
-                = "INSERT INTO description (resource_id, subject, predicate, object, lang, datatype) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
-            try (final PreparedBatch batch = handle.prepareBatch(query)) {
-                graph.stream().sequential().forEach(triple -> {
-                    batch.bind(0, resourceId)
-                         .bind(1, ((IRI) triple.getSubject()).getIRIString())
-                         .bind(2, triple.getPredicate().getIRIString())
-                         .bind(3, getObjectValue(triple.getObject()))
-                         .bind(4, getObjectLang(triple.getObject()))
-                         .bind(5, getObjectDatatype(triple.getObject())).add();
-                    if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
-                        batch.execute();
-                    }
-                });
                 if (batch.size() > 0) {
                     batch.execute();
                 }
