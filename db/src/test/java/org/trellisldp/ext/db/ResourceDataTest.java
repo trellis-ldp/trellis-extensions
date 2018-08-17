@@ -36,10 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
 import org.trellisldp.api.IdentifierService;
-import org.trellisldp.api.NoopEventService;
-import org.trellisldp.api.NoopMementoService;
 import org.trellisldp.api.Resource;
-import org.trellisldp.api.ResourceService;
 import org.trellisldp.id.UUIDGenerator;
 
 import liquibase.Contexts;
@@ -63,8 +60,6 @@ public class ResourceDataTest {
 
     private static EmbeddedPostgres pg = null;
 
-    private static ResourceService svc = null;
-
     static {
         try {
             pg = EmbeddedPostgres.builder()
@@ -79,10 +74,6 @@ public class ResourceDataTest {
                 final Contexts ctx = null;
                 liquibase.update(ctx);
             }
-
-            svc = new DBResourceService(pg.getPostgresDatabase(), idService,
-                new NoopMementoService(), new NoopEventService());
-
         } catch (final IOException | SQLException | LiquibaseException ex) {
             LOGGER.error("Error setting up tests", ex);
         }
