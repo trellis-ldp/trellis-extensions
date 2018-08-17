@@ -35,9 +35,7 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
-import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.Resource;
-import org.trellisldp.id.UUIDGenerator;
 
 import liquibase.Contexts;
 import liquibase.Liquibase;
@@ -53,9 +51,6 @@ public class ResourceDataTest {
 
     private static final Logger LOGGER = getLogger(DBResourceTest.class);
     private static final RDF rdf = getInstance();
-
-    private static final IdentifierService idService = new UUIDGenerator();
-
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
 
     private static EmbeddedPostgres pg = null;
