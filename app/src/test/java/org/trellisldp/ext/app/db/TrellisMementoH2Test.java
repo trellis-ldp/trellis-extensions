@@ -13,60 +13,32 @@
  */
 package org.trellisldp.ext.app.db;
 
-import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.io.File.separator;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.setDefaultPollInterval;
-import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
-import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.slf4j.LoggerFactory.getLogger;
 
-import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
 
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
-import org.slf4j.Logger;
+import org.junit.jupiter.api.BeforeAll;
 import org.trellisldp.test.AbstractApplicationMementoTests;
 
 public class TrellisMementoH2Test extends AbstractApplicationMementoTests {
 
-    private static final Logger LOGGER = getLogger(TrellisMementoH2Test.class);
-
     private static DropwizardTestSupport<AppConfiguration> APP;
-
     private static Client CLIENT;
 
-    static {
-
-        try {
-            APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
-                        resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:h2:file:./build/data/h2-"
-                             + new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(10)),
-                        config("database.driverClass", "org.h2.Driver"),
-                        config("binaries", resourceFilePath("data") + separator + "binaries2"),
-                        config("mementos", resourceFilePath("data") + separator + "mementos2"),
-                        config("namespaces", resourceFilePath("data/namespaces.json")));
-
-            APP.before();
-            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
-
-            CLIENT = new JerseyClientBuilder(APP.getEnvironment()).build("test client");
-            CLIENT.property(CONNECT_TIMEOUT, 5000);
-            CLIENT.property(READ_TIMEOUT, 5000);
-            setDefaultPollInterval(100L, MILLISECONDS);
-
-        } catch (final Exception ex) {
-            LOGGER.error("Error initializing Trellis", ex);
-            fail(ex.getMessage());
-        }
+    @BeforeAll
+    public static void setup() throws Exception {
+        setDefaultPollInterval(100L, MILLISECONDS);
+        APP = TestUtils.buildH2App("jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));
+        APP.before();
+        APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+        CLIENT = TestUtils.buildClient(APP);
     }
 
     @Override

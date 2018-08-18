@@ -15,20 +15,16 @@ package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.io.File.separator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.commons.rdf.api.RDFSyntax.JSONLD;
 import static org.awaitility.Awaitility.setDefaultPollInterval;
-import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
-import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.test.TestUtils.readEntityAsGraph;
 
-import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.ByteArrayInputStream;
@@ -81,23 +77,12 @@ public class TrellisEventPgsqlTest extends AbstractApplicationEventTests impleme
             BROKER.setPersistent(false);
             BROKER.start();
 
-            APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
-                        resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:postgresql://localhost/trellis"),
-                        config("database.user", "postgres"),
-                        config("database.password", ""),
-                        config("notifications.type", "JMS"),
-                        config("notifications.connectionString", "vm://localhost"),
-                        config("binaries", resourceFilePath("data") + separator + "binaries"),
-                        config("mementos", resourceFilePath("data") + separator + "mementos"),
-                        config("namespaces", resourceFilePath("data/namespaces.json")));
-
+            APP = TestUtils.buildPgsqlApp("jdbc:postgresql://localhost/trellis", "postgres", "",
+                    config("notifications.type", "JMS"), config("notifications.connectionString", "vm://localhost"));
             APP.before();
             APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
 
-            CLIENT = new JerseyClientBuilder(APP.getEnvironment()).build("test client");
-            CLIENT.property(CONNECT_TIMEOUT, 5000);
-            CLIENT.property(READ_TIMEOUT, 5000);
+            CLIENT = TestUtils.buildClient(APP);
             setDefaultPollInterval(100L, MILLISECONDS);
 
         } catch (final IOException ex) {
