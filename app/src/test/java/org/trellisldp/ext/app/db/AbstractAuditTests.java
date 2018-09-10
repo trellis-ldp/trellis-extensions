@@ -18,6 +18,6 @@ import org.trellisldp.test.AbstractApplicationAuditTests;
 abstract class AbstractAuditTests extends AbstractApplicationAuditTests {
     @Override
     public String getJwtSecret() {
-        return "secret";
+        return "gCjvrNoj8us4SXZQUENBunut85+s/XPN5T9+dxol8L2YXgY6QISuVd02oRcuPb/3ewrICaEnAGvm4QYdszgBIA==";
     }
 }

@@ -14,6 +14,7 @@
 package org.trellisldp.ext.db;
 
 import static java.time.Instant.now;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
@@ -22,7 +23,6 @@ import static org.trellisldp.api.RDFUtils.getInstance;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.time.Instant;
-import java.util.Optional;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
@@ -43,8 +43,8 @@ public class ResourceDataTest {
     @Test
     public void testTimestampOnRootIsRecent() {
         final Instant time = now().minusSeconds(1L);
-        final Optional<Resource> res = DBResource.findResource(pg.getPostgresDatabase(), root);
-        assertTrue(res.isPresent());
-        assertTrue(res.get().getModified().isAfter(time));
+        final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root).join();
+        assertEquals(root, res.getIdentifier());
+        assertTrue(res.getModified().isAfter(time));
     }
 }

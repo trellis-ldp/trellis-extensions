@@ -14,16 +14,11 @@
 package org.trellisldp.ext.db;
 
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
-import static org.trellisldp.api.RDFUtils.getInstance;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
-import org.apache.commons.rdf.api.RDF;
 import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.trellisldp.api.NoopEventService;
-import org.trellisldp.api.NoopMementoService;
 import org.trellisldp.api.ResourceService;
-import org.trellisldp.api.Session;
 import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.test.AbstractResourceServiceTests;
 
@@ -33,19 +28,12 @@ import org.trellisldp.test.AbstractResourceServiceTests;
 @DisabledOnOs(WINDOWS)
 public class ResourceServiceTest extends AbstractResourceServiceTests {
 
-    private static final RDF rdf = getInstance();
     private static final EmbeddedPostgres pg = DBTestUtils.setupDatabase("build");
 
-    private final ResourceService svc = new DBResourceService(pg.getPostgresDatabase(), new UUIDGenerator(),
-                new NoopMementoService(), new NoopEventService());
+    private final ResourceService svc = new DBResourceService(pg.getPostgresDatabase(), new UUIDGenerator());
 
     @Override
     public ResourceService getResourceService() {
         return svc;
-    }
-
-    @Override
-    public Session getSession() {
-        return new SimpleSession(rdf.createIRI("user:test"));
     }
 }

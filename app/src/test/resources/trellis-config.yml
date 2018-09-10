@@ -46,12 +46,9 @@ hubUrl:
 auth:
     webac:
         enabled: true
-    anon:
-        enabled: true
     jwt:
         enabled: true
-        base64Encoded: false
-        key: secret
+        key: gCjvrNoj8us4SXZQUENBunut85+s/XPN5T9+dxol8L2YXgY6QISuVd02oRcuPb/3ewrICaEnAGvm4QYdszgBIA==
     basic:
         enabled: true
 
@@ -74,3 +71,5 @@ jsonld:
     contextWhitelist:
         - http://www.w3.org/ns/anno.jsonld
 
+binaryHierarchyLength: 2
+binaryHierarchyLevels: 2

@@ -14,12 +14,15 @@
 package org.trellisldp.ext.db;
 
 import static java.util.Objects.nonNull;
-import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
+import static java.util.stream.Stream.empty;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.api.Resource.SpecialResources.DELETED_RESOURCE;
+import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
@@ -28,6 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -92,7 +96,7 @@ public class DBResource implements Resource {
      * @param identifier the identifier
      * @return a Resource, if one exists
      */
-    public static Optional<Resource> findResource(final DataSource ds, final IRI identifier) {
+    public static CompletableFuture<Resource> findResource(final DataSource ds, final IRI identifier) {
         return findResource(Jdbi.create(ds), identifier);
     }
 
@@ -102,9 +106,25 @@ public class DBResource implements Resource {
      * @param identifier the identifier
      * @return a Resource, if one exists
      */
-    public static Optional<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
-        final DBResource res = new DBResource(jdbi, identifier);
-        return res.fetchData() ? of(res) : empty();
+    public static CompletableFuture<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
+        return supplyAsync(() -> {
+            final DBResource res = new DBResource(jdbi, identifier);
+            if (!res.fetchData()) {
+                return MISSING_RESOURCE;
+            }
+            if (res.isDeleted()) {
+                return DELETED_RESOURCE;
+            }
+            return res;
+        });
+    }
+
+    /**
+     * Identify whether this resource had previously been deleted.
+     * @return true if the resource previously existed
+     */
+    public Boolean isDeleted() {
+        return data.isDeleted();
     }
 
     @Override
@@ -126,6 +146,11 @@ public class DBResource implements Resource {
     @Override
     public IRI getInteractionModel() {
         return data.getInteractionModel();
+    }
+
+    @Override
+    public Optional<IRI> getContainer() {
+        return data.getIsPartOf();
     }
 
     @Override
@@ -161,11 +186,6 @@ public class DBResource implements Resource {
     @Override
     public Boolean hasAcl() {
         return data.hasAcl();
-    }
-
-    @Override
-    public Boolean isDeleted() {
-        return data.isDeleted();
     }
 
     @Override
@@ -304,7 +324,7 @@ public class DBResource implements Resource {
                             LDP.contains, rdf.createIRI(rs.getString(SUBJECT))))
                     .stream());
         }
-        return Stream.empty();
+        return empty();
     }
 
     private Stream<Quad> fetchQuadsFromTable(final String tableName, final IRI graphName) {
