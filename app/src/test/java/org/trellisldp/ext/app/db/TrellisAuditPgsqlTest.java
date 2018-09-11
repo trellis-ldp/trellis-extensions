@@ -15,7 +15,6 @@ package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
@@ -25,34 +24,24 @@ import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationAuditTests;
 
 /**
  * Audit tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuditPgsqlTest extends AbstractApplicationAuditTests {
+public class TrellisAuditPgsqlTest extends BaseTrellisAudit {
 
-    private static final Logger LOGGER = getLogger(TrellisAuditPgsqlTest.class);
-
-    private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildPgsqlApp(
+    private static final DropwizardTestSupport<AppConfiguration> PG_APP = TestUtils.buildPgsqlApp(
             "jdbc:postgresql://localhost/trellis", "postgres", "");
 
-    private static final Client CLIENT = TestUtils.buildClient(APP);
+    private static final Client CLIENT = TestUtils.buildClient(PG_APP);
 
     static {
         try {
-            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+            PG_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
         } catch (final Exception ex) {
-            LOGGER.error("Error initializing Trellis", ex);
-            fail(ex.getMessage());
+            fail(ex.getMessage(), ex);
         }
-    }
-
-    @Override
-    public String getJwtSecret() {
-        return "secret";
     }
 
     @Override
@@ -62,11 +51,11 @@ public class TrellisAuditPgsqlTest extends AbstractApplicationAuditTests {
 
     @Override
     public String getBaseURL() {
-        return "http://localhost:" + APP.getLocalPort() + "/";
+        return "http://localhost:" + PG_APP.getLocalPort() + "/";
     }
 
     @AfterAll
     public static void cleanup() throws IOException {
-        APP.after();
+        PG_APP.after();
     }
 }

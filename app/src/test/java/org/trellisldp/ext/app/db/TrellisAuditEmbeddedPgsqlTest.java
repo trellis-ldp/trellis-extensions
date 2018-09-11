@@ -17,7 +17,6 @@ import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static java.io.File.separator;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
@@ -27,46 +26,23 @@ import java.io.IOException;
 
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.slf4j.Logger;
-import org.trellisldp.test.AbstractApplicationAuditTests;
 
 /**
  * Audit tests.
  */
 @DisabledOnOs(WINDOWS)
 @DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuditEmbeddedPgsqlTest extends AbstractApplicationAuditTests {
-
-    private static final Logger LOGGER = getLogger(TrellisAuditEmbeddedPgsqlTest.class);
+public class TrellisAuditEmbeddedPgsqlTest extends BaseTrellisAudit {
 
     private static EmbeddedPostgres pg = null;
-
     private static DropwizardTestSupport<AppConfiguration> APP;
-
     private static Client CLIENT;
 
     static {
-        try {
-            pg = EmbeddedPostgres.builder()
-                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + new RandomStringGenerator
-                        .Builder().withinRange('a', 'z').build().generate(10)).start();
-            APP = TestUtils.buildPgsqlApp("jdbc:postgresql://localhost:" + pg.getPort() + "/postgres",
-                    "postgres", "postgres");
-            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
-            CLIENT = TestUtils.buildClient(APP);
-        } catch (final Exception ex) {
-            LOGGER.error("Error initializing Trellis", ex);
-            fail(ex.getMessage());
-        }
-    }
-
-    @Override
-    public String getJwtSecret() {
-        return "secret";
+        init();
     }
 
     @Override
@@ -83,5 +59,19 @@ public class TrellisAuditEmbeddedPgsqlTest extends AbstractApplicationAuditTests
     public static void cleanup() throws IOException {
         APP.after();
         pg.close();
+    }
+
+    private static void init() {
+        try {
+            pg = EmbeddedPostgres.builder()
+                .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + TestUtils.randomString(10))
+                .start();
+            APP = TestUtils.buildPgsqlApp("jdbc:postgresql://localhost:" + pg.getPort() + "/postgres",
+                    "postgres", "postgres");
+            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+            CLIENT = TestUtils.buildClient(APP);
+        } catch (final Exception ex) {
+            fail(ex.getMessage(), ex);
+        }
     }
 }

@@ -14,33 +14,30 @@
 package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.util.Collections.singleton;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
-import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.trellisldp.test.AbstractApplicationLdpTests;
 
 /**
  * Run LDP-Related Tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpMysqlTest extends AbstractApplicationLdpTests {
+public class TrellisLdpMysqlTest extends BaseTrellisLdp {
 
-    private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildMysqlApp(
+    private static final DropwizardTestSupport<AppConfiguration> MYSQL_APP = TestUtils.buildMysqlApp(
             "jdbc:mysql://localhost/trellis", "travis", "");
-    private static final Client CLIENT = TestUtils.buildClient(APP);
+    private static final Client CLIENT = TestUtils.buildClient(MYSQL_APP);
 
     @BeforeAll
     public static void setup() throws Exception {
-        APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+        MYSQL_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
     }
 
     @Override
@@ -50,16 +47,11 @@ public class TrellisLdpMysqlTest extends AbstractApplicationLdpTests {
 
     @Override
     public String getBaseURL() {
-        return "http://localhost:" + APP.getLocalPort() + "/";
-    }
-
-    @Override
-    public Set<String> supportedJsonLdProfiles() {
-        return singleton("http://www.w3.org/ns/anno.jsonld");
+        return "http://localhost:" + MYSQL_APP.getLocalPort() + "/";
     }
 
     @AfterAll
     public static void cleanup() throws IOException {
-        APP.after();
+        MYSQL_APP.after();
     }
 }

@@ -14,33 +14,28 @@
 package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.util.Collections.singleton;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
-import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.trellisldp.test.AbstractApplicationLdpTests;
 
 /**
  * Run LDP-Related Tests.
  */
-public class TrellisLdpH2Test extends AbstractApplicationLdpTests {
+public class TrellisLdpH2Test extends BaseTrellisLdp {
 
-    private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildH2App(
-            "jdbc:h2:file:./build/data/h2-" +
-                new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(10));
-    private static final Client CLIENT = TestUtils.buildClient(APP);
+    private static final DropwizardTestSupport<AppConfiguration> H2_APP = TestUtils.buildH2App(
+            "jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));
+    private static final Client CLIENT = TestUtils.buildClient(H2_APP);
 
     @BeforeAll
     public static void setup() throws Exception {
-        APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+        H2_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
     }
 
     @Override
@@ -50,16 +45,11 @@ public class TrellisLdpH2Test extends AbstractApplicationLdpTests {
 
     @Override
     public String getBaseURL() {
-        return "http://localhost:" + APP.getLocalPort() + "/";
-    }
-
-    @Override
-    public Set<String> supportedJsonLdProfiles() {
-        return singleton("http://www.w3.org/ns/anno.jsonld");
+        return "http://localhost:" + H2_APP.getLocalPort() + "/";
     }
 
     @AfterAll
     public static void cleanup() throws IOException {
-        APP.after();
+        H2_APP.after();
     }
 }

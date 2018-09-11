@@ -14,33 +14,30 @@
 package org.trellisldp.ext.app.db;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.util.Collections.singleton;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
-import java.util.Set;
 
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.trellisldp.test.AbstractApplicationLdpTests;
 
 /**
  * Run LDP-Related Tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpPgsqlTest extends AbstractApplicationLdpTests {
+public class TrellisLdpPgsqlTest extends BaseTrellisLdp {
 
-    private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildPgsqlApp(
+    private static final DropwizardTestSupport<AppConfiguration> PG_APP = TestUtils.buildPgsqlApp(
             "jdbc:postgresql://localhost/trellis", "postgres", "");
-    private static final Client CLIENT = TestUtils.buildClient(APP);
+    private static final Client CLIENT = TestUtils.buildClient(PG_APP);
 
     @BeforeAll
     public static void setup() throws Exception {
-        APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+        PG_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
     }
 
     @Override
@@ -50,16 +47,11 @@ public class TrellisLdpPgsqlTest extends AbstractApplicationLdpTests {
 
     @Override
     public String getBaseURL() {
-        return "http://localhost:" + APP.getLocalPort() + "/";
-    }
-
-    @Override
-    public Set<String> supportedJsonLdProfiles() {
-        return singleton("http://www.w3.org/ns/anno.jsonld");
+        return "http://localhost:" + PG_APP.getLocalPort() + "/";
     }
 
     @AfterAll
     public static void cleanup() throws IOException {
-        APP.after();
+        PG_APP.after();
     }
 }
