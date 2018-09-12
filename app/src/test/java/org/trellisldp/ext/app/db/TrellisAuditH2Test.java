@@ -27,7 +27,7 @@ import org.junit.jupiter.api.AfterAll;
 /**
  * Audit tests.
  */
-public class TrellisAuditH2Test extends BaseTrellisAudit {
+public class TrellisAuditH2Test extends AbstractAuditTests {
     private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildH2App(
                 "jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));
     private static final Client CLIENT = TestUtils.buildClient(APP);

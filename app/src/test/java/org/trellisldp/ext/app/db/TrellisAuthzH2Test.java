@@ -29,7 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * Authorization tests.
  */
-public class TrellisAuthzH2Test extends BaseTrellisAuthz {
+public class TrellisAuthzH2Test extends AbstractAuthzTests {
 
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;

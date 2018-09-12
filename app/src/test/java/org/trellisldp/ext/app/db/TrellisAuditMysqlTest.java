@@ -29,7 +29,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Audit tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuditMysqlTest extends BaseTrellisAudit {
+public class TrellisAuditMysqlTest extends AbstractAuditTests {
 
     private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildMysqlApp(
             "jdbc:mysql://localhost/trellis", "travis", "");

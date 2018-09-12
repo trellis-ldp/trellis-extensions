@@ -13,20 +13,9 @@
  */
 package org.trellisldp.ext.app.db;
 
-import org.trellisldp.test.AbstractApplicationAuthTests;
+import org.trellisldp.test.AbstractApplicationAuditTests;
 
-abstract class BaseTrellisAuthz extends AbstractApplicationAuthTests {
-
-    @Override
-    public String getUser1Credentials() {
-        return "acoburn:secret";
-    }
-
-    @Override
-    public String getUser2Credentials() {
-        return "user:password";
-    }
-
+abstract class AbstractAuditTests extends AbstractApplicationAuditTests {
     @Override
     public String getJwtSecret() {
         return "secret";

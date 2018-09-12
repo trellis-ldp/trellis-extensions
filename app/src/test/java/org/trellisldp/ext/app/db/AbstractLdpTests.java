@@ -13,11 +13,15 @@
  */
 package org.trellisldp.ext.app.db;
 
-import org.trellisldp.test.AbstractApplicationAuditTests;
+import static java.util.Collections.singleton;
 
-abstract class BaseTrellisAudit extends AbstractApplicationAuditTests {
+import java.util.Set;
+
+import org.trellisldp.test.AbstractApplicationLdpTests;
+
+abstract class AbstractLdpTests extends AbstractApplicationLdpTests {
     @Override
-    public String getJwtSecret() {
-        return "secret";
+    public Set<String> supportedJsonLdProfiles() {
+        return singleton("http://www.w3.org/ns/anno.jsonld");
     }
 }

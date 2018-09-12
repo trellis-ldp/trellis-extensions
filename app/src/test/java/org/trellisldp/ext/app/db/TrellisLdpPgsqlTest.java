@@ -29,7 +29,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Run LDP-Related Tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpPgsqlTest extends BaseTrellisLdp {
+public class TrellisLdpPgsqlTest extends AbstractLdpTests {
 
     private static final DropwizardTestSupport<AppConfiguration> PG_APP = TestUtils.buildPgsqlApp(
             "jdbc:postgresql://localhost/trellis", "postgres", "");

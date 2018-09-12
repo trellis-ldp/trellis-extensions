@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * Run LDP-Related Tests.
  */
-public class TrellisLdpH2Test extends BaseTrellisLdp {
+public class TrellisLdpH2Test extends AbstractLdpTests {
 
     private static final DropwizardTestSupport<AppConfiguration> H2_APP = TestUtils.buildH2App(
             "jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));

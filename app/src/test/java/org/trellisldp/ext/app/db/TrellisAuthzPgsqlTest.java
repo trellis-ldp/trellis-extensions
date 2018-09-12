@@ -30,7 +30,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Authorization tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuthzPgsqlTest extends BaseTrellisAuthz {
+public class TrellisAuthzPgsqlTest extends AbstractAuthzTests {
 
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;

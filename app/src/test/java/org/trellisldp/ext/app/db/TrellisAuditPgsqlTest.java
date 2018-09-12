@@ -29,7 +29,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Audit tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuditPgsqlTest extends BaseTrellisAudit {
+public class TrellisAuditPgsqlTest extends AbstractAuditTests {
 
     private static final DropwizardTestSupport<AppConfiguration> PG_APP = TestUtils.buildPgsqlApp(
             "jdbc:postgresql://localhost/trellis", "postgres", "");

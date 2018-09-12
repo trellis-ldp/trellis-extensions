@@ -35,7 +35,7 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
  */
 @DisabledOnOs(WINDOWS)
 @DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpEmbeddedPgsqlTest extends BaseTrellisLdp {
+public class TrellisLdpEmbeddedPgsqlTest extends AbstractLdpTests {
 
     private static EmbeddedPostgres pg;
     private static DropwizardTestSupport<AppConfiguration> PG_APP;

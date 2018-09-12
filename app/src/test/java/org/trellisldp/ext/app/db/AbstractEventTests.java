@@ -40,9 +40,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationEventTests;
 
-abstract class BaseTrellisEvent extends AbstractApplicationEventTests implements MessageListener {
+abstract class AbstractEventTests extends AbstractApplicationEventTests implements MessageListener {
 
-    private static final Logger LOGGER = getLogger(BaseTrellisEvent.class);
+    private static final Logger LOGGER = getLogger(AbstractEventTests.class);
     private static final RDF rdf = getInstance();
 
     private final Set<Graph> messages = new CopyOnWriteArraySet<>();

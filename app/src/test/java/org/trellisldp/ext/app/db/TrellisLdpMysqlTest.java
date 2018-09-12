@@ -29,7 +29,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Run LDP-Related Tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpMysqlTest extends BaseTrellisLdp {
+public class TrellisLdpMysqlTest extends AbstractLdpTests {
 
     private static final DropwizardTestSupport<AppConfiguration> MYSQL_APP = TestUtils.buildMysqlApp(
             "jdbc:mysql://localhost/trellis", "travis", "");

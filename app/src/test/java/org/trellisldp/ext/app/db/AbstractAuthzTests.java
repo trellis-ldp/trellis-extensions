@@ -13,15 +13,22 @@
  */
 package org.trellisldp.ext.app.db;
 
-import static java.util.Collections.singleton;
+import org.trellisldp.test.AbstractApplicationAuthTests;
 
-import java.util.Set;
+abstract class AbstractAuthzTests extends AbstractApplicationAuthTests {
 
-import org.trellisldp.test.AbstractApplicationLdpTests;
-
-abstract class BaseTrellisLdp extends AbstractApplicationLdpTests {
     @Override
-    public Set<String> supportedJsonLdProfiles() {
-        return singleton("http://www.w3.org/ns/anno.jsonld");
+    public String getUser1Credentials() {
+        return "acoburn:secret";
+    }
+
+    @Override
+    public String getUser2Credentials() {
+        return "user:password";
+    }
+
+    @Override
+    public String getJwtSecret() {
+        return "secret";
     }
 }
