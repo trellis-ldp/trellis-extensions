@@ -12,6 +12,14 @@ dependencies {
     runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
 }
 
+// Get commit id of HEAD.
+apply plugin: 'java'
+apply plugin: 'application'
+ext {
+    git = grgit.open() // file('../.'))
+    revision = git.head().id
+}
+
 ospackage {
     packageName = 'trellis-db'
     release = '1'
@@ -61,6 +69,17 @@ buildDeb {
     preUninstall file('src/deb/preUninstall.sh')
 }
 
+docker {
+    name "trellisldp/trellis-ext-db:${trellisVersion}"
+    tags 'latest'
+    dockerfile file('src/docker/Dockerfile')
+    files tasks.distTar.outputs, 'deployment/src/dist/etc/config.yml','deployment/src/docker/command.sh'
+    buildArgs([BUILD_VERSION: trellisVersion])
+    labels(['git.url':'https://github.com/trellis-ldp/trellis-ext-db', 'git.commit':revision])
+    pull false
+    noCache false
+}
+
 signing {
     sign buildRpm
     sign buildDeb
@@ -87,4 +106,3 @@ assembleDist {
     dependsOn signBuildRpm
     dependsOn signBuildDeb
 }
-
