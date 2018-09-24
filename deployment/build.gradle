@@ -12,20 +12,11 @@ dependencies {
     runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'org.ajoberstar:grgit:1.1.0'
-    }
-}
-
 // Get commit id of HEAD.
 apply plugin: 'java'
 apply plugin: 'application'
 ext {
-    git = org.ajoberstar.grgit.Grgit.open(file('../.'))
+    git = grgit.open() // file('../.'))
     revision = git.head().id
 }
 
@@ -79,10 +70,10 @@ buildDeb {
 }
 
 docker {
-    name "gregjan/trellis-ext-db:${trellisVersion}"
+    name "trellisldp/trellis-ext-db:${trellisVersion}"
     tags 'latest'
     dockerfile file('src/docker/Dockerfile')
-    files tasks.distTar.outputs, 'deployment/src/docker/config.yml','deployment/src/docker/command.sh'
+    files tasks.distTar.outputs, 'deployment/src/dist/etc/config.yml','deployment/src/docker/command.sh'
     buildArgs([BUILD_VERSION: trellisVersion])
     labels(['git.url':'https://github.com/trellis-ldp/trellis-ext-db', 'git.commit':revision])
     pull false
