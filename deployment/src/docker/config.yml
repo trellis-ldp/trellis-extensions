@@ -1,0 +1,105 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  requestLog:
+    appenders:
+      - type: file
+        currentLogFilename: /opt/trellis/log/access.log
+        archive: true
+        archivedLogFilenamePattern: /opt/trellis/log/access-%i.log
+        archivedFileCount: 5
+        maxFileSize: 100K
+
+logging:
+  level: WARN
+  appenders:
+    - type: file
+      currentLogFilename: /opt/trellis/log/trellis.log
+      archive: true
+      archivedLogFilenamePattern: /opt/trellis/log/trellis-%i.log
+      archivedFileCount: 5
+      maxFileSize: 100K
+  loggers:
+    org.trellisldp: INFO
+    io.dropwizard: INFO
+
+# Database configuration
+database:
+  # The name of your JDBC driver
+  # driverClass: com.mysql.cj.jdbc.Driver
+  driverClass: org.postgresql.Driver
+
+  # The database username
+  user: changeme
+
+  # The database password
+  password: changeme
+
+  # The JDBC URL
+  # url: jdbc:mysql://db.example.com/db-name
+  url: jdbc:postgresql://db.example.com/db-name
+
+  properties:
+    charSet: UTF-8
+    serverTimezone: UTC
+    useSSL: false
+  maxWaitForConnection: 1s
+  validationQuery: "SELECT 1"
+  validationQueryTimeout: 3s
+  minSize: 8
+  maxSize: 32
+  checkConnectionWhileIdle: false
+  evictionInterval: 10s
+  minIdleTime: 1 minute
+
+binaries: /opt/trellis/data/binaries
+
+mementos: /opt/trellis/data/mementos
+
+namespaces: /opt/trellis/data/namespaces.json
+
+# This may refer to a static base URL for resources. If left empty, the
+# base URL will reflect the Host header in the request.
+baseUrl:
+
+# This configuration will enable a WebSub "hub" header.
+hubUrl:
+
+auth:
+    adminUsers: []
+    webac:
+        enabled: true
+    anon:
+        enabled: true
+    jwt:
+        enabled: false
+        base64Encoded: false
+        key: changeme
+    basic:
+        enabled: true
+        usersFile: /opt/trellis/etc/users.auth
+
+cors:
+    enabled: true
+    allowOrigin:
+        - "*"
+    maxAge: 180
+
+cache:
+    maxAge: 86400
+    mustRevalidate: true
+
+notifications:
+    enabled: false
+    type: JMS
+    topicName: "trellis"
+    connectionString: "tcp://localhost:61616"
+
+# JSON-LD configuration
+jsonld:
+    cacheSize: 10
+    cacheExpireHours: 24
+    contextWhitelist: []
+    contextDomainWhitelist: []
+
