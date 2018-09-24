@@ -15,10 +15,6 @@ dependencies {
 // Get commit id of HEAD.
 apply plugin: 'java'
 apply plugin: 'application'
-ext {
-    git = grgit.open() // file('../.'))
-    revision = git.head().id
-}
 
 ospackage {
     packageName = 'trellis-db'
@@ -75,7 +71,12 @@ docker {
     dockerfile file('src/docker/Dockerfile')
     files tasks.distTar.outputs, 'deployment/src/dist/etc/config.yml','deployment/src/docker/command.sh'
     buildArgs([BUILD_VERSION: trellisVersion])
-    labels(['git.url':'https://github.com/trellis-ldp/trellis-ext-db', 'git.commit':revision])
+    def gitLabels = ['git.url':'https://github.com/trellis-ldp/trellis-ext-db']
+    try {
+        git = grgit.open()
+        gitLabels.put('git.commit', git.head().id);
+    } catch (all) { }
+    labels(gitLabels)
     pull false
     noCache false
 }

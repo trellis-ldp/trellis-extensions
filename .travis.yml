@@ -34,4 +34,4 @@ matrix:
     # JDK 11
     - jdk: oraclejdk11
 
-script: ./gradlew clean check install --info
+script: ./gradlew clean check install
