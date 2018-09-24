@@ -82,7 +82,6 @@ import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
 import org.trellisldp.vocabulary.PROV;
-import org.trellisldp.vocabulary.Trellis;
 import org.trellisldp.vocabulary.XSD;
 
 /**
@@ -453,7 +452,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 final Integer resourceId = updateResource(handle, identifier, ixnModel, session,
                         opType == OperationType.DELETE, dataset, binary);
 
-                final Optional<IRI> inbox = dataset.stream(of(Trellis.PreferUserManaged), identifier, LDP.inbox, null)
+                final Optional<IRI> inbox = dataset.stream(of(PreferUserManaged), identifier, LDP.inbox, null)
                     .map(Quad::getObject).filter(x -> x instanceof IRI).map(x -> (IRI) x).findFirst();
 
                 final List<IRI> targetTypes = new ArrayList<>();

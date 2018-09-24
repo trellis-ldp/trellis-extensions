@@ -13,7 +13,6 @@
  */
 package org.trellisldp.ext.db;
 
-import static java.time.Instant.ofEpochMilli;
 import static java.util.Optional.ofNullable;
 import static org.trellisldp.api.RDFUtils.getInstance;
 

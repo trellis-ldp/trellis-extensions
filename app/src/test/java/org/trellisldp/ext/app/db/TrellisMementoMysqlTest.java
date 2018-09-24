@@ -13,17 +13,10 @@
  */
 package org.trellisldp.ext.app.db;
 
-import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static java.io.File.separator;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.setDefaultPollInterval;
-import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
-import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.slf4j.LoggerFactory.getLogger;
 
-import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 
 import java.io.IOException;
@@ -31,44 +24,23 @@ import java.io.IOException;
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.slf4j.Logger;
 import org.trellisldp.test.AbstractApplicationMementoTests;
 
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
 public class TrellisMementoMysqlTest extends AbstractApplicationMementoTests {
 
-    private static final Logger LOGGER = getLogger(TrellisMementoMysqlTest.class);
-
     private static DropwizardTestSupport<AppConfiguration> APP;
-
     private static Client CLIENT;
 
-    static {
-
-        try {
-            APP = new DropwizardTestSupport<AppConfiguration>(TrellisApplication.class,
-                        resourceFilePath("trellis-config.yml"),
-                        config("database.url", "jdbc:mysql://localhost/trellis"),
-                        config("database.driverClass", "com.mysql.cj.jdbc.Driver"),
-                        config("database.user", "travis"),
-                        config("database.password", ""),
-                        config("binaries", resourceFilePath("data") + separator + "binaries2"),
-                        config("mementos", resourceFilePath("data") + separator + "mementos2"),
-                        config("namespaces", resourceFilePath("data/namespaces.json")));
-
-            APP.before();
-            APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
-
-            CLIENT = new JerseyClientBuilder(APP.getEnvironment()).build("test client");
-            CLIENT.property(CONNECT_TIMEOUT, 5000);
-            CLIENT.property(READ_TIMEOUT, 5000);
-            setDefaultPollInterval(100L, MILLISECONDS);
-
-        } catch (final Exception ex) {
-            LOGGER.error("Error initializing Trellis", ex);
-            fail(ex.getMessage());
-        }
+    @BeforeAll
+    public static void setup() throws Exception {
+        setDefaultPollInterval(100L, MILLISECONDS);
+        APP = TestUtils.buildMysqlApp("jdbc:mysql://localhost/trellis", "travis", "");
+        APP.before();
+        APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
+        CLIENT = TestUtils.buildClient(APP);
     }
 
     @Override

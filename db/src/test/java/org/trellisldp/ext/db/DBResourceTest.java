@@ -16,6 +16,7 @@ package org.trellisldp.ext.db;
 import static com.google.common.io.Resources.getResource;
 import static java.io.File.separator;
 import static java.time.Instant.now;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -125,17 +126,19 @@ public class DBResourceTest {
 
     @Test
     public void getServerQuads() {
-        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
-            final Graph serverManaged = rdf.createGraph();
-            res.stream(Trellis.PreferServerManaged).forEach(serverManaged::add);
-            assertTrue(serverManaged.contains(root, type, LDP.BasicContainer));
-        });
+        assertAll(() ->
+            DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
+                final Graph serverManaged = rdf.createGraph();
+                res.stream(Trellis.PreferServerManaged).forEach(serverManaged::add);
+                assertTrue(serverManaged.contains(root, type, LDP.BasicContainer));
+            }));
     }
 
     @Test
     public void getMembershipQuads() {
-        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res ->
-            assertEquals(0L, res.stream(LDP.PreferMembership).count()));
+        assertAll(() ->
+            DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res ->
+                assertEquals(0L, res.stream(LDP.PreferMembership).count())));
     }
 
     @Test
@@ -191,13 +194,14 @@ public class DBResourceTest {
 
     @Test
     public void getAclQuads() {
-        DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
-            final Graph acl = rdf.createGraph();
-            res.stream(Trellis.PreferAccessControl).forEach(acl::add);
-            assertTrue(acl.contains(null, ACL.mode, ACL.Read));
-            assertTrue(acl.contains(null, ACL.mode, ACL.Write));
-            assertTrue(acl.contains(null, ACL.mode, ACL.Control));
-        });
+        assertAll(() ->
+            DBResource.findResource(pg.getPostgresDatabase(), root).ifPresent(res -> {
+                final Graph acl = rdf.createGraph();
+                res.stream(Trellis.PreferAccessControl).forEach(acl::add);
+                assertTrue(acl.contains(null, ACL.mode, ACL.Read));
+                assertTrue(acl.contains(null, ACL.mode, ACL.Write));
+                assertTrue(acl.contains(null, ACL.mode, ACL.Control));
+            }));
     }
 
     @Test
@@ -266,7 +270,6 @@ public class DBResourceTest {
     @Test
     public void testCreateErrorCondition() throws Exception {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
-        final Session session = new SimpleSession(Trellis.AnonymousAgent);
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferServerManaged, rdf.createBlankNode(), type, rdf.createLiteral("Invalid quad"));
         assertThrows(ExecutionException.class, () ->
