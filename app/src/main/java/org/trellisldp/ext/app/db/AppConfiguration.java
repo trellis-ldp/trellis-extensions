@@ -22,7 +22,7 @@ import javax.validation.constraints.NotNull;
 
 import org.trellisldp.app.config.TrellisConfiguration;
 
-class AppConfiguration extends TrellisConfiguration {
+public class AppConfiguration extends TrellisConfiguration {
 
     @Valid
     @NotNull
