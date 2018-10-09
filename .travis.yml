@@ -14,15 +14,6 @@ before_script:
   - psql -c 'create database trellis;' -U postgres
   - mysql -e 'CREATE DATABASE trellis;'
 
-before_cache:
-  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -rf $HOME/.gradle/caches/*/plugin-resolution/
-
-cache:
-  directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-
 matrix:
   fast_finish: true
 
