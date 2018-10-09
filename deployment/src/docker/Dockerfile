@@ -2,7 +2,7 @@
 
 # FROM gregjan/ubuntu-openjdk8
 FROM openjdk:8-jdk
-MAINTAINER Greg Jansen <jansen@umd.edu>
+LABEL maintainer="Greg Jansen <jansen@umd.edu>"
 
 ADD trellis-db-*.tar /opt
 RUN mv /opt/trellis-db-* /opt/trellis
