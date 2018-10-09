@@ -3,8 +3,8 @@
 Trellis is a scalable platform for building [linked data](https://www.w3.org/TR/ldp/) applications.
 The `trellis-ext-db` project implements a persistence layer based on a relational database.
 
-[![Build Status](https://travis-ci.com/trellis-ldp/trellis-ext-db.svg?branch=master)](https://travis-ci.com/trellis-ldp/trellis-ext-db)
-[![Coverage Status](https://coveralls.io/repos/github/trellis-ldp/trellis-ext-db/badge.svg?branch=master)](https://coveralls.io/github/trellis-ldp/trellis-ext-db?branch=master)
+[![Build Status](https://travis-ci.com/trellis-ldp/trellis-ext-db.svg?branch=trellis-ext-db-0.1.x)](https://travis-ci.com/trellis-ldp/trellis-ext-db)
+[![Coverage Status](https://coveralls.io/repos/github/trellis-ldp/trellis-ext-db/badge.svg?branch=trellis-ext-db-0.1.x)](https://coveralls.io/github/trellis-ldp/trellis-ext-db?branch=trellis-ext-db-0.1.x)
 ![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-db.svg)
 
 PostgreSQL and MySQL/MariaDB database connections are supported.
