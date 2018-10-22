@@ -1,6 +1,8 @@
 apply plugin: 'application'
 apply plugin: 'distribution'
+apply plugin: 'com.palantir.docker'
 apply plugin: 'nebula.ospackage-application'
+apply plugin: 'org.ajoberstar.grgit'
 
 description = 'Trellis Database Application'
 mainClassName = 'org.trellisldp.ext.app.db.TrellisApplication'
@@ -11,10 +13,6 @@ dependencies {
 
     runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
 }
-
-// Get commit id of HEAD.
-apply plugin: 'java'
-apply plugin: 'application'
 
 ospackage {
     packageName = 'trellis-db'
@@ -66,11 +64,11 @@ buildDeb {
 }
 
 docker {
-    name "trellisldp/trellis-ext-db:${trellisVersion}"
+    name "trellisldp/trellis-ext-db:${project.version}"
     tags 'latest'
     dockerfile file('src/docker/Dockerfile')
-    files tasks.distTar.outputs, 'deployment/src/dist/etc/config.yml','deployment/src/docker/command.sh'
-    buildArgs([BUILD_VERSION: trellisVersion])
+    files tasks.distTar.outputs, './src/dist/etc/config.yml','./src/docker/command.sh'
+    buildArgs([BUILD_VERSION: project.version])
     def gitLabels = ['git.url':'https://github.com/trellis-ldp/trellis-ext-db']
     try {
         git = grgit.open()
