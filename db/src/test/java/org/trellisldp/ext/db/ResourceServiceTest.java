@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.ResourceService;
-import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.test.AbstractResourceServiceTests;
 
 /**
@@ -30,7 +30,7 @@ public class ResourceServiceTest extends AbstractResourceServiceTests {
 
     private static final EmbeddedPostgres pg = DBTestUtils.setupDatabase("build");
 
-    private final ResourceService svc = new DBResourceService(pg.getPostgresDatabase(), new UUIDGenerator());
+    private final ResourceService svc = new DBResourceService(pg.getPostgresDatabase(), new DefaultIdentifierService());
 
     @Override
     public ResourceService getResourceService() {

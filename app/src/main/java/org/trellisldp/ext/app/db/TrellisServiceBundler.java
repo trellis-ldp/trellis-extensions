@@ -26,6 +26,7 @@ import org.trellisldp.agent.SimpleAgentService;
 import org.trellisldp.api.AgentService;
 import org.trellisldp.api.AuditService;
 import org.trellisldp.api.BinaryService;
+import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.EventService;
 import org.trellisldp.api.IOService;
 import org.trellisldp.api.IdentifierService;
@@ -38,7 +39,6 @@ import org.trellisldp.app.TrellisCache;
 import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
-import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.io.JenaIOService;
 import org.trellisldp.namespaces.NamespacesJsonContext;
 import org.trellisldp.rdfa.HtmlSerializer;
@@ -66,7 +66,7 @@ public class TrellisServiceBundler implements ServiceBundler {
      * @param environment the dropwizard environment
      */
     public TrellisServiceBundler(final AppConfiguration config, final Environment environment) {
-        final IdentifierService idService = new UUIDGenerator();
+        final IdentifierService idService = new DefaultIdentifierService();
         final JdbiFactory factory = new JdbiFactory();
 
         final Jdbi jdbi = factory.build(environment, config.getDataSourceFactory(), "trellis");

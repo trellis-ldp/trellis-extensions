@@ -49,9 +49,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
+import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.ResourceService;
-import org.trellisldp.id.UUIDGenerator;
 import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.FOAF;
@@ -74,7 +74,7 @@ public class DBResourceTest {
     private static final Logger LOGGER = getLogger(DBResourceTest.class);
     private static final RDF rdf = getInstance();
 
-    private static final IdentifierService idService = new UUIDGenerator();
+    private static final IdentifierService idService = new DefaultIdentifierService();
 
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
 
