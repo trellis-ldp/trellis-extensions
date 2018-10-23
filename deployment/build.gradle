@@ -75,7 +75,7 @@ docker {
             commandLine 'git', 'rev-parse', '--short', 'HEAD'
             standardOutput = stdout
         }
-        def hash = stdout.toString('UTF-8')
+        def hash = stdout.toString('UTF-8').trim()
         if (!hash.isEmpty()) {
             gitLabels.put('git.commit', hash)
         }
