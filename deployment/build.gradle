@@ -2,7 +2,6 @@ apply plugin: 'application'
 apply plugin: 'distribution'
 apply plugin: 'com.palantir.docker'
 apply plugin: 'nebula.ospackage-application'
-apply plugin: 'org.ajoberstar.grgit'
 
 description = 'Trellis Database Application'
 mainClassName = 'org.trellisldp.ext.app.db.TrellisApplication'
@@ -71,8 +70,15 @@ docker {
     buildArgs([BUILD_VERSION: project.version])
     def gitLabels = ['git.url':'https://github.com/trellis-ldp/trellis-ext-db']
     try {
-        git = grgit.open()
-        gitLabels.put('git.commit', git.head().id);
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        def hash = stdout.toString('UTF-8')
+        if (!hash.isEmpty()) {
+            gitLabels.put('git.commit', hash)
+        }
     } catch (all) { }
     labels(gitLabels)
     pull false
