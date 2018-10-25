@@ -21,25 +21,28 @@ before_script:
 jobs:
   include:
     # JDK 8
-    - stage: test
+    - name: "Java 8"
+      stage: test
       jdk: oraclejdk8
       script: travis_retry ./gradlew check install jacocoRootReport coveralls sonarqube
 
     # JDK 11
-    - stage: test
+    - name: "Java 11"
+      stage: test
       jdk: oraclejdk11
       script: travis_retry ./gradlew check install
 
     # deploy JDK 8 builds to Sonatype
-    - stage: deploy
-      name: "Publish to Sonatype"
+    - name: "Publish to Sonatype"
+      stage: deploy
       jdk: oraclejdk8
       if: branch = master AND type = push
-      script: ./gradlew publish
+      # Only automate the publication of SNAPSHOTS
+      script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew publish ; fi
 
     # deploy to Docker hub
-    - stage: deploy
-      name: "Publish to Docker hub"
+    - name: "Publish to Docker hub"
+      stage: deploy
       jdk: oraclejdk8
       if: branch = master AND type = push
       script:
