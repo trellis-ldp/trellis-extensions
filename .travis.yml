@@ -19,6 +19,7 @@ before_script:
   - mysql -e 'CREATE DATABASE trellis;'
 
 env:
+  - JOB=check
 
 jobs:
   allow_failures:
@@ -30,14 +31,12 @@ jobs:
     - name: "Java 8"
       stage: test
       jdk: oraclejdk8
-      env: JOB=check
       script: travis_retry ./gradlew check install jacocoRootReport coveralls sonarqube
 
     # JDK 11
     - name: "Java 11"
       stage: test
       jdk: oraclejdk11
-      env: JOB=check
       script: travis_retry ./gradlew check install
 
     # deploy JDK 8 builds to Sonatype
