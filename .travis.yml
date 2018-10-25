@@ -7,6 +7,10 @@ addons:
   sonarcloud:
     organization: trellis-ldp
 
+stages:
+  - test
+  - deploy
+
 services:
   - mysql
 
@@ -14,15 +18,31 @@ before_script:
   - psql -c 'create database trellis;' -U postgres
   - mysql -e 'CREATE DATABASE trellis;'
 
-matrix:
-  fast_finish: true
-
+jobs:
   include:
     # JDK 8
-    - jdk: oraclejdk8
-      after_success: ./gradlew jacocoRootReport coveralls sonarqube
+    - stage: test
+      jdk: oraclejdk8
+      script: travis_retry ./gradlew check install jacocoRootReport coveralls sonarqube
 
     # JDK 11
-    - jdk: oraclejdk11
+    - stage: test
+      jdk: oraclejdk11
+      script: travis_retry ./gradlew check install
 
-script: ./gradlew clean check install
+    # deploy JDK 8 builds to Sonatype
+    - stage: deploy
+      name: "Publish to Sonatype"
+      jdk: oraclejdk8
+      if: branch = master AND type = push
+      script: ./gradlew publish
+
+    # deploy to Docker hub
+    - stage: deploy
+      name: "Publish to Docker hub"
+      jdk: oraclejdk8
+      if: branch = master AND type = push
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - ./gradlew dockerPush
+
