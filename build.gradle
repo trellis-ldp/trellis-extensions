@@ -382,7 +382,9 @@ configure(rootProject) {
         dependsOn 'jacocoRootReport'
     }
 
-    task getVersion << {
-        println project.version
+    task getVersion {
+        doLast {
+            println project.version
+        }
     }
 }

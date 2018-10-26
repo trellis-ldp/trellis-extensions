@@ -150,6 +150,13 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     @Override
+    public CompletableFuture<Void> touch(final IRI id) {
+        LOGGER.debug("Updating modification date for {}", id);
+        final Instant time = now();
+        return runAsync(() -> updateResourceModification(id, time));
+    }
+
+    @Override
     public CompletableFuture<Resource> get(final IRI identifier) {
         return DBResource.findResource(jdbi, identifier);
     }
@@ -232,6 +239,22 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
 
         storeResource(identifier, time, ixnModel, dataset, opType, container, binary);
+    }
+
+    private void updateResourceModification(final IRI identifier, final Instant time) {
+        final String query = "UPDATE resource SET modified=? WHERE subject=?";
+        try {
+            jdbi.useHandle(handle -> {
+                try (final Update update = handle.createUpdate(query)
+                        .bind(0, time.toEpochMilli())
+                        .bind(1, identifier.getIRIString())) {
+                    update.execute();
+                }
+            });
+        } catch (final Exception ex) {
+            LOGGER.error("Error updating modification date for {}: {}", identifier, ex.getMessage());
+            throw new RuntimeTrellisException(ex);
+        }
     }
 
     private static Integer updateResource(final Handle handle, final IRI identifier, final IRI ixnModel,
@@ -327,44 +350,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         });
     }
 
-    private void updateAdjacentReplacement(final Handle handle, final String parentModel,
-            final String member, final Instant time) {
-
-        if (parentModel.equals(LDP.IndirectContainer.getIRIString())) {
-            handle.execute(UPDATE_RESOURCE_QUERY, time.toEpochMilli(), member);
-        }
-    }
-
-    private void updateAdjacentCreateDelete(final Handle handle, final String parent,
-            final String parentModel, final String member, final Instant time) {
-        if (parentModel.endsWith("Container")) {
-            handle.execute(UPDATE_RESOURCE_QUERY, time.toEpochMilli(), parent);
-        }
-
-        if (parentModel.equals(LDP.IndirectContainer.getIRIString())
-                || parentModel.equals(LDP.DirectContainer.getIRIString())) {
-            handle.execute(UPDATE_RESOURCE_QUERY, time.toEpochMilli(), member);
-        }
-    }
-
-
-    private void updateAdjacentResources(final Handle handle, final IRI identifier, final String parent,
-            final Instant time, final OperationType opType) {
-        handle.select("SELECT interaction_model, ldp_member FROM resource WHERE subject = ?", parent)
-            .mapToMap().findFirst().ifPresent(results -> {
-                final String parentModel = (String) results.getOrDefault("interaction_model", "");
-                final String member = (String) results.get(MEMBER);
-                if (!identifier.getIRIString().equals(member)) {
-                    if (OperationType.REPLACE == opType) {
-                        updateAdjacentReplacement(handle, parentModel, member, time);
-                    } else if (!parent.equals(member)) {
-                        updateAdjacentCreateDelete(handle, parent, parentModel, member, time);
-                    }
-                }
-            });
-    }
-
-
     private void storeResource(final IRI identifier, final Instant time, final IRI ixnModel,
             final Dataset dataset, final OperationType opType, final IRI container, final Binary binary) {
 
@@ -372,11 +357,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             jdbi.useTransaction(handle -> {
                 final Integer resourceId = updateResource(handle, identifier, ixnModel, time,
                         opType == OperationType.DELETE, dataset, binary);
-
-                if (nonNull(container)) {
-                    updateAdjacentResources(handle, identifier, container.getIRIString(), time, opType);
-                }
-
                 updateDescription(handle, resourceId, dataset);
                 updateAcl(handle, resourceId, dataset);
                 updateExtra(handle, resourceId, identifier, dataset);
