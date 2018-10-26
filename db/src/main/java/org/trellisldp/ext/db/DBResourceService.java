@@ -79,9 +79,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public static final String BATCH_KEY = "trellis.ext.db.batchSize";
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
-    private static final String MEMBER = "ldp_member";
-    private static final String UPDATE_RESOURCE_QUERY = "UPDATE resource SET modified = ? WHERE subject = ?";
-
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
 
@@ -132,7 +129,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 final Instant time = now();
                 dataset.add(PreferServerManaged, identifier, DC.type, DeletedResource);
                 dataset.add(PreferServerManaged, identifier, type, LDP.Resource);
-                storeResource(identifier, time, LDP.Resource, dataset, OperationType.DELETE, container, null);
+                storeResource(identifier, time, LDP.Resource, dataset, OperationType.DELETE, null);
             } catch (final Exception ex) {
                 LOGGER.error("Error deleting resource: {}", ex.getMessage());
                 throw new RuntimeTrellisException(ex);
@@ -238,7 +235,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                     dataset.add(PreferServerManaged, binary.getIdentifier(), DC.extent, size));
         }
 
-        storeResource(identifier, time, ixnModel, dataset, opType, container, binary);
+        storeResource(identifier, time, ixnModel, dataset, opType, binary);
     }
 
     private void updateResourceModification(final IRI identifier, final Instant time) {
@@ -351,7 +348,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     private void storeResource(final IRI identifier, final Instant time, final IRI ixnModel,
-            final Dataset dataset, final OperationType opType, final IRI container, final Binary binary) {
+            final Dataset dataset, final OperationType opType, final Binary binary) {
 
         try {
             jdbi.useTransaction(handle -> {
