@@ -15,6 +15,8 @@ package org.trellisldp.ext.db;
 
 import static java.io.File.separator;
 import static java.time.Instant.now;
+import static java.util.Optional.of;
+import static java.util.function.Predicate.isEqual;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -42,6 +44,7 @@ import java.util.concurrent.CompletionException;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
@@ -127,7 +130,8 @@ public class DBResourceTest {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res -> {
                 final Graph serverManaged = rdf.createGraph();
-                res.stream(Trellis.PreferServerManaged).forEach(serverManaged::add);
+                res.stream().filter(q -> q.getGraphName().filter(isEqual(Trellis.PreferServerManaged)).isPresent())
+                    .map(Quad::asTriple).forEach(serverManaged::add);
                 assertTrue(serverManaged.contains(root, type, LDP.BasicContainer));
             }).join());
     }
@@ -149,6 +153,7 @@ public class DBResourceTest {
         assertNull(svc.create(identifier, LDP.NonRDFSource, dataset, root, binary).join());
         svc.get(identifier).thenAccept(res -> {
             assertTrue(res.getBinary().isPresent());
+            assertEquals(of(root), res.getContainer());
             assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
                     triple.getObject().equals(binaryIri)));
@@ -164,6 +169,7 @@ public class DBResourceTest {
             assertEquals(LDP.BasicContainer, res.getInteractionModel());
             assertFalse(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.isPartOf)));
+            assertFalse(res.getContainer().isPresent());
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
                     && triple.getObject().equals(rdf.createLiteral("A title", "eng"))));
@@ -256,6 +262,16 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         assertThrows(CompletionException.class, () ->
                 svc.create(identifier, null, null, null, null).join());
+    }
+
+    @Test
+    public void testTouchErrorCondition() throws Exception {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
+        final Jdbi mockJdbi = mock(Jdbi.class);
+        doThrow(RuntimeException.class).when(mockJdbi).useHandle(any());
+
+        final ResourceService svc2 = new DBResourceService(mockJdbi, idService);
+        assertThrows(CompletionException.class, () -> svc2.touch(identifier).join());
     }
 
     @Test
