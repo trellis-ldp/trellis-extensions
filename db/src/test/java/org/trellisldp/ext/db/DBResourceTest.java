@@ -183,7 +183,7 @@ public class DBResourceTest {
     public void testTouchMethod() throws Exception {
         final Instant time = svc.get(root).thenApply(Resource::getModified).join();
         svc.touch(root).join();
-        svc.get(root).thenAccept(res -> assertNotEquals(time, res.getModified()));
+        assertNotEquals(time, svc.get(root).thenApply(Resource::getModified).join());
     }
 
     @Test
