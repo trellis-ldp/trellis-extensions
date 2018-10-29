@@ -18,6 +18,7 @@ import static java.time.Instant.now;
 import static java.util.Optional.of;
 import static java.util.function.Predicate.isEqual;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -157,6 +158,9 @@ public class DBResourceTest {
         svc.get(identifier).thenAccept(res -> {
             assertTrue(res.getBinary().isPresent());
             assertEquals(of(root), res.getContainer());
+            assertFalse(res.stream(LDP.PreferContainment).anyMatch(triple ->
+                    triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
+                    triple.getObject().equals(binaryIri)));
             assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
                     triple.getObject().equals(binaryIri)));
@@ -210,9 +214,66 @@ public class DBResourceTest {
         dataset.add(Trellis.PreferAccessControl, identifier, ACL.accessTo,
                 rdf.createIRI(TRELLIS_DATA_PREFIX + "auth"));
 
-        assertNull(svc.create(identifier, LDP.RDFSource, dataset, root, null).join());
-        svc.get(identifier).thenAccept(res -> {
-            assertEquals(6L, res.stream(Trellis.PreferAccessControl).count());
+        assertDoesNotThrow(() -> svc.create(identifier, LDP.RDFSource, dataset, root, null).join());
+        svc.get(identifier).thenAccept(res -> assertEquals(6L, res.stream(Trellis.PreferAccessControl).count())).join();
+    }
+
+    @Test
+    public void testDirectContainer() throws Exception {
+        final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final IRI container = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final IRI child = rdf.createIRI(container.getIRIString() + "/" + idService.getSupplier().get());
+        final Dataset containerDataset = rdf.createDataset();
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.membershipResource, member);
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.hasMemberRelation, LDP.member);
+        assertDoesNotThrow(() -> svc.create(container, LDP.DirectContainer, containerDataset, root, null).join());
+        assertDoesNotThrow(() -> svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null).join());
+        assertDoesNotThrow(() -> svc.create(child, LDP.RDFSource, rdf.createDataset(), container, null).join());
+
+        svc.get(member).thenAccept(res -> {
+            assertEquals(1L, res.stream(LDP.PreferMembership).count());
+            assertEquals(of(rdf.createTriple(member, LDP.member, child)), res.stream(LDP.PreferMembership).findFirst());
+        }).join();
+    }
+
+    @Test
+    public void testDirectContainerInverse() throws Exception {
+        final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final IRI container = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final IRI child = rdf.createIRI(container.getIRIString() + "/" + idService.getSupplier().get());
+        final Dataset containerDataset = rdf.createDataset();
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.membershipResource, member);
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.isMemberOfRelation, DC.isPartOf);
+        assertDoesNotThrow(() -> svc.create(container, LDP.DirectContainer, containerDataset, root, null).join());
+        assertDoesNotThrow(() -> svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null).join());
+        assertDoesNotThrow(() -> svc.create(child, LDP.RDFSource, rdf.createDataset(), container, null).join());
+
+        svc.get(child).thenAccept(res -> {
+            assertEquals(1L, res.stream(LDP.PreferMembership).count());
+            assertEquals(of(rdf.createTriple(child, DC.isPartOf, member)),
+                    res.stream(LDP.PreferMembership).findFirst());
+        }).join();
+    }
+
+    @Test
+    public void testIndirectContainer() throws Exception {
+        final IRI iri = rdf.createIRI("http://example.com/#foo");
+        final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final IRI container = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
+        final IRI child = rdf.createIRI(container.getIRIString() + "/" + idService.getSupplier().get());
+        final Dataset containerDataset = rdf.createDataset();
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.membershipResource, member);
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.hasMemberRelation, LDP.member);
+        containerDataset.add(Trellis.PreferUserManaged, container, LDP.insertedContentRelation, FOAF.primaryTopic);
+        final Dataset childDataset = rdf.createDataset();
+        childDataset.add(Trellis.PreferUserManaged, child, FOAF.primaryTopic, iri);
+        assertDoesNotThrow(() -> svc.create(container, LDP.IndirectContainer, containerDataset, root, null).join());
+        assertDoesNotThrow(() -> svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null).join());
+        assertDoesNotThrow(() -> svc.create(child, LDP.RDFSource, childDataset, container, null).join());
+
+        svc.get(member).thenAccept(res -> {
+            assertEquals(1L, res.stream(LDP.PreferMembership).count());
+            assertEquals(of(rdf.createTriple(member, LDP.member, iri)), res.stream(LDP.PreferMembership).findFirst());
         }).join();
     }
 
