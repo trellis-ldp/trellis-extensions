@@ -20,6 +20,7 @@ import static java.util.function.Predicate.isEqual;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,6 +40,7 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.concurrent.CompletionException;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -54,6 +56,7 @@ import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
+import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.DC;
@@ -174,6 +177,13 @@ public class DBResourceTest {
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
                     && triple.getObject().equals(rdf.createLiteral("A title", "eng"))));
         }).join();
+    }
+
+    @Test
+    public void testTouchMethod() throws Exception {
+        final Instant time = svc.get(root).thenApply(Resource::getModified).join();
+        svc.touch(root).join();
+        svc.get(root).thenAccept(res -> assertNotEquals(time, res.getModified()));
     }
 
     @Test
