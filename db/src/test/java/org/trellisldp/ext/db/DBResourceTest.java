@@ -105,7 +105,7 @@ public class DBResourceTest {
                 liquibase.update(ctx);
             }
 
-            svc = new DBResourceService(pg.getPostgresDatabase(), idService);
+            svc = new DBResourceService(pg.getPostgresDatabase());
 
         } catch (final IOException | SQLException | LiquibaseException ex) {
             LOGGER.error("Error setting up tests", ex);
@@ -120,7 +120,7 @@ public class DBResourceTest {
 
     @Test
     public void testReinit() {
-        final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase(), idService);
+        final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase());
         assertNotNull(svc2);
     }
 

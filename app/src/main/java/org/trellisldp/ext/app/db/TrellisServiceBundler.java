@@ -29,7 +29,6 @@ import org.trellisldp.api.BinaryService;
 import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.EventService;
 import org.trellisldp.api.IOService;
-import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.MementoService;
 import org.trellisldp.api.NamespaceService;
 import org.trellisldp.api.RDFaWriterService;
@@ -66,16 +65,13 @@ public class TrellisServiceBundler implements ServiceBundler {
      * @param environment the dropwizard environment
      */
     public TrellisServiceBundler(final AppConfiguration config, final Environment environment) {
-        final IdentifierService idService = new DefaultIdentifierService();
-        final JdbiFactory factory = new JdbiFactory();
-
-        final Jdbi jdbi = factory.build(environment, config.getDataSourceFactory(), "trellis");
+        final Jdbi jdbi = new JdbiFactory().build(environment, config.getDataSourceFactory(), "trellis");
 
         agentService = new SimpleAgentService();
         mementoService = new FileMementoService(config.getMementos());
-        auditService = resourceService = new DBResourceService(jdbi, idService);
-        binaryService = new FileBinaryService(idService, config.getBinaries(), config.getBinaryHierarchyLevels(),
-                config.getBinaryHierarchyLength());
+        auditService = resourceService = new DBResourceService(jdbi);
+        binaryService = new FileBinaryService(new DefaultIdentifierService(), config.getBinaries(),
+                config.getBinaryHierarchyLevels(), config.getBinaryHierarchyLength());
         ioService = buildIoService(config);
         eventService = AppUtils.getNotificationService(config.getNotifications(), environment);
     }

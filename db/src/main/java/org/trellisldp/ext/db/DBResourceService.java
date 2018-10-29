@@ -22,7 +22,9 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.tamaya.ConfigurationProvider.getConfiguration;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.trellisldp.api.RDFUtils.findFirst;
 import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.ext.db.DBUtils.getBaseIRI;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
@@ -50,13 +52,13 @@ import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.tamaya.Configuration;
-import org.apache.tamaya.ConfigurationProvider;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
 import org.jdbi.v3.core.statement.Update;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
+import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
@@ -76,13 +78,14 @@ import org.trellisldp.vocabulary.XSD;
  */
 public class DBResourceService extends DefaultAuditService implements ResourceService {
 
+    /** Configuration key used to define the size of database write batches. **/
     public static final String BATCH_KEY = "trellis.ext.db.batchSize";
+    /** The default size of a database batch write operation. **/
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
-
-    private static final Configuration config = ConfigurationProvider.getConfiguration();
+    private static final Configuration config = getConfiguration();
 
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
@@ -91,11 +94,18 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     /**
      * Create a Database-backed resource service.
      * @param ds the data source
-     * @param identifierService an ID supplier service
      */
     @Inject
-    public DBResourceService(final DataSource ds, final IdentifierService identifierService) {
-        this(Jdbi.create(ds), identifierService);
+    public DBResourceService(final DataSource ds) {
+        this(Jdbi.create(ds));
+    }
+
+    /**
+     * Create a Database-backed resource service.
+     * @param jdbi the jdbi object
+     */
+    public DBResourceService(final Jdbi jdbi) {
+        this(jdbi, findFirst(IdentifierService.class).orElseGet(DefaultIdentifierService::new));
     }
 
     /**
@@ -106,6 +116,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public DBResourceService(final Jdbi jdbi, final IdentifierService identifierService) {
         requireNonNull(jdbi, "Jdbi may not be null!");
         requireNonNull(identifierService, "IdentifierService may not be null!");
+        LOGGER.info("Using database persistence with TrellisLDP");
         this.jdbi = jdbi;
         this.supplier = identifierService.getSupplier();
         this.supportedIxnModels = unmodifiableSet(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource, LDP.Container,
