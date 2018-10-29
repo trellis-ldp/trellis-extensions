@@ -16,6 +16,7 @@ package org.trellisldp.ext.db;
 import static java.io.File.separator;
 import static java.time.Instant.now;
 import static java.util.Optional.of;
+import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.function.Predicate.isEqual;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -226,9 +227,10 @@ public class DBResourceTest {
         final Dataset dcDataset = rdf.createDataset();
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.hasMemberRelation, LDP.member);
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.membershipResource, member);
-        assertDoesNotThrow(() -> svc.create(dc, LDP.DirectContainer, dcDataset, root, null).join());
-        assertDoesNotThrow(() -> svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null).join());
-        assertDoesNotThrow(() -> svc.create(child, LDP.RDFSource, rdf.createDataset(), dc, null).join());
+        assertDoesNotThrow(() -> allOf(
+                    svc.create(dc, LDP.DirectContainer, dcDataset, root, null),
+                    svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null),
+                    svc.create(child, LDP.RDFSource, rdf.createDataset(), dc, null)).join());
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
@@ -244,9 +246,10 @@ public class DBResourceTest {
         final Dataset dcDataset = rdf.createDataset();
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.isMemberOfRelation, DC.isPartOf);
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.membershipResource, member);
-        assertDoesNotThrow(() -> svc.create(dc, LDP.DirectContainer, dcDataset, root, null).join());
-        assertDoesNotThrow(() -> svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null).join());
-        assertDoesNotThrow(() -> svc.create(child, LDP.RDFSource, rdf.createDataset(), dc, null).join());
+        assertDoesNotThrow(() -> allOf(
+                    svc.create(dc, LDP.DirectContainer, dcDataset, root, null),
+                    svc.create(member, LDP.Container, rdf.createDataset(), root, null),
+                    svc.create(child, LDP.RDFSource, rdf.createDataset(), dc, null)).join());
 
         svc.get(child).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
@@ -267,9 +270,10 @@ public class DBResourceTest {
         icDataset.add(Trellis.PreferUserManaged, ic, LDP.insertedContentRelation, FOAF.primaryTopic);
         final Dataset childDataset = rdf.createDataset();
         childDataset.add(Trellis.PreferUserManaged, child, FOAF.primaryTopic, iri);
-        assertDoesNotThrow(() -> svc.create(ic, LDP.IndirectContainer, icDataset, root, null).join());
-        assertDoesNotThrow(() -> svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null).join());
-        assertDoesNotThrow(() -> svc.create(child, LDP.RDFSource, childDataset, ic, null).join());
+        assertDoesNotThrow(() -> allOf(
+                    svc.create(ic, LDP.IndirectContainer, icDataset, root, null),
+                    svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null),
+                    svc.create(child, LDP.RDFSource, childDataset, ic, null)).join());
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
