@@ -38,7 +38,7 @@ database:
 
   # The JDBC URL
   # url: jdbc:mysql://db.example.com/db-name
-  url: jdbc:postgresql://db.example.com/db-name
+  url: jdbc:postgresql://db/db-name
 
   properties:
     charSet: UTF-8
