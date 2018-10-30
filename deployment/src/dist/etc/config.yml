@@ -4,6 +4,9 @@ server:
       port: 8080
   requestLog:
     appenders:
+      - type: console
+        target: stdout
+        threshold: INFO
       - type: file
         currentLogFilename: /opt/trellis/log/access.log
         archive: true
@@ -14,6 +17,9 @@ server:
 logging:
   level: WARN
   appenders:
+    - type: console
+      target: stdout
+      threshold: INFO
     - type: file
       currentLogFilename: /opt/trellis/log/trellis.log
       archive: true
@@ -99,4 +105,3 @@ jsonld:
     cacheExpireHours: 24
     contextWhitelist: []
     contextDomainWhitelist: []
-
