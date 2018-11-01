@@ -32,9 +32,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
-import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
+import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;

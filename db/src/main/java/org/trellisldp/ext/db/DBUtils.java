@@ -17,7 +17,7 @@ import static java.time.Instant.ofEpochMilli;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import java.util.Optional;
 

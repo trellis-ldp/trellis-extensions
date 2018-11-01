@@ -20,9 +20,9 @@ import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.RDFUtils.getInstance;
 import static org.trellisldp.api.Resource.SpecialResources.DELETED_RESOURCE;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;

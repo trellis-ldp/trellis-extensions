@@ -14,7 +14,7 @@
 package org.trellisldp.ext.db;
 
 import static java.util.Optional.ofNullable;
-import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

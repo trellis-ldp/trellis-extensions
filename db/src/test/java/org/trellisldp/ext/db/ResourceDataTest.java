@@ -17,8 +17,8 @@ import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
-import static org.trellisldp.api.RDFUtils.TRELLIS_DATA_PREFIX;
-import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 

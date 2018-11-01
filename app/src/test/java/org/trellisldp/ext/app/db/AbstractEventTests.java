@@ -16,7 +16,7 @@ package org.trellisldp.ext.app.db;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.rdf.api.RDFSyntax.JSONLD;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.RDFUtils.getInstance;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.test.TestUtils.readEntityAsGraph;
 
 import java.io.ByteArrayInputStream;
