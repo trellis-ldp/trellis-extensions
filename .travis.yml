@@ -71,7 +71,7 @@ jobs:
           secret_access_key: $AWS_SECRET_KEY
           bucket: $AWS_BUCKET
           skip_cleanup: true
-          local_dir: apidocs/
+          local_dir: docs/apidocs/
           upload-dir: apidocs/trellis-ext-db/
 
 
