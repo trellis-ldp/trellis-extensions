@@ -61,7 +61,7 @@ allprojects { subproj ->
     ext {
         vendor = 'Trellis LDP'
         homepage = 'https://www.trellisldp.org'
-        docURL = 'https://trellis-ldp.github.io/trellis/apidocs/'
+        docURL = 'https://www.trellisldp.org/docs/trellis-ext-db/current/apidocs/'
         license = 'Apache 2'
     }
 
@@ -276,7 +276,7 @@ subprojects { subproj ->
                 "implNote:a:Implementation Note:"]
             links "https://docs.oracle.com/javase/8/docs/api/"
             links 'https://docs.oracle.com/javaee/7/api/'
-            links 'https://trellis-ldp.github.io/trellis/apidocs/'
+            links "https://www.trellisldp.org/docs/trellis/${trellisVersion}/apidocs/"
             links 'https://commons.apache.org/proper/commons-lang/javadocs/api-3.8/'
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
             links 'https://www.dropwizard.io/1.3.0/dropwizard-core/apidocs/'
@@ -336,7 +336,7 @@ configure(rootProject) {
             memberLevel = JavadocMemberLevel.PUBLIC
             links "https://docs.oracle.com/javase/8/docs/api/"
             links 'https://docs.oracle.com/javaee/7/api/'
-            links 'https://trellis-ldp.github.io/trellis/apidocs/'
+            links "https://www.trellisldp.org/docs/trellis/${trellisVersion}/apidocs/"
             links 'https://commons.apache.org/proper/commons-lang/javadocs/api-3.8/'
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
             links 'https://www.dropwizard.io/1.3.0/dropwizard-core/apidocs/'
