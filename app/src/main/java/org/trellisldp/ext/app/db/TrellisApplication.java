@@ -45,6 +45,7 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
 
     @Override
     public void initialize(final Bootstrap<AppConfiguration> bootstrap) {
+        super.initialize(bootstrap);
         bootstrap.addBundle(new MigrationsBundle<AppConfiguration>() {
             @Override
             public DataSourceFactory getDataSourceFactory(final AppConfiguration config) {

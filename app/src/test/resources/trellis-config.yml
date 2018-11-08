@@ -45,7 +45,7 @@ hubUrl:
 
 auth:
     webac:
-        enabled: true
+        enabled: ${TRELLIS_AUTH_WEBAC_ENABLED:-true}
     jwt:
         enabled: true
         key: gCjvrNoj8us4SXZQUENBunut85+s/XPN5T9+dxol8L2YXgY6QISuVd02oRcuPb/3ewrICaEnAGvm4QYdszgBIA==
