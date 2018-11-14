@@ -24,7 +24,6 @@ import static org.apache.tamaya.ConfigurationProvider.getConfiguration;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.TrellisUtils.findFirst;
 import static org.trellisldp.api.TrellisUtils.getInstance;
-import static org.trellisldp.ext.db.DBUtils.getBaseIRI;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
 import static org.trellisldp.ext.db.DBUtils.getObjectLang;
 import static org.trellisldp.ext.db.DBUtils.getObjectValue;
@@ -226,8 +225,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 .bind(3, isDelete)
                 .bind(4, metadata.getContainer().map(IRI::getIRIString).orElse(null))
                 .bind(5, dataset.contains(of(PreferAccessControl), null, null, null))
-                .bind(6, metadata.getMembershipResource().map(DBUtils::getBaseIRI).filter(IRI.class::isInstance)
-                    .map(IRI.class::cast).map(IRI::getIRIString).orElse(null))
+                .bind(6, metadata.getMembershipResource().map(IRI::getIRIString)
+                    .map(str -> str.split("#")[0]).orElse(null))
                 .bind(7, metadata.getMembershipResource().map(IRI::getIRIString).orElse(null))
                 .bind(8, metadata.getMemberRelation().map(IRI::getIRIString).orElse(null))
                 .bind(9, metadata.getMemberOfRelation().map(IRI::getIRIString).orElse(null))

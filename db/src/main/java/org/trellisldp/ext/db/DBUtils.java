@@ -34,14 +34,6 @@ final class DBUtils {
 
     private static final RDF rdf = getInstance();
 
-    public static RDFTerm getBaseIRI(final RDFTerm object) {
-        if (object instanceof IRI) {
-            final String iri = ((IRI) object).getIRIString().split("#")[0];
-            return rdf.createIRI(iri);
-        }
-        return object;
-    }
-
     public static String getObjectValue(final RDFTerm term) {
         if (term instanceof IRI) {
             return ((IRI) term).getIRIString();

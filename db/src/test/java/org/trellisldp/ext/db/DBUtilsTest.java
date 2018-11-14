@@ -15,7 +15,6 @@ package org.trellisldp.ext.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.trellisldp.vocabulary.RDF.langString;
@@ -34,17 +33,6 @@ import org.trellisldp.vocabulary.XSD;
 public class DBUtilsTest {
 
     private static final RDF rdf = new SimpleRDF();
-
-    @Test
-    public void testGetBaseIRI() {
-        final IRI iri = rdf.createIRI("http://example.com/resource#fragment");
-        final IRI iri2 = rdf.createIRI("http://example.com/resource");
-        assertNotEquals(iri, DBUtils.getBaseIRI(iri));
-        assertEquals(iri2, DBUtils.getBaseIRI(iri));
-
-        final Literal literal = rdf.createLiteral("A literal value", "en");
-        assertEquals(literal, DBUtils.getBaseIRI(literal));
-    }
 
     @Test
     public void testGetObjectValue() {
