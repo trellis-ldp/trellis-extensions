@@ -24,7 +24,7 @@ import java.util.Optional;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
-import org.trellisldp.api.Binary;
+import org.trellisldp.api.BinaryMetadata;
 
 /**
  * A simple Data POJO.
@@ -45,7 +45,7 @@ class ResourceData {
     private String isMemberOfRelation;
     private String insertedContentRelation;
 
-    private Binary binary;
+    private BinaryMetadata binary;
     private Map<String, String> extra;
 
     public ResourceData(final ResultSet rs) throws SQLException {
@@ -61,8 +61,8 @@ class ResourceData {
         this.isMemberOfRelation = rs.getString("ldp_is_member_of_relation");
         this.insertedContentRelation = rs.getString("ldp_inserted_content_relation");
 
-        this.binary = DBUtils.getBinary(rdf.createIRI(this.interactionModel), rs.getString("binary_location"),
-                rs.getLong("binary_modified"), rs.getString("binary_format"), rs.getLong("binary_size")).orElse(null);
+        this.binary = DBUtils.getBinaryMetadata(rdf.createIRI(this.interactionModel), rs.getString("binary_location"),
+                rs.getString("binary_format"), rs.getLong("binary_size")).orElse(null);
     }
 
     public Integer getId() {
@@ -105,7 +105,7 @@ class ResourceData {
         return ofNullable(insertedContentRelation).map(rdf::createIRI);
     }
 
-    public Optional<Binary> getBinary() {
+    public Optional<BinaryMetadata> getBinaryMetadata() {
         return ofNullable(binary);
     }
 

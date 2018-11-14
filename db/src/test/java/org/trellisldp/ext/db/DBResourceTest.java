@@ -14,10 +14,8 @@
 package org.trellisldp.ext.db;
 
 import static java.io.File.separator;
-import static java.time.Instant.now;
 import static java.util.Optional.of;
 import static java.util.concurrent.CompletableFuture.allOf;
-import static java.util.function.Predicate.isEqual;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.trellisldp.api.Metadata.builder;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
 import static org.trellisldp.api.TrellisUtils.getInstance;
@@ -48,14 +47,13 @@ import java.util.concurrent.CompletionException;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
-import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
-import org.trellisldp.api.Binary;
+import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
 import org.trellisldp.api.Resource;
@@ -131,17 +129,6 @@ public class DBResourceTest {
     }
 
     @Test
-    public void getServerQuads() {
-        assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res -> {
-                final Graph serverManaged = rdf.createGraph();
-                res.stream().filter(q -> q.getGraphName().filter(isEqual(Trellis.PreferServerManaged)).isPresent())
-                    .map(Quad::asTriple).forEach(serverManaged::add);
-                assertTrue(serverManaged.contains(root, type, LDP.BasicContainer));
-            }).join());
-    }
-
-    @Test
     public void getMembershipQuads() {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res ->
@@ -153,16 +140,13 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "binary");
         final IRI binaryIri = rdf.createIRI("http://example.com/resource");
         final Dataset dataset = rdf.createDataset();
-        dataset.add(Trellis.PreferServerManaged, identifier, DC.isPartOf, root);
-        final Binary binary = new Binary(binaryIri, now(), "text/plain", 10L);
-        assertNull(svc.create(identifier, LDP.NonRDFSource, dataset, root, binary).join());
+        final BinaryMetadata binary = BinaryMetadata.builder(binaryIri).mimeType("text/plain").size(10L).build();
+        assertNull(svc.create(builder(identifier).interactionModel(LDP.NonRDFSource).container(root).binary(binary)
+                    .build(), dataset).join());
         svc.get(identifier).thenAccept(res -> {
-            assertTrue(res.getBinary().isPresent());
+            assertTrue(res.getBinaryMetadata().isPresent());
             assertEquals(of(root), res.getContainer());
             assertFalse(res.stream(LDP.PreferContainment).anyMatch(triple ->
-                    triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
-                    triple.getObject().equals(binaryIri)));
-            assertTrue(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
                     triple.getObject().equals(binaryIri)));
         }).join();
@@ -172,11 +156,9 @@ public class DBResourceTest {
     public void getRootContent() throws Exception {
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferUserManaged, root, DC.title, rdf.createLiteral("A title", "eng"));
-        assertNull(svc.replace(root, LDP.BasicContainer, dataset, null, null).join());
+        assertNull(svc.replace(builder(root).interactionModel(LDP.BasicContainer).build(), dataset).join());
         svc.get(root).thenAccept(res -> {
             assertEquals(LDP.BasicContainer, res.getInteractionModel());
-            assertFalse(res.stream(Trellis.PreferServerManaged).anyMatch(triple ->
-                    triple.getSubject().equals(root) && triple.getPredicate().equals(DC.isPartOf)));
             assertFalse(res.getContainer().isPresent());
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
@@ -215,7 +197,8 @@ public class DBResourceTest {
         dataset.add(Trellis.PreferAccessControl, identifier, ACL.accessTo,
                 rdf.createIRI(TRELLIS_DATA_PREFIX + "auth"));
 
-        assertDoesNotThrow(() -> svc.create(identifier, LDP.RDFSource, dataset, root, null).join());
+        assertDoesNotThrow(() -> svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
+                    dataset).join());
         svc.get(identifier).thenAccept(res -> assertEquals(6L, res.stream(Trellis.PreferAccessControl).count())).join();
     }
 
@@ -228,9 +211,12 @@ public class DBResourceTest {
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.hasMemberRelation, LDP.member);
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.membershipResource, member);
         assertDoesNotThrow(() -> allOf(
-                    svc.create(dc, LDP.DirectContainer, dcDataset, root, null),
-                    svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null),
-                    svc.create(child, LDP.RDFSource, rdf.createDataset(), dc, null)).join());
+                    svc.create(builder(dc).interactionModel(LDP.DirectContainer).container(root)
+                        .memberRelation(LDP.member).membershipResource(member).build(), dcDataset),
+                    svc.create(builder(member).interactionModel(LDP.RDFSource).container(root).build(),
+                        rdf.createDataset()),
+                    svc.create(builder(child).interactionModel(LDP.RDFSource).container(dc).build(),
+                        rdf.createDataset())).join());
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
@@ -247,9 +233,12 @@ public class DBResourceTest {
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.isMemberOfRelation, DC.isPartOf);
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.membershipResource, member);
         assertDoesNotThrow(() -> allOf(
-                    svc.create(dc, LDP.DirectContainer, dcDataset, root, null),
-                    svc.create(member, LDP.Container, rdf.createDataset(), root, null),
-                    svc.create(child, LDP.RDFSource, rdf.createDataset(), dc, null)).join());
+                    svc.create(builder(dc).interactionModel(LDP.DirectContainer).container(root)
+                        .memberOfRelation(DC.isPartOf).membershipResource(member).build(), dcDataset),
+                    svc.create(builder(member).interactionModel(LDP.Container).container(root).build(),
+                        rdf.createDataset()),
+                    svc.create(builder(child).interactionModel(LDP.RDFSource).container(dc).build(),
+                        rdf.createDataset())).join());
 
         svc.get(child).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
@@ -271,9 +260,13 @@ public class DBResourceTest {
         final Dataset childDataset = rdf.createDataset();
         childDataset.add(Trellis.PreferUserManaged, child, FOAF.primaryTopic, iri);
         assertDoesNotThrow(() -> allOf(
-                    svc.create(ic, LDP.IndirectContainer, icDataset, root, null),
-                    svc.create(member, LDP.RDFSource, rdf.createDataset(), root, null),
-                    svc.create(child, LDP.RDFSource, childDataset, ic, null)).join());
+                    svc.create(builder(ic).interactionModel(LDP.IndirectContainer).container(root)
+                        .membershipResource(member).memberRelation(LDP.member)
+                        .insertedContentRelation(FOAF.primaryTopic).build(), icDataset),
+                    svc.create(builder(member).interactionModel(LDP.RDFSource).container(root).build(),
+                        rdf.createDataset()),
+                    svc.create(builder(child).interactionModel(LDP.RDFSource).container(ic).build(),
+                        childDataset)).join());
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
@@ -285,7 +278,8 @@ public class DBResourceTest {
     public void testEmptyAudit() throws Exception {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
 
-        assertNull(svc.create(identifier, LDP.RDFSource, rdf.createDataset(), root, null).join());
+        assertNull(svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
+                    rdf.createDataset()).join());
         assertNull(svc.add(identifier, rdf.createDataset()).join());
         svc.get(identifier).thenAccept(res -> assertEquals(0L, res.stream(Trellis.PreferAudit).count())).join();
     }
@@ -298,7 +292,8 @@ public class DBResourceTest {
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferUserManaged, identifier, LDP.inbox, rdf.createIRI(inbox));
         dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
-        assertNull(svc.create(identifier, LDP.RDFSource, dataset, root, null).join());
+        assertNull(svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(), dataset)
+                .join());
         svc.get(identifier).thenAccept(res -> {
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
@@ -328,15 +323,15 @@ public class DBResourceTest {
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
         final ResourceService svc2 = new DBResourceService(mockJdbi, idService);
-        assertThrows(CompletionException.class, () -> svc2.delete(identifier, null).join(),
-                "No exception with invalid connection!");
+        assertThrows(CompletionException.class, () -> svc2.delete(builder(identifier).interactionModel(LDP.Resource)
+                    .build()).join(), "No exception with invalid connection!");
     }
 
     @Test
     public void testCreateErrorCondition() throws Exception {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         assertThrows(CompletionException.class, () ->
-                svc.create(identifier, null, null, null, null).join());
+                svc.create(builder(identifier).interactionModel(LDP.RDFSource).build(), null).join());
     }
 
     @Test
@@ -358,6 +353,6 @@ public class DBResourceTest {
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
         assertThrows(CompletionException.class, () ->
-                svc2.create(identifier, LDP.Container, dataset, null, null).join());
+                svc2.create(builder(identifier).interactionModel(LDP.Container).build(), dataset).join());
     }
 }

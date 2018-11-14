@@ -16,10 +16,8 @@ package org.trellisldp.ext.db;
 import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.tamaya.ConfigurationProvider.getConfiguration;
@@ -30,11 +28,8 @@ import static org.trellisldp.ext.db.DBUtils.getBaseIRI;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
 import static org.trellisldp.ext.db.DBUtils.getObjectLang;
 import static org.trellisldp.ext.db.DBUtils.getObjectValue;
-import static org.trellisldp.vocabulary.RDF.type;
-import static org.trellisldp.vocabulary.Trellis.DeletedResource;
 import static org.trellisldp.vocabulary.Trellis.PreferAccessControl;
 import static org.trellisldp.vocabulary.Trellis.PreferAudit;
-import static org.trellisldp.vocabulary.Trellis.PreferServerManaged;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
 
 import java.time.Instant;
@@ -48,7 +43,6 @@ import javax.sql.DataSource;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
-import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.tamaya.Configuration;
@@ -57,17 +51,16 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
 import org.jdbi.v3.core.statement.Update;
 import org.slf4j.Logger;
-import org.trellisldp.api.Binary;
+import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
+import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.audit.DefaultAuditService;
-import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
-import org.trellisldp.vocabulary.XSD;
 
 /**
  * A Database-backed implementation of the Trellis ResourceService API.
@@ -124,23 +117,19 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     @Override
-    public CompletableFuture<Void> create(final IRI id, final IRI ixnModel, final Dataset dataset, final IRI container,
-            final Binary binary) {
-        LOGGER.debug("Creating: {}", id);
-        final Instant time = now();
-        return runAsync(() ->
-                createOrReplace(id, time, ixnModel, dataset, OperationType.CREATE, container, binary));
+    public CompletableFuture<Void> create(final Metadata metadata, final Dataset dataset) {
+        LOGGER.debug("Creating: {}", metadata.getIdentifier());
+        return runAsync(() -> storeResource(metadata, dataset, now(), OperationType.CREATE));
     }
 
     @Override
-    public CompletableFuture<Void> delete(final IRI identifier, final IRI container) {
-        LOGGER.debug("Deleting: {}", identifier);
+    public CompletableFuture<Void> delete(final Metadata metadata) {
+        LOGGER.debug("Deleting: {}", metadata.getIdentifier());
         return runAsync(() -> {
             try (final Dataset dataset = rdf.createDataset()) {
                 final Instant time = now();
-                dataset.add(PreferServerManaged, identifier, DC.type, DeletedResource);
-                dataset.add(PreferServerManaged, identifier, type, LDP.Resource);
-                storeResource(identifier, time, LDP.Resource, dataset, OperationType.DELETE, null);
+                final Metadata md = Metadata.builder(metadata.getIdentifier()).interactionModel(LDP.Resource).build();
+                storeResource(md, dataset, time, OperationType.DELETE);
             } catch (final Exception ex) {
                 LOGGER.error("Error deleting resource: {}", ex.getMessage());
                 throw new RuntimeTrellisException(ex);
@@ -149,12 +138,9 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     @Override
-    public CompletableFuture<Void> replace(final IRI id, final IRI ixnModel, final Dataset dataset,
-            final IRI container, final Binary binary) {
-        LOGGER.debug("Updating: {}", id);
-        final Instant time = now();
-        return runAsync(() ->
-                createOrReplace(id, time, ixnModel, dataset, OperationType.REPLACE, container, binary));
+    public CompletableFuture<Void> replace(final Metadata metadata, final Dataset dataset) {
+        LOGGER.debug("Updating: {}", metadata.getIdentifier());
+        return runAsync(() -> storeResource(metadata, dataset, now(), OperationType.REPLACE));
     }
 
     @Override
@@ -207,48 +193,6 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         return supportedIxnModels;
     }
 
-    private void createOrReplace(final IRI identifier, final Instant time, final IRI ixnModel,
-                    final Dataset dataset, final OperationType opType, final IRI container, final Binary binary) {
-
-        // Set the LDP type
-        dataset.add(PreferServerManaged, identifier, type, ixnModel);
-
-        // Relocate some user-managed triples into the server-managed graph
-        if (LDP.DirectContainer.equals(ixnModel) || LDP.IndirectContainer.equals(ixnModel)) {
-            dataset.getGraph(PreferUserManaged).ifPresent(g -> {
-                g.stream(identifier, LDP.membershipResource, null).findFirst().ifPresent(t -> {
-                    // This allows for HTTP resource URL-based queries
-                    dataset.add(PreferServerManaged, identifier, LDP.member, getBaseIRI(t.getObject()));
-                    dataset.add(PreferServerManaged, identifier, LDP.membershipResource, t.getObject());
-                });
-                g.stream(identifier, LDP.hasMemberRelation, null).findFirst().ifPresent(t -> dataset
-                                .add(PreferServerManaged, identifier, LDP.hasMemberRelation, t.getObject()));
-                g.stream(identifier, LDP.isMemberOfRelation, null).findFirst().ifPresent(t -> dataset
-                                .add(PreferServerManaged, identifier, LDP.isMemberOfRelation, t.getObject()));
-                dataset.add(PreferServerManaged, identifier, LDP.insertedContentRelation,
-                                g.stream(identifier, LDP.insertedContentRelation, null).map(Triple::getObject)
-                                                .findFirst().orElse(LDP.MemberSubject));
-            });
-        }
-
-        // Set the parent relationship
-        if (nonNull(container)) {
-            dataset.add(PreferServerManaged, identifier, DC.isPartOf, container);
-        }
-
-        if (nonNull(binary)) {
-            dataset.add(PreferServerManaged, identifier, DC.hasPart, binary.getIdentifier());
-            dataset.add(PreferServerManaged, binary.getIdentifier(), DC.modified,
-                    rdf.createLiteral(binary.getModified().toString(), XSD.dateTime));
-            binary.getMimeType().map(rdf::createLiteral).ifPresent(mimeType ->
-                    dataset.add(PreferServerManaged, binary.getIdentifier(), DC.format, mimeType));
-            binary.getSize().map(size -> rdf.createLiteral(size.toString(), XSD.long_)).ifPresent(size ->
-                    dataset.add(PreferServerManaged, binary.getIdentifier(), DC.extent, size));
-        }
-
-        storeResource(identifier, time, ixnModel, dataset, opType, binary);
-    }
-
     private void updateResourceModification(final IRI identifier, final Instant time) {
         final String query = "UPDATE resource SET modified=? WHERE subject=?";
         try {
@@ -265,37 +209,35 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
-    private static Integer updateResource(final Handle handle, final IRI identifier, final IRI ixnModel,
-            final Instant time, final Boolean isDelete, final Dataset dataset, final Binary binary) {
+    private static Integer updateResource(final Handle handle, final Metadata metadata, final Dataset dataset,
+            final Instant time, final Boolean isDelete) {
 
-        handle.execute("DELETE FROM resource WHERE subject = ?", identifier.getIRIString());
+        handle.execute("DELETE FROM resource WHERE subject = ?", metadata.getIdentifier().getIRIString());
         final String query
             = "INSERT INTO resource (subject, interaction_model, modified, deleted, is_part_of, acl, "
             + "ldp_member, ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
-            + "ldp_inserted_content_relation, binary_location, binary_modified, binary_format, binary_size) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "ldp_inserted_content_relation, binary_location, binary_format, binary_size) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Set ldp:insertedContentRelation only for LDP-IC and LDP-DC resources
+        final String icr = asList(LDP.DirectContainer, LDP.IndirectContainer).contains(metadata.getInteractionModel())
+            ? metadata.getInsertedContentRelation().orElse(LDP.MemberSubject).getIRIString() : null;
+
         try (final Update update = handle.createUpdate(query)
-                .bind(0, identifier.getIRIString())
-                .bind(1, ixnModel.getIRIString())
+                .bind(0, metadata.getIdentifier().getIRIString())
+                .bind(1, metadata.getInteractionModel().getIRIString())
                 .bind(2, time.toEpochMilli())
                 .bind(3, isDelete)
-                .bind(4, dataset.stream(of(PreferServerManaged), identifier, DC.isPartOf, null)
-                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
+                .bind(4, metadata.getContainer().map(IRI::getIRIString).orElse(null))
                 .bind(5, dataset.contains(of(PreferAccessControl), null, null, null))
-                .bind(6, dataset.stream(of(PreferServerManaged), identifier, LDP.member, null)
-                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-                .bind(7, dataset.stream(of(PreferServerManaged), identifier, LDP.membershipResource, null)
-                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-                .bind(8, dataset.stream(of(PreferServerManaged), identifier, LDP.hasMemberRelation, null)
-                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-                .bind(9, dataset.stream(of(PreferServerManaged), identifier, LDP.isMemberOfRelation, null)
-                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-                .bind(10, dataset.stream(of(PreferServerManaged), identifier, LDP.insertedContentRelation, null)
-                        .map(Quad::getObject).map(DBUtils::getObjectValue).findFirst().orElse(null))
-                .bind(11, ofNullable(binary).map(Binary::getIdentifier).map(IRI::getIRIString).orElse(null))
-                .bind(12, ofNullable(binary).map(Binary::getModified).map(Instant::toEpochMilli).orElse(null))
-                .bind(13, ofNullable(binary).flatMap(Binary::getMimeType).orElse(null))
-                .bind(14, ofNullable(binary).flatMap(Binary::getSize).orElse(null))) {
+                .bind(6, metadata.getMembershipResource().map(DBUtils::getBaseIRI).filter(IRI.class::isInstance)
+                    .map(IRI.class::cast).map(IRI::getIRIString).orElse(null))
+                .bind(7, metadata.getMembershipResource().map(IRI::getIRIString).orElse(null))
+                .bind(8, metadata.getMemberRelation().map(IRI::getIRIString).orElse(null))
+                .bind(9, metadata.getMemberOfRelation().map(IRI::getIRIString).orElse(null))
+                .bind(10, icr)
+                .bind(11, metadata.getBinary().map(BinaryMetadata::getIdentifier).map(IRI::getIRIString).orElse(null))
+                .bind(12, metadata.getBinary().flatMap(BinaryMetadata::getMimeType).orElse(null))
+                .bind(13, metadata.getBinary().flatMap(BinaryMetadata::getSize).orElse(null))) {
             return update.executeAndReturnGeneratedKeys("id").mapTo(Integer.class).findOnly();
         }
     }
@@ -358,16 +300,15 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         });
     }
 
-    private void storeResource(final IRI identifier, final Instant time, final IRI ixnModel,
-            final Dataset dataset, final OperationType opType, final Binary binary) {
-
+    private void storeResource(final Metadata metadata, final Dataset dataset, final Instant time,
+            final OperationType opType) {
         try {
             jdbi.useTransaction(handle -> {
-                final Integer resourceId = updateResource(handle, identifier, ixnModel, time,
-                        opType == OperationType.DELETE, dataset, binary);
+                final Integer resourceId = updateResource(handle, metadata, dataset, time,
+                        opType == OperationType.DELETE);
                 updateDescription(handle, resourceId, dataset);
                 updateAcl(handle, resourceId, dataset);
-                updateExtra(handle, resourceId, identifier, dataset);
+                updateExtra(handle, resourceId, metadata.getIdentifier(), dataset);
             });
         } catch (final Exception ex) {
             LOGGER.error("Could not update data: {}", ex.getMessage());

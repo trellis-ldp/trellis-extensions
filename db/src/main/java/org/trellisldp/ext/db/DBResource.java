@@ -14,16 +14,13 @@
 package org.trellisldp.ext.db;
 
 import static java.util.Objects.nonNull;
-import static java.util.Optional.of;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static java.util.stream.Stream.builder;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.Resource.SpecialResources.DELETED_RESOURCE;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.api.TrellisUtils.getInstance;
-import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -44,12 +41,10 @@ import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
-import org.trellisldp.api.Binary;
+import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Resource;
-import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
-import org.trellisldp.vocabulary.XSD;
 
 /**
  * A db-based implementation of the Trellis Resource API.
@@ -83,7 +78,6 @@ public class DBResource implements Resource {
         this.identifier = identifier;
         this.jdbi = jdbi;
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
-        graphMapper.put(Trellis.PreferServerManaged, this::fetchServerQuads);
         graphMapper.put(Trellis.PreferAudit, this::fetchAuditQuads);
         graphMapper.put(Trellis.PreferAccessControl, this::fetchAclQuads);
         graphMapper.put(LDP.PreferContainment, this::fetchContainmentQuads);
@@ -174,8 +168,8 @@ public class DBResource implements Resource {
     }
 
     @Override
-    public Optional<Binary> getBinary() {
-        return data.getBinary();
+    public Optional<BinaryMetadata> getBinaryMetadata() {
+        return data.getBinaryMetadata();
     }
 
     @Override
@@ -199,31 +193,6 @@ public class DBResource implements Resource {
     private Stream<Quad> fetchMembershipQuads() {
         return concat(fetchIndirectMemberQuads(),
                 concat(fetchDirectMemberQuads(), fetchDirectMemberQuadsInverse()));
-    }
-
-    /**
-     * Fetch a stream of server quads.
-     */
-    private Stream<Quad> fetchServerQuads() {
-        final Stream.Builder<Quad> builder = builder();
-        builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
-        of(getModified()).map(m -> rdf.createLiteral(m.toString(), XSD.dateTime)).ifPresent(modified ->
-                builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.modified, modified)));
-        data.getIsPartOf().ifPresent(parent ->
-                builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.isPartOf, parent)));
-        data.getBinary().ifPresent(binary -> {
-                builder.add(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), DC.hasPart,
-                            binary.getIdentifier()));
-                builder.add(rdf.createQuad(Trellis.PreferServerManaged, binary.getIdentifier(), DC.modified,
-                            rdf.createLiteral(binary.getModified().toString(), XSD.dateTime)));
-                binary.getMimeType().ifPresent(format ->
-                        builder.add(rdf.createQuad(Trellis.PreferServerManaged, binary.getIdentifier(), DC.format,
-                                rdf.createLiteral(format))));
-                binary.getSize().ifPresent(size ->
-                        builder.add(rdf.createQuad(Trellis.PreferServerManaged, binary.getIdentifier(), DC.extent,
-                                rdf.createLiteral(size.toString(), XSD.long_))));
-        });
-        return builder.build();
     }
 
     /**

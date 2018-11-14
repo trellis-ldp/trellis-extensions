@@ -13,7 +13,6 @@
  */
 package org.trellisldp.ext.db;
 
-import static java.time.Instant.ofEpochMilli;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -25,7 +24,7 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.trellisldp.api.Binary;
+import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.vocabulary.LDP;
 
 /**
@@ -66,10 +65,10 @@ final class DBUtils {
         return null;
     }
 
-    public static Optional<Binary> getBinary(final IRI ixnModel, final String location, final Long modified,
+    public static Optional<BinaryMetadata> getBinaryMetadata(final IRI ixnModel, final String location,
             final String format, final Long size) {
-        if (LDP.NonRDFSource.equals(ixnModel) && nonNull(location) && nonNull(modified)) {
-            return of(new Binary(rdf.createIRI(location), ofEpochMilli(modified), format, size));
+        if (LDP.NonRDFSource.equals(ixnModel) && nonNull(location)) {
+            return of(BinaryMetadata.builder(rdf.createIRI(location)).mimeType(format).size(size).build());
         }
         return empty();
     }
