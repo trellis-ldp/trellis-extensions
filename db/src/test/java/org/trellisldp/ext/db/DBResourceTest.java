@@ -16,6 +16,7 @@ package org.trellisldp.ext.db;
 import static java.io.File.separator;
 import static java.util.Optional.of;
 import static java.util.concurrent.CompletableFuture.allOf;
+import static java.util.function.Predicate.isEqual;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -160,6 +161,10 @@ public class DBResourceTest {
         svc.get(root).thenAccept(res -> {
             assertEquals(LDP.BasicContainer, res.getInteractionModel());
             assertFalse(res.getContainer().isPresent());
+            assertTrue(res.stream().anyMatch(quad ->
+                        quad.getGraphName().filter(isEqual(Trellis.PreferUserManaged)).isPresent() &&
+                        quad.getSubject().equals(root) && quad.getPredicate().equals(DC.title) &&
+                        quad.getObject().equals(rdf.createLiteral("A title", "eng"))));
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
                     && triple.getObject().equals(rdf.createLiteral("A title", "eng"))));
