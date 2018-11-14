@@ -131,8 +131,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 final Metadata md = Metadata.builder(metadata.getIdentifier()).interactionModel(LDP.Resource).build();
                 storeResource(md, dataset, time, OperationType.DELETE);
             } catch (final Exception ex) {
-                LOGGER.error("Error deleting resource: {}", ex.getMessage());
-                throw new RuntimeTrellisException(ex);
+                throw new RuntimeTrellisException("Error deleting resoruce: " + metadata.getIdentifier(), ex);
             }
         });
     }
@@ -182,8 +181,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                         }
                     }));
             } catch (final Exception ex) {
-                LOGGER.error("Error storing audit dataset: {}", ex.getMessage());
-                throw new RuntimeTrellisException(ex);
+                throw new RuntimeTrellisException("Error storing audit dataset for " + id, ex);
             }
         });
     }
@@ -204,8 +202,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 }
             });
         } catch (final Exception ex) {
-            LOGGER.error("Error updating modification date for {}: {}", identifier, ex.getMessage());
-            throw new RuntimeTrellisException(ex);
+            throw new RuntimeTrellisException("Error updating modification date for " + identifier, ex);
         }
     }
 
@@ -311,8 +308,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 updateExtra(handle, resourceId, metadata.getIdentifier(), dataset);
             });
         } catch (final Exception ex) {
-            LOGGER.error("Could not update data: {}", ex.getMessage());
-            throw new RuntimeTrellisException(ex);
+            throw new RuntimeTrellisException("Could not update data for " + metadata.getIdentifier(), ex);
         }
     }
 
