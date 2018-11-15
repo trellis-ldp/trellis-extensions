@@ -20,7 +20,7 @@ ext {
     javaxInjectVersion = '2.5.0-b62'
     jdbiVersion = '3.5.1'
     jmsApiVersion = '2.0.1'
-    kafkaVersion = '2.0.0'
+    kafkaVersion = '2.0.1'
     slf4jVersion = '1.7.25'
     snakeyamlVersion = '1.23'
     tamayaVersion = '0.3-incubating'
@@ -35,7 +35,7 @@ ext {
     apiguardianVersion = '1.0.0'
     checkstyleVersion = '8.12'
     commonsTextVersion = '1.6'
-    guavaVersion = '26.0-jre'
+    guavaVersion = '27.0-jre'
     h2Version = '1.4.197'
     jaxbVersion = '2.3.0'
     jacocoVersion = '0.8.2'
@@ -44,7 +44,7 @@ ext {
     liquibaseVersion = '3.6.2'
     logbackVersion = '1.2.3'
     mockitoVersion = '2.23.0'
-    otjPgVersion = '0.12.4'
+    otjPgVersion = '0.12.5'
 
     /* OSGi */
     projectOsgiVersion = project.version.replaceAll("-SNAPSHOT", ".SNAPSHOT")
