@@ -54,6 +54,7 @@ dependencies {
     testCompile("io.dropwizard:dropwizard-testing:$dropwizardVersion")
     testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
     testCompile("org.apache.commons:commons-text:$commonsTextVersion")
+    testCompile("org.awaitility:awaitility:$awaitilityVersion")
     testCompile("org.mockito:mockito-core:$mockitoVersion")
     testCompile("org.trellisldp:trellis-test:$trellisVersion")
 }
