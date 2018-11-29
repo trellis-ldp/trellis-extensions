@@ -31,9 +31,6 @@ public class AppConfiguration extends TrellisConfiguration {
     private String binaries;
 
     @NotNull
-    private String namespaces;
-
-    @NotNull
     private Integer levels = 3;
 
     @NotNull
@@ -95,24 +92,6 @@ public class AppConfiguration extends TrellisConfiguration {
     @JsonProperty
     public void setBinaries(final String config) {
         this.binaries = config;
-    }
-
-    /**
-     * Set the namespaces filename.
-     * @param namespaces the namespaces filename
-     */
-    @JsonProperty
-    public void setNamespaces(final String namespaces) {
-        this.namespaces = namespaces;
-    }
-
-    /**
-     * Get the namespace filename.
-     * @return the namespace filename
-     */
-    @JsonProperty
-    public String getNamespaces() {
-        return namespaces;
     }
 
     /**

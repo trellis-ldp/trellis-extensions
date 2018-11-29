@@ -35,11 +35,11 @@ import org.trellisldp.api.RDFaWriterService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.ServiceBundler;
 import org.trellisldp.app.TrellisCache;
+import org.trellisldp.ext.db.DBNamespaceService;
 import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
 import org.trellisldp.io.JenaIOService;
-import org.trellisldp.namespaces.NamespacesJsonContext;
 import org.trellisldp.rdfa.HtmlSerializer;
 
 /**
@@ -72,7 +72,7 @@ public class TrellisServiceBundler implements ServiceBundler {
         auditService = resourceService = new DBResourceService(jdbi);
         binaryService = new FileBinaryService(new DefaultIdentifierService(), config.getBinaries(),
                 config.getBinaryHierarchyLevels(), config.getBinaryHierarchyLength());
-        ioService = buildIoService(config);
+        ioService = buildIoService(config, jdbi);
         eventService = AppUtils.getNotificationService(config.getNotifications(), environment);
     }
 
@@ -111,12 +111,12 @@ public class TrellisServiceBundler implements ServiceBundler {
         return eventService;
     }
 
-    private static IOService buildIoService(final AppConfiguration config) {
+    private static IOService buildIoService(final AppConfiguration config, final Jdbi jdbi) {
         final Long cacheSize = config.getJsonld().getCacheSize();
         final Long hours = config.getJsonld().getCacheExpireHours();
         final Cache<String, String> cache = newBuilder().maximumSize(cacheSize).expireAfterAccess(hours, HOURS).build();
         final TrellisCache<String, String> profileCache = new TrellisCache<>(cache);
-        final NamespaceService namespaceService = new NamespacesJsonContext(config.getNamespaces());
+        final NamespaceService namespaceService = new DBNamespaceService(jdbi);
         final RDFaWriterService htmlSerializer = new HtmlSerializer(namespaceService, config.getAssets().getTemplate(),
                 config.getAssets().getCss(), config.getAssets().getJs(), config.getAssets().getIcon());
         return new JenaIOService(namespaceService, htmlSerializer, profileCache,

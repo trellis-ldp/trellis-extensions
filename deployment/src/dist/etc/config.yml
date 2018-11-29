@@ -63,8 +63,6 @@ binaries: ${TRELLIS_BINARIES:-/opt/trellis/data/binaries}
 
 mementos: ${TRELLIS_MEMENTOS:-/opt/trellis/data/mementos}
 
-namespaces: ${TRELLIS_NAMESPACES:-/opt/trellis/data/namespaces.json}
-
 # This may refer to a static base URL for resources. If left empty, the
 # base URL will reflect the Host header in the request.
 baseUrl: ${TRELLIS_BASE_URL:-}

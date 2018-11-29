@@ -408,4 +408,35 @@ databaseChangeLog:
                         name: object
                         type: STRING
                 file: org/trellisldp/ext/db/initial_acl${csv}.csv
+    - changeSet:
+        id: 2
+        author: acoburn
+        changes:
+            - createTable:
+                tableName: namespaces
+                remarks: This table keeps track of namespace prefixes.
+                columns:
+                    - column:
+                        name: prefix
+                        type: VARCHAR(255)
+                        remarks: A unique prefix.
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: namespace
+                        type: VARCHAR(1024)
+                        remarks: The namespace IRI.
+                        constraints:
+                            nullable: false
+            - loadData:
+                tableName: namespaces
+                columns:
+                    - column:
+                        name: prefix
+                        type: STRING
+                    - column:
+                        name: namespace
+                        type: STRING
+                file: org/trellisldp/ext/db/initial_namespaces.csv
 
