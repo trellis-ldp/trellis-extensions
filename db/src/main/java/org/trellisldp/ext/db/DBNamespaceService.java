@@ -13,8 +13,6 @@
  */
 package org.trellisldp.ext.db;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,15 +21,12 @@ import javax.inject.Inject;
 import javax.sql.DataSource;
 
 import org.jdbi.v3.core.Jdbi;
-import org.slf4j.Logger;
 import org.trellisldp.api.NamespaceService;
 
 /**
  * A namespace service that stores data in a database.
  */
 public class DBNamespaceService implements NamespaceService {
-
-    private static final Logger LOGGER = getLogger(DBNamespaceService.class);
 
     private final Jdbi jdbi;
 
