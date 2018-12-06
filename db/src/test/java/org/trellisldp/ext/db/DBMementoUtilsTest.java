@@ -116,12 +116,12 @@ public class DBMementoUtilsTest {
         util.put(identifier, time.plusSeconds(2L));
         util.put(identifier, time.plusSeconds(4L));
 
-        final SortedSet<Instant> mementos = util.mementos(identifier);
         assertEquals(of(time.truncatedTo(SECONDS)), util.get(identifier, time));
         assertEquals(of(time.truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(1L)));
         assertEquals(of(time.plusSeconds(2L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(2L)));
         assertEquals(of(time.plusSeconds(2L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(3L)));
         assertEquals(of(time.plusSeconds(4L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(4L)));
+        assertEquals(of(time.plusSeconds(4L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(5L)));
     }
 }
 
