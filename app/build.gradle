@@ -4,7 +4,7 @@ apply plugin: 'osgi'
 description = 'Trellis Database Application'
 
 ext {
-    moduleName = 'org.trellisldp.ext.app.db'
+    moduleName = 'org.trellisldp.ext.db.app'
 }
 
 dependencies {
