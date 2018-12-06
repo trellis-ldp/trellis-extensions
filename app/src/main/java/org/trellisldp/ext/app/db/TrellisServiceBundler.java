@@ -38,7 +38,6 @@ import org.trellisldp.app.TrellisCache;
 import org.trellisldp.ext.db.DBNamespaceService;
 import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.file.FileBinaryService;
-import org.trellisldp.file.FileMementoService;
 import org.trellisldp.io.JenaIOService;
 import org.trellisldp.rdfa.HtmlSerializer;
 
@@ -68,7 +67,7 @@ public class TrellisServiceBundler implements ServiceBundler {
         final Jdbi jdbi = new JdbiFactory().build(environment, config.getDataSourceFactory(), "trellis");
 
         agentService = new SimpleAgentService();
-        mementoService = new FileMementoService(config.getMementos());
+        mementoService = new FileDBMementoService(config.getMementos(), jdbi);
         auditService = resourceService = new DBResourceService(jdbi);
         binaryService = new FileBinaryService(new DefaultIdentifierService(), config.getBinaries(),
                 config.getBinaryHierarchyLevels(), config.getBinaryHierarchyLength());

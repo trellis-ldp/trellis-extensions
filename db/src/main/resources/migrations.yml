@@ -439,4 +439,47 @@ databaseChangeLog:
                         name: namespace
                         type: STRING
                 file: org/trellisldp/ext/db/initial_namespaces.csv
+    - changeSet:
+        id: 3
+        author: acoburn
+        changes:
+            - createTable:
+                tableName: memento
+                remarks: This table keeps a record of memento locations
+                columns:
+                    - column:
+                        name: id
+                        type: BIGINT
+                        remarks: A unique numerical ID for each memento.
+                        autoIncrement: true
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: subject
+                        type: VARCHAR(${id.length})
+                        remarks: The internal IRI for each resource.
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: moment
+                        type: BIGINT
+                        remarks: >
+                            The time of each memento,
+                            stored as a long representation of epoch-second.
+                        constraints:
+                            nullable: false
+            - createIndex:
+                indexName: idx_memento
+                tableName: memento
+                columns:
+                    - column:
+                        name: subject
+                        type: VARCHAR(${id.length})
+                        remarks: The internal IRI for a resource
+                    - column:
+                        name: moment
+                        type: BIGINT
+                        remarks: The timestamp for each memento
+                unique: true
 
