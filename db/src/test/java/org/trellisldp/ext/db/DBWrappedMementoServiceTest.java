@@ -16,10 +16,14 @@ package org.trellisldp.ext.db;
 import static java.io.File.separator;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.TrellisUtils.getInstance;
 
@@ -30,6 +34,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.SortedSet;
+import java.util.stream.Stream;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
@@ -37,6 +42,12 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
+import org.trellisldp.api.MementoService;
+import org.trellisldp.api.Resource;
+import org.trellisldp.file.FileMementoService;
+import org.trellisldp.vocabulary.DC;
+import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.Trellis;
 
 import liquibase.Contexts;
 import liquibase.Liquibase;
@@ -45,10 +56,10 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 
 @DisabledOnOs(WINDOWS)
-public class DBMementoUtilsTest {
-    private static final Logger LOGGER = getLogger(DBMementoUtils.class);
+public class DBWrappedMementoServiceTest {
+    private static final Logger LOGGER = getLogger(DBWrappedMementoService.class);
     private static final RDF rdf = getInstance();
-
+    private static final IRI root = rdf.createIRI("trellis:data/");
     private static EmbeddedPostgres pg = null;
 
     static {
@@ -73,55 +84,44 @@ public class DBMementoUtilsTest {
 
     @Test
     public void testMementoUtils() {
-        final DBMementoUtils util = new DBMementoUtils(pg.getPostgresDatabase());
+        final String dir = DBWrappedMementoService.class.getResource("/mementos").getFile();
+        final MementoService svc = new DBWrappedMementoService(pg.getPostgresDatabase(),
+                new FileMementoService(dir));
 
         final Instant time = now();
         final IRI identifier = rdf.createIRI("trellis:data/resource");
-        util.put(identifier, time);
-        util.put(identifier, time.plusSeconds(2L));
-        util.put(identifier, time.plusSeconds(4L));
 
-        final SortedSet<Instant> mementos = util.mementos(identifier);
+        final Resource mockResource = mock(Resource.class);
+
+        when(mockResource.getIdentifier()).thenReturn(identifier);
+        when(mockResource.getInteractionModel()).thenReturn(LDP.RDFSource);
+        when(mockResource.getModified()).thenReturn(time);
+        when(mockResource.getContainer()).thenReturn(of(root));
+        when(mockResource.stream()).thenAnswer(inv -> Stream.of(
+                    rdf.createQuad(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("Title"))));
+        when(mockResource.getBinaryMetadata()).thenReturn(empty());
+        when(mockResource.getMemberOfRelation()).thenReturn(empty());
+        when(mockResource.getMemberRelation()).thenReturn(empty());
+        when(mockResource.getMembershipResource()).thenReturn(empty());
+        when(mockResource.getInsertedContentRelation()).thenReturn(empty());
+
+        assertDoesNotThrow(svc.put(mockResource)::join);
+        assertDoesNotThrow(svc.put(mockResource)::join);
+
+        when(mockResource.getModified()).thenReturn(time.plusSeconds(2L));
+        assertDoesNotThrow(svc.put(mockResource)::join);
+
+        when(mockResource.getModified()).thenReturn(time.plusSeconds(4L));
+        assertDoesNotThrow(svc.put(mockResource)::join);
+
+        final SortedSet<Instant> mementos = svc.mementos(identifier).join();
         assertTrue(mementos.contains(time.truncatedTo(SECONDS)));
         assertTrue(mementos.contains(time.plusSeconds(2L).truncatedTo(SECONDS)));
         assertTrue(mementos.contains(time.plusSeconds(4L).truncatedTo(SECONDS)));
+
+        final Resource res = svc.get(identifier, time).join();
+        assertEquals(time, res.getModified());
     }
 
-    @Test
-    public void testMementoUtilsPut() {
-        final DBMementoUtils util = new DBMementoUtils(pg.getPostgresDatabase());
-
-        final Instant time = now();
-        final IRI identifier = rdf.createIRI("trellis:data/resource2");
-        util.put(identifier, time);
-        util.put(identifier, time.plusSeconds(2L));
-        util.put(identifier, time.plusSeconds(2L));
-        util.put(identifier, time.plusSeconds(4L));
-        util.put(identifier, time.plusSeconds(4L));
-
-        final SortedSet<Instant> mementos = util.mementos(identifier);
-        assertEquals(3L, mementos.size());
-        assertTrue(mementos.contains(time.truncatedTo(SECONDS)));
-        assertTrue(mementos.contains(time.plusSeconds(2L).truncatedTo(SECONDS)));
-        assertTrue(mementos.contains(time.plusSeconds(4L).truncatedTo(SECONDS)));
-    }
-
-    @Test
-    public void testMementoUtilsGet() {
-        final DBMementoUtils util = new DBMementoUtils(pg.getPostgresDatabase());
-
-        final Instant time = now();
-        final IRI identifier = rdf.createIRI("trellis:data/other");
-        util.put(identifier, time);
-        util.put(identifier, time.plusSeconds(2L));
-        util.put(identifier, time.plusSeconds(4L));
-
-        assertEquals(of(time.truncatedTo(SECONDS)), util.get(identifier, time));
-        assertEquals(of(time.truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(1L)));
-        assertEquals(of(time.plusSeconds(2L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(2L)));
-        assertEquals(of(time.plusSeconds(2L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(3L)));
-        assertEquals(of(time.plusSeconds(4L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(4L)));
-        assertEquals(of(time.plusSeconds(4L).truncatedTo(SECONDS)), util.get(identifier, time.plusSeconds(5L)));
-    }
 }
 
