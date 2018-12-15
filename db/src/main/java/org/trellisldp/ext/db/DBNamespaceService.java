@@ -58,7 +58,7 @@ public class DBNamespaceService implements NamespaceService {
     }
 
     @Override
-    public Boolean setPrefix(final String prefix, final String namespace) {
+    public boolean setPrefix(final String prefix, final String namespace) {
         jdbi.useHandle(handle ->
             handle.execute("INSERT INTO namespaces (prefix, namespace) VALUES (?, ?)", prefix, namespace));
         return true;

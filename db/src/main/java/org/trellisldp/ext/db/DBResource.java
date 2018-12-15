@@ -117,7 +117,7 @@ public class DBResource implements Resource {
      * Identify whether this resource had previously been deleted.
      * @return true if the resource previously existed
      */
-    public Boolean isDeleted() {
+    public boolean isDeleted() {
         return data.isDeleted();
     }
 
@@ -178,7 +178,7 @@ public class DBResource implements Resource {
     }
 
     @Override
-    public Boolean hasAcl() {
+    public boolean hasAcl() {
         return data.hasAcl();
     }
 
@@ -310,7 +310,7 @@ public class DBResource implements Resource {
      * Fetch data for this resource.
      * @return true if data was found; false otherwise
      */
-    private Boolean fetchData() {
+    private boolean fetchData() {
         LOGGER.debug("Fetching data for: {}", identifier);
         final String extraQuery = "SELECT predicate, object FROM extra WHERE resource_id = ?";
         final String query
