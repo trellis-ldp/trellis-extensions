@@ -205,8 +205,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
-    private static Integer updateResource(final Handle handle, final Metadata metadata, final Dataset dataset,
-            final Instant time, final Boolean isDelete) {
+    private static int updateResource(final Handle handle, final Metadata metadata, final Dataset dataset,
+            final Instant time, final boolean isDelete) {
 
         handle.execute("DELETE FROM resource WHERE subject = ?", metadata.getIdentifier().getIRIString());
         final String query
@@ -238,17 +238,17 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
-    private static void updateDescription(final Handle handle, final Integer resourceId, final Dataset dataset) {
+    private static void updateDescription(final Handle handle, final int resourceId, final Dataset dataset) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph ->
                 batchUpdateTriples(handle, resourceId, "description", graph));
     }
 
-    private static void updateAcl(final Handle handle, final Integer resourceId, final Dataset dataset) {
+    private static void updateAcl(final Handle handle, final int resourceId, final Dataset dataset) {
         dataset.getGraph(PreferAccessControl).ifPresent(graph ->
                 batchUpdateTriples(handle, resourceId, "acl", graph));
     }
 
-    private static void batchUpdateTriples(final Handle handle, final Integer resourceId, final String table,
+    private static void batchUpdateTriples(final Handle handle, final int resourceId, final String table,
             final Graph graph) {
         final String query
             = "INSERT INTO " + table + " (resource_id, subject, predicate, object, lang, datatype) "
@@ -271,7 +271,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
-    private static void updateExtra(final Handle handle, final Integer resourceId, final IRI identifier,
+    private static void updateExtra(final Handle handle, final int resourceId, final IRI identifier,
             final Dataset dataset) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
             final String query = "INSERT INTO extra (resource_id, predicate, object) VALUES (?, ?, ?)";
@@ -300,7 +300,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             final OperationType opType) {
         try {
             jdbi.useTransaction(handle -> {
-                final Integer resourceId = updateResource(handle, metadata, dataset, time,
+                final int resourceId = updateResource(handle, metadata, dataset, time,
                         opType == OperationType.DELETE);
                 updateDescription(handle, resourceId, dataset);
                 updateAcl(handle, resourceId, dataset);

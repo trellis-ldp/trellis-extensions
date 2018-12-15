@@ -113,8 +113,8 @@ public class TrellisServiceBundler implements ServiceBundler {
     }
 
     private static IOService buildIoService(final AppConfiguration config, final Jdbi jdbi) {
-        final Long cacheSize = config.getJsonld().getCacheSize();
-        final Long hours = config.getJsonld().getCacheExpireHours();
+        final long cacheSize = config.getJsonld().getCacheSize();
+        final long hours = config.getJsonld().getCacheExpireHours();
         final Cache<String, String> cache = newBuilder().maximumSize(cacheSize).expireAfterAccess(hours, HOURS).build();
         final TrellisCache<String, String> profileCache = new TrellisCache<>(cache);
         final NamespaceService namespaceService = new DBNamespaceService(jdbi);

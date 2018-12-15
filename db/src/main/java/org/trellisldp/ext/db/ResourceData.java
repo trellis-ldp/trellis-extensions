@@ -33,12 +33,12 @@ class ResourceData {
 
     private static final RDF rdf = getInstance();
 
-    private Integer id;
+    private int id;
     private String interactionModel;
-    private Long modified;
+    private long modified;
     private String isPartOf;
-    private Boolean resourceHasAcl = false;
-    private Boolean resourceIsDeleted = false;
+    private boolean resourceHasAcl = false;
+    private boolean resourceIsDeleted = false;
 
     private String membershipResource;
     private String hasMemberRelation;
@@ -65,7 +65,7 @@ class ResourceData {
                 rs.getString("binary_format"), rs.getLong("binary_size")).orElse(null);
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
@@ -81,11 +81,11 @@ class ResourceData {
         return ofNullable(isPartOf).map(rdf::createIRI);
     }
 
-    public Boolean hasAcl() {
+    public boolean hasAcl() {
         return resourceHasAcl;
     }
 
-    public Boolean isDeleted() {
+    public boolean isDeleted() {
         return resourceIsDeleted;
     }
 

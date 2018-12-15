@@ -42,7 +42,7 @@ final class TestUtils {
             + "binaries-" + randomString(8));
     private static final ConfigOverride NAMESPACES = config("namespaces", resourceFilePath("data/namespaces.json"));
 
-    public static String randomString(final Integer length) {
+    public static String randomString(final int length) {
         return new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(length);
     }
 

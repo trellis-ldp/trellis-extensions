@@ -58,7 +58,7 @@ final class DBUtils {
     }
 
     public static Optional<BinaryMetadata> getBinaryMetadata(final IRI ixnModel, final String location,
-            final String format, final Long size) {
+            final String format, final long size) {
         if (LDP.NonRDFSource.equals(ixnModel) && nonNull(location)) {
             return of(BinaryMetadata.builder(rdf.createIRI(location)).mimeType(format).size(size).build());
         }

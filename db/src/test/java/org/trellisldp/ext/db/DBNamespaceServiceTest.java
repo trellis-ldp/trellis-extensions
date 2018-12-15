@@ -70,7 +70,7 @@ public class DBNamespaceServiceTest {
 
         assertTrue(svc.getNamespaces().containsKey("ldp"));
         assertEquals(LDP.getNamespace(), svc.getNamespaces().get("ldp"));
-        final Integer size = svc.getNamespaces().size();
+        final int size = svc.getNamespaces().size();
 
         assertTrue(svc.setPrefix("ex", "http://example.com/"));
         assertEquals(size + 1, svc.getNamespaces().size());
