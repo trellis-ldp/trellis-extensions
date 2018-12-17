@@ -72,10 +72,10 @@ public class DBUtilsTest {
     @Test
     public void testGetBinary() {
         assertTrue(DBUtils.getBinaryMetadata(LDP.NonRDFSource, "file:///path/to/resource",
-                    "text/plain", 10L).isPresent());
+                    "text/plain").isPresent());
         assertFalse(DBUtils.getBinaryMetadata(LDP.RDFSource, "file:///path/to/resource",
-                    "text/plain", 10L).isPresent());
+                    "text/plain").isPresent());
         assertFalse(DBUtils.getBinaryMetadata(LDP.NonRDFSource, null,
-                    "text/plain", 10L).isPresent());
+                    "text/plain").isPresent());
     }
 }

@@ -212,8 +212,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         final String query
             = "INSERT INTO resource (subject, interaction_model, modified, deleted, is_part_of, acl, "
             + "ldp_member, ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
-            + "ldp_inserted_content_relation, binary_location, binary_format, binary_size) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "ldp_inserted_content_relation, binary_location, binary_format) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         // Set ldp:insertedContentRelation only for LDP-IC and LDP-DC resources
         final String icr = asList(LDP.DirectContainer, LDP.IndirectContainer).contains(metadata.getInteractionModel())
             ? metadata.getInsertedContentRelation().orElse(LDP.MemberSubject).getIRIString() : null;
@@ -232,8 +232,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 .bind(9, metadata.getMemberOfRelation().map(IRI::getIRIString).orElse(null))
                 .bind(10, icr)
                 .bind(11, metadata.getBinary().map(BinaryMetadata::getIdentifier).map(IRI::getIRIString).orElse(null))
-                .bind(12, metadata.getBinary().flatMap(BinaryMetadata::getMimeType).orElse(null))
-                .bind(13, metadata.getBinary().flatMap(BinaryMetadata::getSize).orElse(null))) {
+                .bind(12, metadata.getBinary().flatMap(BinaryMetadata::getMimeType).orElse(null))) {
             return update.executeAndReturnGeneratedKeys("id").mapTo(Integer.class).findOnly();
         }
     }

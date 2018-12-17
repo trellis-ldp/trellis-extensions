@@ -62,7 +62,7 @@ class ResourceData {
         this.insertedContentRelation = rs.getString("ldp_inserted_content_relation");
 
         this.binary = DBUtils.getBinaryMetadata(rdf.createIRI(this.interactionModel), rs.getString("binary_location"),
-                rs.getString("binary_format"), rs.getLong("binary_size")).orElse(null);
+                rs.getString("binary_format")).orElse(null);
     }
 
     public int getId() {

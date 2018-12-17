@@ -316,7 +316,7 @@ public class DBResource implements Resource {
         final String query
             = "SELECT id, interaction_model, modified, is_part_of, deleted, acl, "
             + "ldp_membership_resource, ldp_has_member_relation, ldp_is_member_of_relation, "
-            + "ldp_inserted_content_relation, binary_location, binary_modified, binary_format, binary_size "
+            + "ldp_inserted_content_relation, binary_location, binary_modified, binary_format "
             + "FROM resource WHERE subject = ?";
         final Optional<ResourceData> rd = jdbi.withHandle(handle -> handle.select(query, identifier.getIRIString())
                 .map((rs, ctx) -> new ResourceData(rs)).findFirst());

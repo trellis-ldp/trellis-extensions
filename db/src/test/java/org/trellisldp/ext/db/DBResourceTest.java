@@ -141,7 +141,7 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "binary");
         final IRI binaryIri = rdf.createIRI("http://example.com/resource");
         final Dataset dataset = rdf.createDataset();
-        final BinaryMetadata binary = BinaryMetadata.builder(binaryIri).mimeType("text/plain").size(10L).build();
+        final BinaryMetadata binary = BinaryMetadata.builder(binaryIri).mimeType("text/plain").build();
         assertNull(svc.create(builder(identifier).interactionModel(LDP.NonRDFSource).container(root).binary(binary)
                     .build(), dataset).join());
         svc.get(identifier).thenAccept(res -> {
