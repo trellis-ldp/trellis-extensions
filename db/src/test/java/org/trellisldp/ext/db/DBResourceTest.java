@@ -327,7 +327,7 @@ public class DBResourceTest {
         final Jdbi mockJdbi = mock(Jdbi.class);
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
-        final ResourceService svc2 = new DBResourceService(mockJdbi, idService);
+        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
         assertThrows(CompletionException.class, () -> svc2.delete(builder(identifier).interactionModel(LDP.Resource)
                     .build()).join(), "No exception with invalid connection!");
     }
@@ -345,7 +345,7 @@ public class DBResourceTest {
         final Jdbi mockJdbi = mock(Jdbi.class);
         doThrow(RuntimeException.class).when(mockJdbi).useHandle(any());
 
-        final ResourceService svc2 = new DBResourceService(mockJdbi, idService);
+        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
         assertThrows(CompletionException.class, () -> svc2.touch(identifier).join());
     }
 
@@ -354,7 +354,7 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Dataset dataset = rdf.createDataset();
         final Jdbi mockJdbi = mock(Jdbi.class);
-        final ResourceService svc2 = new DBResourceService(mockJdbi, idService);
+        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
         assertThrows(CompletionException.class, () ->

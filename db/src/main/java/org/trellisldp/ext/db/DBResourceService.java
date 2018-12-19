@@ -44,7 +44,6 @@ import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
-import org.apache.tamaya.Configuration;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
@@ -77,11 +76,11 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
-    private static final Configuration config = getConfiguration();
 
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
     private final Set<IRI> supportedIxnModels;
+    private final int batchSize;
 
     /**
      * Create a Database-backed resource service.
@@ -97,22 +96,23 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
      * @param jdbi the jdbi object
      */
     public DBResourceService(final Jdbi jdbi) {
-        this(jdbi, findFirst(IdentifierService.class).orElseGet(DefaultIdentifierService::new));
+        this(jdbi, getConfiguration().getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE),
+                findFirst(IdentifierService.class).orElseGet(DefaultIdentifierService::new));
     }
 
     /**
      * Create a Database-backed resource service.
      * @param jdbi the jdbi object
+     * @param batchSize the batch size
      * @param identifierService an ID supplier service
      */
-    public DBResourceService(final Jdbi jdbi, final IdentifierService identifierService) {
-        requireNonNull(jdbi, "Jdbi may not be null!");
-        requireNonNull(identifierService, "IdentifierService may not be null!");
-        LOGGER.info("Using database persistence with TrellisLDP");
-        this.jdbi = jdbi;
-        this.supplier = identifierService.getSupplier();
+    public DBResourceService(final Jdbi jdbi, final int batchSize, final IdentifierService identifierService) {
+        this.jdbi = requireNonNull(jdbi, "Jdbi may not be null!");
+        this.supplier = requireNonNull(identifierService, "IdentifierService may not be null!").getSupplier();
+        this.batchSize = batchSize;
         this.supportedIxnModels = unmodifiableSet(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource, LDP.Container,
                 LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer).stream().collect(toSet()));
+        LOGGER.info("Using database persistence with TrellisLDP");
     }
 
     @Override
@@ -237,18 +237,20 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
         }
     }
 
-    private static void updateDescription(final Handle handle, final int resourceId, final Dataset dataset) {
+    private static void updateDescription(final Handle handle, final int resourceId, final Dataset dataset,
+            final int batchSize) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph ->
-                batchUpdateTriples(handle, resourceId, "description", graph));
+                batchUpdateTriples(handle, resourceId, "description", graph, batchSize));
     }
 
-    private static void updateAcl(final Handle handle, final int resourceId, final Dataset dataset) {
+    private static void updateAcl(final Handle handle, final int resourceId, final Dataset dataset,
+            final int batchSize) {
         dataset.getGraph(PreferAccessControl).ifPresent(graph ->
-                batchUpdateTriples(handle, resourceId, "acl", graph));
+                batchUpdateTriples(handle, resourceId, "acl", graph, batchSize));
     }
 
     private static void batchUpdateTriples(final Handle handle, final int resourceId, final String table,
-            final Graph graph) {
+            final Graph graph, final int batchSize) {
         final String query
             = "INSERT INTO " + table + " (resource_id, subject, predicate, object, lang, datatype) "
             + "VALUES (?, ?, ?, ?, ?, ?)";
@@ -260,7 +262,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                      .bind(3, getObjectValue(triple.getObject()))
                      .bind(4, getObjectLang(triple.getObject()))
                      .bind(5, getObjectDatatype(triple.getObject())).add();
-                if (batch.size() >= config.getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE)) {
+                if (batch.size() >= batchSize) {
                     batch.execute();
                 }
             });
@@ -301,8 +303,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
             jdbi.useTransaction(handle -> {
                 final int resourceId = updateResource(handle, metadata, dataset, time,
                         opType == OperationType.DELETE);
-                updateDescription(handle, resourceId, dataset);
-                updateAcl(handle, resourceId, dataset);
+                updateDescription(handle, resourceId, dataset, batchSize);
+                updateAcl(handle, resourceId, dataset, batchSize);
                 updateExtra(handle, resourceId, metadata.getIdentifier(), dataset);
             });
         } catch (final Exception ex) {
