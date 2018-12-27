@@ -18,11 +18,11 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
+import static java.util.ServiceLoader.load;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.tamaya.ConfigurationProvider.getConfiguration;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.TrellisUtils.findFirst;
 import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
 import static org.trellisldp.ext.db.DBUtils.getObjectLang;
@@ -32,6 +32,8 @@ import static org.trellisldp.vocabulary.Trellis.PreferAudit;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
 
 import java.time.Instant;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -97,7 +99,8 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
      */
     public DBResourceService(final Jdbi jdbi) {
         this(jdbi, getConfiguration().getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE),
-                findFirst(IdentifierService.class).orElseGet(DefaultIdentifierService::new));
+                of(load(IdentifierService.class)).map(ServiceLoader::iterator).filter(Iterator::hasNext)
+                    .map(Iterator::next).orElseGet(DefaultIdentifierService::new));
     }
 
     /**
