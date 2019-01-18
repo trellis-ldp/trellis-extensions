@@ -105,21 +105,21 @@ public class DBWrappedMementoServiceTest {
         when(mockResource.getMembershipResource()).thenReturn(empty());
         when(mockResource.getInsertedContentRelation()).thenReturn(empty());
 
-        assertDoesNotThrow(svc.put(mockResource)::join);
-        assertDoesNotThrow(svc.put(mockResource)::join);
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
 
         when(mockResource.getModified()).thenReturn(time.plusSeconds(2L));
-        assertDoesNotThrow(svc.put(mockResource)::join);
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
 
         when(mockResource.getModified()).thenReturn(time.plusSeconds(4L));
-        assertDoesNotThrow(svc.put(mockResource)::join);
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
 
-        final SortedSet<Instant> mementos = svc.mementos(identifier).join();
+        final SortedSet<Instant> mementos = svc.mementos(identifier).toCompletableFuture().join();
         assertTrue(mementos.contains(time.truncatedTo(SECONDS)));
         assertTrue(mementos.contains(time.plusSeconds(2L).truncatedTo(SECONDS)));
         assertTrue(mementos.contains(time.plusSeconds(4L).truncatedTo(SECONDS)));
 
-        final Resource res = svc.get(identifier, time).join();
+        final Resource res = svc.get(identifier, time).toCompletableFuture().join();
         assertEquals(time, res.getModified());
     }
 

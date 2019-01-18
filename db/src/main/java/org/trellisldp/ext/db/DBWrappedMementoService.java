@@ -21,7 +21,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.time.Instant;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import javax.sql.DataSource;
 
@@ -58,18 +58,18 @@ public class DBWrappedMementoService implements MementoService {
     }
 
     @Override
-    public CompletableFuture<Resource> get(final IRI identifier, final Instant time) {
+    public CompletionStage<Resource> get(final IRI identifier, final Instant time) {
         return svc.get(identifier, getTime(identifier, time));
     }
 
     @Override
-    public CompletableFuture<Void> put(final Resource resource) {
+    public CompletionStage<Void> put(final Resource resource) {
         return svc.put(resource).thenAccept(future ->
                 putTime(resource.getIdentifier(), resource.getModified()));
     }
 
     @Override
-    public CompletableFuture<SortedSet<Instant>> mementos(final IRI identifier) {
+    public CompletionStage<SortedSet<Instant>> mementos(final IRI identifier) {
         return supplyAsync(() -> {
             final SortedSet<Instant> instants = new TreeSet<>();
             jdbi.useHandle(handle -> handle

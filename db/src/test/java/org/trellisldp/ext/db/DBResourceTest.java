@@ -113,8 +113,8 @@ public class DBResourceTest {
 
     @Test
     public void getRoot() {
-        assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root).join().getIdentifier(),
-                "Check the root resource");
+        assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root)
+                .toCompletableFuture().join().getIdentifier(), "Check the root resource");
     }
 
     @Test
@@ -126,14 +126,15 @@ public class DBResourceTest {
     @Test
     public void getNonExistent() {
         assertEquals(MISSING_RESOURCE, DBResource.findResource(pg.getPostgresDatabase(),
-                    rdf.createIRI(TRELLIS_DATA_PREFIX + "other")).join(), "Check for non-existent resource");
+                    rdf.createIRI(TRELLIS_DATA_PREFIX + "other")).toCompletableFuture().join(),
+                "Check for non-existent resource");
     }
 
     @Test
     public void getMembershipQuads() {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res ->
-                assertEquals(0L, res.stream(LDP.PreferMembership).count())).join());
+                assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join());
     }
 
     @Test
@@ -143,21 +144,22 @@ public class DBResourceTest {
         final Dataset dataset = rdf.createDataset();
         final BinaryMetadata binary = BinaryMetadata.builder(binaryIri).mimeType("text/plain").build();
         assertNull(svc.create(builder(identifier).interactionModel(LDP.NonRDFSource).container(root).binary(binary)
-                    .build(), dataset).join());
+                    .build(), dataset).toCompletableFuture().join());
         svc.get(identifier).thenAccept(res -> {
             assertTrue(res.getBinaryMetadata().isPresent());
             assertEquals(of(root), res.getContainer());
             assertFalse(res.stream(LDP.PreferContainment).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(DC.hasPart) &&
                     triple.getObject().equals(binaryIri)));
-        }).join();
+        }).toCompletableFuture().join();
     }
 
     @Test
     public void getRootContent() throws Exception {
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferUserManaged, root, DC.title, rdf.createLiteral("A title", "eng"));
-        assertNull(svc.replace(builder(root).interactionModel(LDP.BasicContainer).build(), dataset).join());
+        assertNull(svc.replace(builder(root).interactionModel(LDP.BasicContainer).build(), dataset)
+                .toCompletableFuture().join());
         svc.get(root).thenAccept(res -> {
             assertEquals(LDP.BasicContainer, res.getInteractionModel());
             assertFalse(res.getContainer().isPresent());
@@ -168,14 +170,14 @@ public class DBResourceTest {
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(root) && triple.getPredicate().equals(DC.title)
                     && triple.getObject().equals(rdf.createLiteral("A title", "eng"))));
-        }).join();
+        }).toCompletableFuture().join();
     }
 
     @Test
     public void testTouchMethod() throws Exception {
-        final Instant time = svc.get(root).thenApply(Resource::getModified).join();
-        svc.touch(root).join();
-        assertNotEquals(time, svc.get(root).thenApply(Resource::getModified).join());
+        final Instant time = svc.get(root).thenApply(Resource::getModified).toCompletableFuture().join();
+        svc.touch(root).toCompletableFuture().join();
+        assertNotEquals(time, svc.get(root).thenApply(Resource::getModified).toCompletableFuture().join());
     }
 
     @Test
@@ -187,7 +189,7 @@ public class DBResourceTest {
                 assertTrue(acl.contains(null, ACL.mode, ACL.Read));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Write));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Control));
-            }).join());
+            }).toCompletableFuture().join());
     }
 
     @Test
@@ -203,8 +205,9 @@ public class DBResourceTest {
                 rdf.createIRI(TRELLIS_DATA_PREFIX + "auth"));
 
         assertDoesNotThrow(() -> svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
-                    dataset).join());
-        svc.get(identifier).thenAccept(res -> assertEquals(6L, res.stream(Trellis.PreferAccessControl).count())).join();
+                    dataset).toCompletableFuture().join());
+        svc.get(identifier).thenAccept(res -> assertEquals(6L, res.stream(Trellis.PreferAccessControl).count()))
+            .toCompletableFuture().join();
     }
 
     @Test
@@ -217,16 +220,17 @@ public class DBResourceTest {
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.membershipResource, member);
         assertDoesNotThrow(() -> allOf(
                     svc.create(builder(dc).interactionModel(LDP.DirectContainer).container(root)
-                        .memberRelation(LDP.member).membershipResource(member).build(), dcDataset),
+                        .memberRelation(LDP.member).membershipResource(member).build(), dcDataset)
+                        .toCompletableFuture(),
                     svc.create(builder(member).interactionModel(LDP.RDFSource).container(root).build(),
-                        rdf.createDataset()),
+                        rdf.createDataset()).toCompletableFuture(),
                     svc.create(builder(child).interactionModel(LDP.RDFSource).container(dc).build(),
-                        rdf.createDataset())).join());
+                        rdf.createDataset()).toCompletableFuture()).join());
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
             assertEquals(of(rdf.createTriple(member, LDP.member, child)), res.stream(LDP.PreferMembership).findFirst());
-        }).join();
+        }).toCompletableFuture().join();
     }
 
     @Test
@@ -239,17 +243,18 @@ public class DBResourceTest {
         dcDataset.add(Trellis.PreferUserManaged, dc, LDP.membershipResource, member);
         assertDoesNotThrow(() -> allOf(
                     svc.create(builder(dc).interactionModel(LDP.DirectContainer).container(root)
-                        .memberOfRelation(DC.isPartOf).membershipResource(member).build(), dcDataset),
+                        .memberOfRelation(DC.isPartOf).membershipResource(member).build(), dcDataset)
+                        .toCompletableFuture(),
                     svc.create(builder(member).interactionModel(LDP.Container).container(root).build(),
-                        rdf.createDataset()),
+                        rdf.createDataset()).toCompletableFuture(),
                     svc.create(builder(child).interactionModel(LDP.RDFSource).container(dc).build(),
-                        rdf.createDataset())).join());
+                        rdf.createDataset()).toCompletableFuture()).join());
 
         svc.get(child).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
             assertEquals(of(rdf.createTriple(child, DC.isPartOf, member)),
                     res.stream(LDP.PreferMembership).findFirst());
-        }).join();
+        }).toCompletableFuture().join();
     }
 
     @Test
@@ -267,16 +272,17 @@ public class DBResourceTest {
         assertDoesNotThrow(() -> allOf(
                     svc.create(builder(ic).interactionModel(LDP.IndirectContainer).container(root)
                         .membershipResource(member).memberRelation(LDP.member)
-                        .insertedContentRelation(FOAF.primaryTopic).build(), icDataset),
+                        .insertedContentRelation(FOAF.primaryTopic).build(), icDataset)
+                        .toCompletableFuture(),
                     svc.create(builder(member).interactionModel(LDP.RDFSource).container(root).build(),
-                        rdf.createDataset()),
+                        rdf.createDataset()).toCompletableFuture(),
                     svc.create(builder(child).interactionModel(LDP.RDFSource).container(ic).build(),
-                        childDataset)).join());
+                        childDataset).toCompletableFuture()).join());
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
             assertEquals(of(rdf.createTriple(member, LDP.member, iri)), res.stream(LDP.PreferMembership).findFirst());
-        }).join();
+        }).toCompletableFuture().join();
     }
 
     @Test
@@ -284,9 +290,10 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
 
         assertNull(svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
-                    rdf.createDataset()).join());
-        assertNull(svc.add(identifier, rdf.createDataset()).join());
-        svc.get(identifier).thenAccept(res -> assertEquals(0L, res.stream(Trellis.PreferAudit).count())).join();
+                    rdf.createDataset()).toCompletableFuture().join());
+        assertNull(svc.add(identifier, rdf.createDataset()).toCompletableFuture().join());
+        svc.get(identifier).thenAccept(res -> assertEquals(0L, res.stream(Trellis.PreferAudit).count()))
+            .toCompletableFuture().join();
     }
 
     @Test
@@ -298,19 +305,19 @@ public class DBResourceTest {
         dataset.add(Trellis.PreferUserManaged, identifier, LDP.inbox, rdf.createIRI(inbox));
         dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
         assertNull(svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(), dataset)
-                .join());
+                .toCompletableFuture().join());
         svc.get(identifier).thenAccept(res -> {
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
                     triple.getObject().equals(rdf.createIRI(inbox))));
-        }).join();
+        }).toCompletableFuture().join();
         DBResource.findResource(pg.getPostgresDatabase(), identifier).thenAccept(res -> {
             assertEquals(2L, res.getExtraLinkRelations().count());
             assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(annotations)
                         && rel.getValue().equals(OA.annotationService.getIRIString())));
             assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(inbox)
                         && rel.getValue().equals(LDP.inbox.getIRIString())));
-        }).join();
+        }).toCompletableFuture().join();
     }
 
     @Test
@@ -318,7 +325,7 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferAudit, rdf.createBlankNode(), type, rdf.createLiteral("Invalid quad"));
-        assertThrows(CompletionException.class, () -> svc.add(identifier, dataset).join());
+        assertThrows(CompletionException.class, () -> svc.add(identifier, dataset).toCompletableFuture().join());
     }
 
     @Test
@@ -329,14 +336,15 @@ public class DBResourceTest {
 
         final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
         assertThrows(CompletionException.class, () -> svc2.delete(builder(identifier).interactionModel(LDP.Resource)
-                    .build()).join(), "No exception with invalid connection!");
+                    .build()).toCompletableFuture().join(), "No exception with invalid connection!");
     }
 
     @Test
     public void testCreateErrorCondition() throws Exception {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         assertThrows(CompletionException.class, () ->
-                svc.create(builder(identifier).interactionModel(LDP.RDFSource).build(), null).join());
+                svc.create(builder(identifier).interactionModel(LDP.RDFSource).build(), null)
+                .toCompletableFuture().join());
     }
 
     @Test
@@ -346,7 +354,7 @@ public class DBResourceTest {
         doThrow(RuntimeException.class).when(mockJdbi).useHandle(any());
 
         final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
-        assertThrows(CompletionException.class, () -> svc2.touch(identifier).join());
+        assertThrows(CompletionException.class, () -> svc2.touch(identifier).toCompletableFuture().join());
     }
 
     @Test
@@ -358,6 +366,7 @@ public class DBResourceTest {
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
         assertThrows(CompletionException.class, () ->
-                svc2.create(builder(identifier).interactionModel(LDP.Container).build(), dataset).join());
+                svc2.create(builder(identifier).interactionModel(LDP.Container).build(), dataset)
+                .toCompletableFuture().join());
     }
 }
