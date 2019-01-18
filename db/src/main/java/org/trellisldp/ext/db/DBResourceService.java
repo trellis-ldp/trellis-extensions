@@ -35,7 +35,7 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -119,13 +119,13 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     @Override
-    public CompletableFuture<Void> create(final Metadata metadata, final Dataset dataset) {
+    public CompletionStage<Void> create(final Metadata metadata, final Dataset dataset) {
         LOGGER.debug("Creating: {}", metadata.getIdentifier());
         return runAsync(() -> storeResource(metadata, dataset, now(), OperationType.CREATE));
     }
 
     @Override
-    public CompletableFuture<Void> delete(final Metadata metadata) {
+    public CompletionStage<Void> delete(final Metadata metadata) {
         LOGGER.debug("Deleting: {}", metadata.getIdentifier());
         return runAsync(() -> {
             try (final Dataset dataset = rdf.createDataset()) {
@@ -139,20 +139,20 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     @Override
-    public CompletableFuture<Void> replace(final Metadata metadata, final Dataset dataset) {
+    public CompletionStage<Void> replace(final Metadata metadata, final Dataset dataset) {
         LOGGER.debug("Updating: {}", metadata.getIdentifier());
         return runAsync(() -> storeResource(metadata, dataset, now(), OperationType.REPLACE));
     }
 
     @Override
-    public CompletableFuture<Void> touch(final IRI id) {
+    public CompletionStage<Void> touch(final IRI id) {
         LOGGER.debug("Updating modification date for {}", id);
         final Instant time = now();
         return runAsync(() -> updateResourceModification(id, time));
     }
 
     @Override
-    public CompletableFuture<Resource> get(final IRI identifier) {
+    public CompletionStage<Resource> get(final IRI identifier) {
         return DBResource.findResource(jdbi, identifier);
     }
 
@@ -162,7 +162,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     }
 
     @Override
-    public CompletableFuture<Void> add(final IRI id, final Dataset dataset) {
+    public CompletionStage<Void> add(final IRI id, final Dataset dataset) {
         final String query
             = "INSERT INTO log (id, subject, predicate, object, lang, datatype) "
             + "VALUES (?, ?, ?, ?, ?, ?)";

@@ -43,7 +43,7 @@ public class ResourceDataTest {
     @Test
     public void testTimestampOnRootIsRecent() {
         final Instant time = now().minusSeconds(1L);
-        final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root).join();
+        final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root).toCompletableFuture().join();
         assertEquals(root, res.getIdentifier());
         assertTrue(res.getModified().isAfter(time));
     }

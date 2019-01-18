@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -90,7 +90,7 @@ public class DBResource implements Resource {
      * @param identifier the identifier
      * @return a Resource, if one exists
      */
-    public static CompletableFuture<Resource> findResource(final DataSource ds, final IRI identifier) {
+    public static CompletionStage<Resource> findResource(final DataSource ds, final IRI identifier) {
         return findResource(Jdbi.create(ds), identifier);
     }
 
@@ -100,7 +100,7 @@ public class DBResource implements Resource {
      * @param identifier the identifier
      * @return a Resource, if one exists
      */
-    public static CompletableFuture<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
+    public static CompletionStage<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
         return supplyAsync(() -> {
             final DBResource res = new DBResource(jdbi, identifier);
             if (!res.fetchData()) {
