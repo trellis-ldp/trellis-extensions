@@ -55,9 +55,11 @@ jobs:
       stage: deploy
       jdk: oraclejdk8
       env: JOB=docker
+      # Note: allow maintenance branches
       if: branch = master AND type = push
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      script: ./gradlew dockerPush dockerPushLatest dockerPushDevelop
+      # Note: for maintenance branches, remove the dockerPushLatest task
+      script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew dockerPush dockerPushDevelop; else ./gradlew dockerPush dockerPushLatest; fi
 
     - name: "Publish JavaDocs"
       stage: deploy

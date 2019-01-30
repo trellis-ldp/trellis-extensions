@@ -99,6 +99,7 @@ allprojects { subproj ->
     release {
         tagTemplate = '$name-$version'
         git {
+            /* Note: for maintenance branches, set this value to the appropriate branch name. */
             requireBranch = 'master'
             signTag = true
         }
