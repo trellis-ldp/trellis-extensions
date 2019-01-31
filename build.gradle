@@ -97,7 +97,7 @@ allprojects { subproj ->
         tagTemplate = '$name-$version'
         git {
             /* Note: for maintenance branches, set this value to the appropriate branch name. */
-            requireBranch = 'master'
+            requireBranch = 'trellis-ext-db-0.2.x'
             signTag = true
         }
     }
