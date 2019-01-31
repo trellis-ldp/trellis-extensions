@@ -58,8 +58,7 @@ jobs:
       # Note: allow maintenance branches
       if: branch = trellis-ext-db-0.2.x AND type = push
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      # Note: for maintenance branches, remove the dockerPushLatest task
-      script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew dockerPush dockerPushDevelop; else ./gradlew dockerPush dockerPushLatest; fi
+      script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew dockerPush; else ./gradlew dockerPush dockerPushLatest; fi
 
     - name: "Publish JavaDocs"
       stage: deploy
