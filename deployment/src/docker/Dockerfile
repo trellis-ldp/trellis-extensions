@@ -1,7 +1,7 @@
 # On OpenJDK 8 Slim Debian Image
 
 # FROM gregjan/ubuntu-openjdk8
-FROM openjdk:8-jdk
+FROM openjdk:8-jre
 LABEL maintainer="Greg Jansen <jansen@umd.edu>"
 
 ADD trellis-db-*.tar /opt
