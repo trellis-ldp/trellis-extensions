@@ -21,7 +21,7 @@ import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.tamaya.ConfigurationProvider.getConfiguration;
+import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
@@ -98,7 +98,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
      * @param jdbi the jdbi object
      */
     public DBResourceService(final Jdbi jdbi) {
-        this(jdbi, getConfiguration().getOrDefault(BATCH_KEY, Integer.class, DEFAULT_BATCH_SIZE),
+        this(jdbi, getConfig().getOptionalValue(BATCH_KEY, Integer.class).orElse(DEFAULT_BATCH_SIZE),
                 of(load(IdentifierService.class)).map(ServiceLoader::iterator).filter(Iterator::hasNext)
                     .map(Iterator::next).orElseGet(DefaultIdentifierService::new));
     }

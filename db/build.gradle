@@ -14,7 +14,8 @@ dependencies {
     api("org.trellisldp:trellis-api:$trellisVersion")
     api("org.trellisldp:trellis-audit:$trellisVersion")
 
-    implementation("org.apache.tamaya:tamaya-api:$tamayaVersion")
+
+    implementation("org.eclipse.microprofile.config:microprofile-config-api:$microprofileConfigVersion")
     implementation("org.jdbi:jdbi3-core:$jdbiVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("org.trellisldp:trellis-vocabulary:$trellisVersion")
@@ -27,7 +28,7 @@ dependencies {
     }
     testImplementation("org.apache.commons:commons-text:$commonsTextVersion")
     testImplementation("org.apache.jena:jena-arq:$jenaVersion")
-    testImplementation("org.apache.tamaya:tamaya-core:$tamayaVersion")
+    testImplementation("io.smallrye:smallrye-config:$smallryeVersion")
     testImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.trellisldp:trellis-file:$trellisVersion")

@@ -25,10 +25,11 @@ ext {
     jdbiVersion = '3.6.0'
     jmsApiVersion = '2.0.1'
     kafkaVersion = '2.1.0'
+    microprofileConfigVersion = '1.3'
     slf4jVersion = '1.7.25'
     snakeyamlVersion = '1.23'
-    tamayaVersion = '0.3-incubating'
-    trellisVersion = '0.8.0'
+    trellisVersion = '0.9.0-SNAPSHOT'
+    smallryeVersion = '1.3.5'
 
     /* Databases */
     mysqlVersion = '8.0.14'
@@ -77,6 +78,9 @@ allprojects { subproj ->
 
     repositories {
         mavenLocal()
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
         mavenCentral()
         jcenter()
     }
