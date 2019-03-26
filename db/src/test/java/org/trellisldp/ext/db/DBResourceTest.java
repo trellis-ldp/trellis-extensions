@@ -48,6 +48,7 @@ import java.util.concurrent.CompletionException;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
@@ -185,7 +186,7 @@ public class DBResourceTest {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res -> {
                 final Graph acl = rdf.createGraph();
-                res.stream(Trellis.PreferAccessControl).forEach(acl::add);
+                res.stream(Trellis.PreferAccessControl).map(Quad::asTriple).forEach(acl::add);
                 assertTrue(acl.contains(null, ACL.mode, ACL.Read));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Write));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Control));
@@ -229,7 +230,8 @@ public class DBResourceTest {
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
-            assertEquals(of(rdf.createTriple(member, LDP.member, child)), res.stream(LDP.PreferMembership).findFirst());
+            assertEquals(of(rdf.createQuad(LDP.PreferMembership, member, LDP.member, child)),
+                    res.stream(LDP.PreferMembership).findFirst());
         }).toCompletableFuture().join();
     }
 
@@ -252,7 +254,7 @@ public class DBResourceTest {
 
         svc.get(child).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
-            assertEquals(of(rdf.createTriple(child, DC.isPartOf, member)),
+            assertEquals(of(rdf.createQuad(LDP.PreferMembership, child, DC.isPartOf, member)),
                     res.stream(LDP.PreferMembership).findFirst());
         }).toCompletableFuture().join();
     }
@@ -281,7 +283,8 @@ public class DBResourceTest {
 
         svc.get(member).thenAccept(res -> {
             assertEquals(1L, res.stream(LDP.PreferMembership).count());
-            assertEquals(of(rdf.createTriple(member, LDP.member, iri)), res.stream(LDP.PreferMembership).findFirst());
+            assertEquals(of(rdf.createQuad(LDP.PreferMembership, member, LDP.member, iri)),
+                    res.stream(LDP.PreferMembership).findFirst());
         }).toCompletableFuture().join();
     }
 

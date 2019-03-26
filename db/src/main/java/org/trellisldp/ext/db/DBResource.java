@@ -38,7 +38,6 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.commons.rdf.api.Triple;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
@@ -127,9 +126,8 @@ public class DBResource implements Resource {
     }
 
     @Override
-    public Stream<Triple> stream(final Collection<IRI> graphNames) {
-        return graphNames.stream().filter(graphMapper::containsKey).map(graphMapper::get).flatMap(Supplier::get)
-            .map(Quad::asTriple);
+    public Stream<Quad> stream(final Collection<IRI> graphNames) {
+        return graphNames.stream().filter(graphMapper::containsKey).map(graphMapper::get).flatMap(Supplier::get);
     }
 
     @Override
