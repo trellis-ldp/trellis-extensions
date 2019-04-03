@@ -28,7 +28,7 @@ ext {
     slf4jVersion = '1.7.25'
     snakeyamlVersion = '1.23'
     tamayaVersion = '0.3-incubating'
-    trellisVersion = '0.8.0'
+    trellisVersion = '0.8.1-SNAPSHOT'
 
     /* Databases */
     mysqlVersion = '8.0.14'
@@ -77,6 +77,9 @@ allprojects { subproj ->
 
     repositories {
         mavenLocal()
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
         mavenCentral()
         jcenter()
     }
