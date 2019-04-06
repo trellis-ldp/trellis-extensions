@@ -28,7 +28,7 @@ ext {
     slf4jVersion = '1.7.26'
     snakeyamlVersion = '1.24'
     tamayaVersion = '0.3-incubating'
-    trellisVersion = '0.8.1-SNAPSHOT'
+    trellisVersion = '0.8.1'
 
     /* Databases */
     mysqlVersion = '8.0.15'
