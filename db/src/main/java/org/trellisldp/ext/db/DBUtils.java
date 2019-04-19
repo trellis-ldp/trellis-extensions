@@ -13,12 +13,7 @@
  */
 package org.trellisldp.ext.db;
 
-import static java.util.Objects.nonNull;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static org.trellisldp.api.TrellisUtils.getInstance;
-
-import java.util.Optional;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
@@ -57,12 +52,11 @@ final class DBUtils {
         return null;
     }
 
-    public static Optional<BinaryMetadata> getBinaryMetadata(final IRI ixnModel, final String location,
-            final String format) {
-        if (LDP.NonRDFSource.equals(ixnModel) && nonNull(location)) {
-            return of(BinaryMetadata.builder(rdf.createIRI(location)).mimeType(format).build());
+    public static BinaryMetadata getBinaryMetadata(final IRI ixnModel, final String location, final String format) {
+        if (LDP.NonRDFSource.equals(ixnModel) && location != null) {
+            return BinaryMetadata.builder(rdf.createIRI(location)).mimeType(format).build();
         }
-        return empty();
+        return null;
     }
 
     private DBUtils() {

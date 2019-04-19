@@ -13,7 +13,6 @@
  */
 package org.trellisldp.ext.db;
 
-import static java.util.Objects.nonNull;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
@@ -333,9 +332,9 @@ public class DBResource implements Resource {
     }
 
     private static RDFTerm getObject(final String value, final String lang, final String datatype) {
-        if (nonNull(lang)) {
+        if (lang != null) {
             return rdf.createLiteral(value, lang);
-        } else if (nonNull(datatype)) {
+        } else if (datatype != null) {
             return rdf.createLiteral(value, rdf.createIRI(datatype));
         }
         return rdf.createIRI(value);

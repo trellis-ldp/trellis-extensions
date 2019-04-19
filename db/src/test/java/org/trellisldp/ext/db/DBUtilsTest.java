@@ -14,9 +14,8 @@
 package org.trellisldp.ext.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.trellisldp.vocabulary.RDF.langString;
 
 import org.apache.commons.rdf.api.IRI;
@@ -71,11 +70,8 @@ public class DBUtilsTest {
 
     @Test
     public void testGetBinary() {
-        assertTrue(DBUtils.getBinaryMetadata(LDP.NonRDFSource, "file:///path/to/resource",
-                    "text/plain").isPresent());
-        assertFalse(DBUtils.getBinaryMetadata(LDP.RDFSource, "file:///path/to/resource",
-                    "text/plain").isPresent());
-        assertFalse(DBUtils.getBinaryMetadata(LDP.NonRDFSource, null,
-                    "text/plain").isPresent());
+        assertNotNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, "file:///path/to/resource", "text/plain"));
+        assertNull(DBUtils.getBinaryMetadata(LDP.RDFSource, "file:///path/to/resource", "text/plain"));
+        assertNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, null, "text/plain"));
     }
 }

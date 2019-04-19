@@ -62,7 +62,7 @@ class ResourceData {
         this.insertedContentRelation = rs.getString("ldp_inserted_content_relation");
 
         this.binary = DBUtils.getBinaryMetadata(rdf.createIRI(this.interactionModel), rs.getString("binary_location"),
-                rs.getString("binary_format")).orElse(null);
+                rs.getString("binary_format"));
     }
 
     public int getId() {
@@ -70,11 +70,17 @@ class ResourceData {
     }
 
     public IRI getInteractionModel() {
-        return ofNullable(interactionModel).map(rdf::createIRI).orElse(null);
+        if (interactionModel != null) {
+            return rdf.createIRI(interactionModel);
+        }
+        return null;
     }
 
     public Instant getModified() {
-        return ofNullable(modified).filter(x -> x > 0).map(Instant::ofEpochMilli).orElseGet(Instant::now);
+        if (modified > 0) {
+            return Instant.ofEpochMilli(modified);
+        }
+        return Instant.now();
     }
 
     public Optional<IRI> getIsPartOf() {
