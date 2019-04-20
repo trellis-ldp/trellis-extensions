@@ -71,10 +71,7 @@ class ResourceData {
     }
 
     public IRI getInteractionModel() {
-        if (interactionModel != null) {
-            return rdf.createIRI(interactionModel);
-        }
-        return LDP.Resource;
+        return interactionModel != null ? rdf.createIRI(interactionModel) : LDP.Resource;
     }
 
     public Instant getModified() {
