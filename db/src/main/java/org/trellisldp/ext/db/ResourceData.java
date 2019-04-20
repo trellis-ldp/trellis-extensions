@@ -25,6 +25,7 @@ import java.util.Optional;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.vocabulary.LDP;
 
 /**
  * A simple Data POJO.
@@ -73,7 +74,7 @@ class ResourceData {
         if (interactionModel != null) {
             return rdf.createIRI(interactionModel);
         }
-        return null;
+        return LDP.Resource;
     }
 
     public Instant getModified() {
