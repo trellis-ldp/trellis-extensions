@@ -12,6 +12,7 @@ stages:
   - deploy
 
 services:
+  - postgresql
   - mysql
 
 before_script:
