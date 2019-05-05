@@ -31,4 +31,9 @@ abstract class AbstractAuthzTests extends AbstractApplicationAuthTests {
     public String getJwtSecret() {
         return "gCjvrNoj8us4SXZQUENBunut85+s/XPN5T9+dxol8L2YXgY6QISuVd02oRcuPb/3ewrICaEnAGvm4QYdszgBIA==";
     }
+
+    @Override
+    public String getAdminWebId() {
+        return "http://admin.example.com/#me";
+    }
 }

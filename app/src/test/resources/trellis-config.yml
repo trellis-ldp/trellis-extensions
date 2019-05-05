@@ -44,6 +44,7 @@ baseUrl:
 hubUrl:
 
 auth:
+    adminUsers: ["http://admin.example.com/#me"]
     webac:
         enabled: ${TRELLIS_AUTH_WEBAC_ENABLED:-true}
     jwt:
