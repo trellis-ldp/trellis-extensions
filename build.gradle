@@ -326,6 +326,7 @@ subprojects { subproj ->
 
     afterReleaseBuild.dependsOn docs
     afterReleaseBuild.dependsOn publish
+    afterReleaseBuild.dependsOn assemble
 
     jacoco {
         toolVersion = jacocoVersion
