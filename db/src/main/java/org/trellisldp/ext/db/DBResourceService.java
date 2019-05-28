@@ -236,7 +236,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
                 .bind(10, icr)
                 .bind(11, metadata.getBinary().map(BinaryMetadata::getIdentifier).map(IRI::getIRIString).orElse(null))
                 .bind(12, metadata.getBinary().flatMap(BinaryMetadata::getMimeType).orElse(null))) {
-            return update.executeAndReturnGeneratedKeys("id").mapTo(Integer.class).findOnly();
+            return update.executeAndReturnGeneratedKeys("id").mapTo(Integer.class).one();
         }
     }
 
