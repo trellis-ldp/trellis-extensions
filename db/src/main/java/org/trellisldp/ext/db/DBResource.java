@@ -16,10 +16,12 @@ package org.trellisldp.ext.db;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
+import static java.util.stream.Stream.of;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.Resource.SpecialResources.DELETED_RESOURCE;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.api.TrellisUtils.getInstance;
+import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -63,6 +65,7 @@ public class DBResource implements Resource {
 
     private final IRI identifier;
     private final Jdbi jdbi;
+    private final boolean includeLdpType;
     private final Map<IRI, Supplier<Stream<Quad>>> graphMapper = new HashMap<>();
 
     private ResourceData data;
@@ -71,10 +74,12 @@ public class DBResource implements Resource {
      * Create a DB-based Resource.
      * @param jdbi the jdbi object
      * @param identifier the identifier
+     * @param includeLdpType whether to include the LDP type in the RDF body
      */
-    protected DBResource(final Jdbi jdbi, final IRI identifier) {
+    protected DBResource(final Jdbi jdbi, final IRI identifier, final boolean includeLdpType) {
         this.identifier = identifier;
         this.jdbi = jdbi;
+        this.includeLdpType = includeLdpType;
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
         graphMapper.put(Trellis.PreferAudit, this::fetchAuditQuads);
         graphMapper.put(Trellis.PreferAccessControl, this::fetchAclQuads);
@@ -86,21 +91,25 @@ public class DBResource implements Resource {
      * Try to load a Trellis resource.
      * @param ds the datasource
      * @param identifier the identifier
+     * @param includeLdpType whether to include the LDP type in the RDF body
      * @return a Resource, if one exists
      */
-    public static CompletionStage<Resource> findResource(final DataSource ds, final IRI identifier) {
-        return findResource(Jdbi.create(ds), identifier);
+    public static CompletionStage<Resource> findResource(final DataSource ds, final IRI identifier,
+            final boolean includeLdpType) {
+        return findResource(Jdbi.create(ds), identifier, includeLdpType);
     }
 
     /**
      * Try to load a Trellis resource.
      * @param jdbi the Jdbi object
      * @param identifier the identifier
+     * @param includeLdpType whether to include the LDP type in the RDF body
      * @return a Resource, if one exists
      */
-    public static CompletionStage<Resource> findResource(final Jdbi jdbi, final IRI identifier) {
+    public static CompletionStage<Resource> findResource(final Jdbi jdbi, final IRI identifier,
+            final boolean includeLdpType) {
         return supplyAsync(() -> {
-            final DBResource res = new DBResource(jdbi, identifier);
+            final DBResource res = new DBResource(jdbi, identifier, includeLdpType);
             if (!res.fetchData()) {
                 return MISSING_RESOURCE;
             }
@@ -196,6 +205,10 @@ public class DBResource implements Resource {
      * Fetch a stream of user-managed quads.
      */
     private Stream<Quad> fetchUserQuads() {
+        if (includeLdpType) {
+            return concat(of(rdf.createQuad(Trellis.PreferUserManaged, getIdentifier(), type, getInteractionModel())),
+                    fetchQuadsFromTable("description", Trellis.PreferUserManaged));
+        }
         return fetchQuadsFromTable("description", Trellis.PreferUserManaged);
     }
 

@@ -114,7 +114,7 @@ public class DBResourceTest {
 
     @Test
     public void getRoot() {
-        assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root)
+        assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root, false)
                 .toCompletableFuture().join().getIdentifier(), "Check the root resource");
     }
 
@@ -127,14 +127,14 @@ public class DBResourceTest {
     @Test
     public void getNonExistent() {
         assertEquals(MISSING_RESOURCE, DBResource.findResource(pg.getPostgresDatabase(),
-                    rdf.createIRI(TRELLIS_DATA_PREFIX + "other")).toCompletableFuture().join(),
+                    rdf.createIRI(TRELLIS_DATA_PREFIX + "other"), false).toCompletableFuture().join(),
                 "Check for non-existent resource");
     }
 
     @Test
     public void getMembershipQuads() {
         assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res ->
+            DBResource.findResource(pg.getPostgresDatabase(), root, false).thenAccept(res ->
                 assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join());
     }
 
@@ -184,12 +184,13 @@ public class DBResourceTest {
     @Test
     public void getAclQuads() {
         assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root).thenAccept(res -> {
+            DBResource.findResource(pg.getPostgresDatabase(), root, true).thenAccept(res -> {
                 final Graph acl = rdf.createGraph();
                 res.stream(Trellis.PreferAccessControl).map(Quad::asTriple).forEach(acl::add);
                 assertTrue(acl.contains(null, ACL.mode, ACL.Read));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Write));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Control));
+                assertEquals(1L, res.stream(Trellis.PreferUserManaged).count());
             }).toCompletableFuture().join());
     }
 
@@ -314,7 +315,8 @@ public class DBResourceTest {
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
                     triple.getObject().equals(rdf.createIRI(inbox))));
         }).toCompletableFuture().join();
-        DBResource.findResource(pg.getPostgresDatabase(), identifier).thenAccept(res -> {
+        DBResource.findResource(pg.getPostgresDatabase(), identifier, true).thenAccept(res -> {
+            assertEquals(3L, res.stream(Trellis.PreferUserManaged).count());
             assertEquals(2L, res.getExtraLinkRelations().count());
             assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(annotations)
                         && rel.getValue().equals(OA.annotationService.getIRIString())));
@@ -337,7 +339,7 @@ public class DBResourceTest {
         final Jdbi mockJdbi = mock(Jdbi.class);
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
-        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
+        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, false, idService);
         assertThrows(CompletionException.class, () -> svc2.delete(builder(identifier).interactionModel(LDP.Resource)
                     .build()).toCompletableFuture().join(), "No exception with invalid connection!");
     }
@@ -356,7 +358,7 @@ public class DBResourceTest {
         final Jdbi mockJdbi = mock(Jdbi.class);
         doThrow(RuntimeException.class).when(mockJdbi).useHandle(any());
 
-        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
+        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, false, idService);
         assertThrows(CompletionException.class, () -> svc2.touch(identifier).toCompletableFuture().join());
     }
 
@@ -365,7 +367,7 @@ public class DBResourceTest {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Dataset dataset = rdf.createDataset();
         final Jdbi mockJdbi = mock(Jdbi.class);
-        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, idService);
+        final ResourceService svc2 = new DBResourceService(mockJdbi, 100, false, idService);
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
 
         assertThrows(CompletionException.class, () ->

@@ -75,12 +75,15 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
     public static final String BATCH_KEY = "trellis.ext.db.batchSize";
     /** The default size of a database batch write operation. **/
     public static final int DEFAULT_BATCH_SIZE = 1000;
+    /** The configuration key used to define whether to include the LDP type in an RDF body. **/
+    public static final String CONFIG_DB_LDP_TYPE = "trellis.ext.db.ldp.type";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
 
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
+    private final boolean includeLdpType;
     private final Set<IRI> supportedIxnModels;
     private final int batchSize;
 
@@ -99,6 +102,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
      */
     public DBResourceService(final Jdbi jdbi) {
         this(jdbi, getConfig().getOptionalValue(BATCH_KEY, Integer.class).orElse(DEFAULT_BATCH_SIZE),
+                getConfig().getOptionalValue(CONFIG_DB_LDP_TYPE, Boolean.class).orElse(Boolean.FALSE),
                 of(load(IdentifierService.class)).map(ServiceLoader::iterator).filter(Iterator::hasNext)
                     .map(Iterator::next).orElseGet(DefaultIdentifierService::new));
     }
@@ -107,12 +111,15 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
      * Create a Database-backed resource service.
      * @param jdbi the jdbi object
      * @param batchSize the batch size
+     * @param includeLdpType whether to include the LDP type in the RDF body
      * @param identifierService an ID supplier service
      */
-    public DBResourceService(final Jdbi jdbi, final int batchSize, final IdentifierService identifierService) {
+    public DBResourceService(final Jdbi jdbi, final int batchSize, final boolean includeLdpType,
+            final IdentifierService identifierService) {
         this.jdbi = requireNonNull(jdbi, "Jdbi may not be null!");
         this.supplier = requireNonNull(identifierService, "IdentifierService may not be null!").getSupplier();
         this.batchSize = batchSize;
+        this.includeLdpType = includeLdpType;
         this.supportedIxnModels = unmodifiableSet(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource, LDP.Container,
                 LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer).stream().collect(toSet()));
         LOGGER.info("Using database persistence with TrellisLDP");
@@ -153,7 +160,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
 
     @Override
     public CompletionStage<Resource> get(final IRI identifier) {
-        return DBResource.findResource(jdbi, identifier);
+        return DBResource.findResource(jdbi, identifier, includeLdpType);
     }
 
     @Override
