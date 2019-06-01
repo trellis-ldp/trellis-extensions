@@ -44,7 +44,7 @@ ext {
     guavaVersion = '27.1-jre'
     h2Version = '1.4.199'
     jaxbVersion = '2.3.1'
-    jacocoVersion = '0.8.2'
+    jacocoVersion = '0.8.4'
     jenaVersion = '3.11.0'
     junitPlatformVersion = '1.4.2'
     junitVersion = '5.4.2'
