@@ -66,17 +66,20 @@ import org.trellisldp.vocabulary.OA;
  * A Database-backed implementation of the Trellis ResourceService API.
  *
  * <p>Note: one can manipulate the size of a batched query by setting
- * a property for {@code trellis.ext.db.batchSize}. By default, this
- * value is 1,000.
+ * a property for {@code trellis.db.batchSize}. By default, this
+ * value is 1,000. One can also configure the persistence layer to add
+ * the LDP type to the body of an RDF response by setting the environment
+ * variable {@code trellis.db.ldp.type} to "true". By default, this value
+ * is false.
  */
 public class DBResourceService extends DefaultAuditService implements ResourceService {
 
     /** Configuration key used to define the size of database write batches. **/
-    public static final String BATCH_KEY = "trellis.ext.db.batchSize";
+    public static final String CONFIG_DB_BATCH_SIZE = "trellis.db.batchSize";
     /** The default size of a database batch write operation. **/
     public static final int DEFAULT_BATCH_SIZE = 1000;
     /** The configuration key used to define whether to include the LDP type in an RDF body. **/
-    public static final String CONFIG_DB_LDP_TYPE = "trellis.ext.db.ldp.type";
+    public static final String CONFIG_DB_LDP_TYPE = "trellis.db.ldp.type";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();
@@ -101,7 +104,7 @@ public class DBResourceService extends DefaultAuditService implements ResourceSe
      * @param jdbi the jdbi object
      */
     public DBResourceService(final Jdbi jdbi) {
-        this(jdbi, getConfig().getOptionalValue(BATCH_KEY, Integer.class).orElse(DEFAULT_BATCH_SIZE),
+        this(jdbi, getConfig().getOptionalValue(CONFIG_DB_BATCH_SIZE, Integer.class).orElse(DEFAULT_BATCH_SIZE),
                 getConfig().getOptionalValue(CONFIG_DB_LDP_TYPE, Boolean.class).orElse(Boolean.FALSE),
                 of(load(IdentifierService.class)).map(ServiceLoader::iterator).filter(Iterator::hasNext)
                     .map(Iterator::next).orElseGet(DefaultIdentifierService::new));
