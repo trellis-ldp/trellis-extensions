@@ -18,8 +18,8 @@ import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-import org.trellisldp.api.ServiceBundler;
 import org.trellisldp.app.AbstractTrellisApplication;
+import org.trellisldp.http.core.ServiceBundler;
 
 /**
  * A deployable Trellis application.

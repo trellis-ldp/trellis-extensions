@@ -33,13 +33,13 @@ import org.trellisldp.api.MementoService;
 import org.trellisldp.api.NamespaceService;
 import org.trellisldp.api.RDFaWriterService;
 import org.trellisldp.api.ResourceService;
-import org.trellisldp.api.ServiceBundler;
 import org.trellisldp.app.TrellisCache;
 import org.trellisldp.ext.db.DBNamespaceService;
 import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.ext.db.DBWrappedMementoService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
+import org.trellisldp.http.core.ServiceBundler;
 import org.trellisldp.io.JenaIOService;
 import org.trellisldp.rdfa.HtmlSerializer;
 
