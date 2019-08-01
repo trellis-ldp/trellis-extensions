@@ -44,6 +44,8 @@ import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.ext.db.DBWrappedMementoService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
+import org.trellisldp.http.core.DefaultEtagGenerator;
+import org.trellisldp.http.core.DefaultTimemapGenerator;
 import org.trellisldp.http.core.EtagGenerator;
 import org.trellisldp.http.core.ServiceBundler;
 import org.trellisldp.http.core.TimemapGenerator;
@@ -85,8 +87,8 @@ public class TrellisServiceBundler implements ServiceBundler {
                 config.getBinaryHierarchyLevels(), config.getBinaryHierarchyLength());
         ioService = buildIoService(config, jdbi);
         eventService = AppUtils.getNotificationService(config.getNotifications(), environment);
-        etagGenerator = new EtagGenerator() { };
-        timemapGenerator = new TimemapGenerator() { };
+        etagGenerator = new DefaultEtagGenerator();
+        timemapGenerator = new DefaultTimemapGenerator();
         constraintServices = singletonList(new LdpConstraints());
     }
 
