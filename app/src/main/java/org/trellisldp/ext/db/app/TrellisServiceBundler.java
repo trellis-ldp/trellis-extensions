@@ -38,6 +38,7 @@ import org.trellisldp.api.NamespaceService;
 import org.trellisldp.api.RDFaWriterService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.app.TrellisCache;
+import org.trellisldp.audit.DefaultAuditService;
 import org.trellisldp.constraint.LdpConstraints;
 import org.trellisldp.ext.db.DBNamespaceService;
 import org.trellisldp.ext.db.DBResourceService;
@@ -63,7 +64,7 @@ public class TrellisServiceBundler implements ServiceBundler {
 
     private final MementoService mementoService;
     private final AuditService auditService;
-    private final DBResourceService resourceService;
+    private final ResourceService resourceService;
     private final BinaryService binaryService;
     private final AgentService agentService;
     private final IOService ioService;
@@ -82,7 +83,8 @@ public class TrellisServiceBundler implements ServiceBundler {
 
         agentService = new SimpleAgentService();
         mementoService = new DBWrappedMementoService(jdbi, new FileMementoService(config.getMementos()));
-        auditService = resourceService = new DBResourceService(jdbi);
+        auditService = new DefaultAuditService();
+        resourceService = new DBResourceService(jdbi);
         binaryService = new FileBinaryService(new DefaultIdentifierService(), config.getBinaries(),
                 config.getBinaryHierarchyLevels(), config.getBinaryHierarchyLength());
         ioService = buildIoService(config, jdbi);

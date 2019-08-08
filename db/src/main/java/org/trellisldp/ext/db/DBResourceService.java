@@ -58,7 +58,6 @@ import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.RuntimeTrellisException;
-import org.trellisldp.audit.DefaultAuditService;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
 
@@ -72,7 +71,7 @@ import org.trellisldp.vocabulary.OA;
  * variable {@code trellis.db.ldp.type} to "true". By default, this value
  * is false.
  */
-public class DBResourceService extends DefaultAuditService implements ResourceService {
+public class DBResourceService implements ResourceService {
 
     /** Configuration key used to define the size of database write batches. **/
     public static final String CONFIG_DB_BATCH_SIZE = "trellis.db.batchSize";
