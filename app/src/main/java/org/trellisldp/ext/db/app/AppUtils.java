@@ -15,8 +15,8 @@ package org.trellisldp.ext.db.app;
 
 import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.app.config.NotificationsConfiguration.Type.JMS;
-import static org.trellisldp.app.config.NotificationsConfiguration.Type.KAFKA;
+import static org.trellisldp.dropwizard.config.NotificationsConfiguration.Type.JMS;
+import static org.trellisldp.dropwizard.config.NotificationsConfiguration.Type.KAFKA;
 
 import io.dropwizard.lifecycle.AutoCloseableManager;
 import io.dropwizard.setup.Environment;
@@ -33,7 +33,7 @@ import org.trellisldp.api.ActivityStreamService;
 import org.trellisldp.api.EventService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.RuntimeTrellisException;
-import org.trellisldp.app.config.NotificationsConfiguration;
+import org.trellisldp.dropwizard.config.NotificationsConfiguration;
 import org.trellisldp.event.EventSerializer;
 import org.trellisldp.jms.JmsPublisher;
 import org.trellisldp.kafka.KafkaPublisher;

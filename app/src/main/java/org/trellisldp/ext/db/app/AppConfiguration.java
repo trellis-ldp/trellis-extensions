@@ -20,7 +20,7 @@ import io.dropwizard.db.DataSourceFactory;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.trellisldp.app.config.TrellisConfiguration;
+import org.trellisldp.dropwizard.config.TrellisConfiguration;
 
 public class AppConfiguration extends TrellisConfiguration {
 

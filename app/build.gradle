@@ -39,6 +39,7 @@ dependencies {
     compile("org.trellisldp:trellis-jms:$trellisVersion")
     compile("org.trellisldp:trellis-rdfa:$trellisVersion")
     compile("org.trellisldp:trellis-kafka:$trellisVersion")
+    compile("org.trellisldp:trellis-dropwizard:$trellisVersion")
     compile("org.trellisldp:trellis-app:$trellisVersion")
 
     compile project(':trellis-db')
