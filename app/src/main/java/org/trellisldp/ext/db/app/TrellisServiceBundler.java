@@ -25,7 +25,7 @@ import io.dropwizard.setup.Environment;
 import java.util.List;
 
 import org.jdbi.v3.core.Jdbi;
-import org.trellisldp.agent.SimpleAgentService;
+import org.trellisldp.agent.DefaultAgentService;
 import org.trellisldp.api.AgentService;
 import org.trellisldp.api.AuditService;
 import org.trellisldp.api.BinaryService;
@@ -38,7 +38,7 @@ import org.trellisldp.api.NamespaceService;
 import org.trellisldp.api.RDFaWriterService;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.audit.DefaultAuditService;
-import org.trellisldp.constraint.LdpConstraints;
+import org.trellisldp.constraint.LdpConstraintService;
 import org.trellisldp.dropwizard.TrellisCache;
 import org.trellisldp.ext.db.DBNamespaceService;
 import org.trellisldp.ext.db.DBResourceService;
@@ -51,7 +51,7 @@ import org.trellisldp.http.core.EtagGenerator;
 import org.trellisldp.http.core.ServiceBundler;
 import org.trellisldp.http.core.TimemapGenerator;
 import org.trellisldp.io.JenaIOService;
-import org.trellisldp.rdfa.HtmlSerializer;
+import org.trellisldp.rdfa.DefaultRdfaWriterService;
 
 /**
  * An RDBMS-based service bundler for Trellis.
@@ -81,7 +81,7 @@ public class TrellisServiceBundler implements ServiceBundler {
     public TrellisServiceBundler(final AppConfiguration config, final Environment environment) {
         final Jdbi jdbi = new JdbiFactory().build(environment, config.getDataSourceFactory(), "trellis");
 
-        agentService = new SimpleAgentService();
+        agentService = new DefaultAgentService();
         mementoService = new DBWrappedMementoService(jdbi, new FileMementoService(config.getMementos()));
         auditService = new DefaultAuditService();
         resourceService = new DBResourceService(jdbi);
@@ -91,7 +91,7 @@ public class TrellisServiceBundler implements ServiceBundler {
         eventService = AppUtils.getNotificationService(config.getNotifications(), environment);
         etagGenerator = new DefaultEtagGenerator();
         timemapGenerator = new DefaultTimemapGenerator();
-        constraintServices = singletonList(new LdpConstraints());
+        constraintServices = singletonList(new LdpConstraintService());
     }
 
     @Override
@@ -150,8 +150,9 @@ public class TrellisServiceBundler implements ServiceBundler {
         final Cache<String, String> cache = newBuilder().maximumSize(cacheSize).expireAfterAccess(hours, HOURS).build();
         final TrellisCache<String, String> profileCache = new TrellisCache<>(cache);
         final NamespaceService namespaceService = new DBNamespaceService(jdbi);
-        final RDFaWriterService htmlSerializer = new HtmlSerializer(namespaceService, config.getAssets().getTemplate(),
-                config.getAssets().getCss(), config.getAssets().getJs(), config.getAssets().getIcon());
+        final RDFaWriterService htmlSerializer = new DefaultRdfaWriterService(namespaceService,
+                config.getAssets().getTemplate(), config.getAssets().getCss(), config.getAssets().getJs(),
+                config.getAssets().getIcon());
         return new JenaIOService(namespaceService, htmlSerializer, profileCache,
                 config.getJsonld().getContextWhitelist(), config.getJsonld().getContextDomainWhitelist());
     }

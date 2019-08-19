@@ -34,7 +34,7 @@ import org.trellisldp.api.EventService;
 import org.trellisldp.api.NoopEventService;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.dropwizard.config.NotificationsConfiguration;
-import org.trellisldp.kafka.KafkaPublisher;
+import org.trellisldp.kafka.KafkaEventService;
 
 /**
  * @author acoburn
@@ -89,7 +89,7 @@ public class AppUtilsTest {
         c.setType(NotificationsConfiguration.Type.KAFKA);
         final EventService svc = AppUtils.getNotificationService(c, mockEnv);
         assertNotNull(svc);
-        assertTrue(svc instanceof KafkaPublisher);
+        assertTrue(svc instanceof KafkaEventService);
     }
 
     @Test
