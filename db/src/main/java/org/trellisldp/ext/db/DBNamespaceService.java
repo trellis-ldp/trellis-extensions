@@ -13,6 +13,8 @@
  */
 package org.trellisldp.ext.db;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +23,16 @@ import javax.inject.Inject;
 import javax.sql.DataSource;
 
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.StatementException;
+import org.slf4j.Logger;
 import org.trellisldp.api.NamespaceService;
 
 /**
  * A namespace service that stores data in a database.
  */
 public class DBNamespaceService implements NamespaceService {
+
+    private static final Logger LOGGER = getLogger(DBNamespaceService.class);
 
     private final Jdbi jdbi;
 
@@ -59,8 +65,15 @@ public class DBNamespaceService implements NamespaceService {
 
     @Override
     public boolean setPrefix(final String prefix, final String namespace) {
-        jdbi.useHandle(handle ->
-            handle.execute("INSERT INTO namespaces (prefix, namespace) VALUES (?, ?)", prefix, namespace));
-        return true;
+        if (!prefix.isEmpty()) {
+            try {
+                jdbi.useHandle(handle ->
+                    handle.execute("INSERT INTO namespaces (prefix, namespace) VALUES (?, ?)", prefix, namespace));
+                return true;
+            } catch (final StatementException ex) {
+                LOGGER.warn("Could not save prefix {} with namespace {}: {}", prefix, namespace, ex.getMessage());
+            }
+        }
+        return false;
     }
 }

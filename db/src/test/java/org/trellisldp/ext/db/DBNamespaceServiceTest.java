@@ -14,8 +14,7 @@
 package org.trellisldp.ext.db;
 
 import static java.io.File.separator;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -75,6 +74,8 @@ public class DBNamespaceServiceTest {
         assertTrue(svc.setPrefix("ex", "http://example.com/"));
         assertEquals(size + 1, svc.getNamespaces().size());
         assertEquals("http://example.com/", svc.getNamespaces().get("ex"));
+        assertFalse(svc.setPrefix("ex", "http://example.com/Other/"));
+        assertFalse(svc.setPrefix("", "http://example.com/Resource/"));
     }
 }
 
