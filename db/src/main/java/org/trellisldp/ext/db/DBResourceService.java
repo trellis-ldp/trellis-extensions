@@ -20,6 +20,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static javax.interceptor.Interceptor.Priority.APPLICATION;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.TrellisUtils.getInstance;
@@ -38,6 +39,8 @@ import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 
+import javax.annotation.Priority;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 
@@ -71,13 +74,15 @@ import org.trellisldp.vocabulary.OA;
  * variable {@code trellis.db.ldp.type} to "true". By default, this value
  * is false.
  */
+@ApplicationScoped
+@Priority(APPLICATION)
 public class DBResourceService implements ResourceService {
 
-    /** Configuration key used to define the size of database write batches. **/
+    /** Configuration key used to define the size of database write batches. */
     public static final String CONFIG_DB_BATCH_SIZE = "trellis.db.batchSize";
-    /** The default size of a database batch write operation. **/
+    /** The default size of a database batch write operation. */
     public static final int DEFAULT_BATCH_SIZE = 1000;
-    /** The configuration key used to define whether to include the LDP type in an RDF body. **/
+    /** The configuration key used to define whether to include the LDP type in an RDF body. */
     public static final String CONFIG_DB_LDP_TYPE = "trellis.db.ldp.type";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);

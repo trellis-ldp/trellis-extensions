@@ -26,10 +26,14 @@ ext {
     jmsApiVersion = '2.0.1'
     kafkaVersion = '2.3.0'
     microprofileConfigVersion = '1.3'
+    microprofileHealthVersion = '2.0.1'
+    mustacheVersion = '0.9.6'
+    quarkusVersion = '0.22.0'
     slf4jVersion = '1.7.28'
     snakeyamlVersion = '1.25'
     trellisVersion = '0.9.0-SNAPSHOT'
-    smallryeVersion = '1.3.9'
+    smallryeConfigVersion = '1.3.9'
+    smallryeHealthVersion = '2.0.0'
 
     /* Databases */
     mysqlVersion = '8.0.17'
@@ -46,7 +50,6 @@ ext {
     jaxbVersion = '2.3.1'
     jacocoVersion = '0.8.4'
     jenaVersion = '3.12.0'
-    junitPlatformVersion = '1.5.2'
     junitVersion = '5.5.2'
     liquibaseVersion = '3.8.0'
     logbackVersion = '1.2.3'
@@ -86,9 +89,10 @@ allprojects { subproj ->
     }
 
     dependencies {
-        testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+        testImplementation enforcedPlatform("org.junit:junit-bom:$junitVersion")
         testImplementation("org.apiguardian:apiguardian-api:${apiguardianVersion}")
-        testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+        testImplementation("org.junit.jupiter:junit-jupiter-api")
+        testRuntime("org.junit.jupiter:junit-jupiter-engine")
     }
 
     gradle.projectsEvaluated {

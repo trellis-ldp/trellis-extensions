@@ -1,8 +1,24 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == 'io.quarkus') {
+                useModule("io.quarkus:quarkus-gradle-plugin:${requested.version}")
+            }
+        }
+    }
+}
+
 rootProject.name = 'trellis-ext-db'
 include ':trellis-db'
 include ':trellis-db-app'
 include ':trellis-db-deployment'
+include ':trellis-db-webapp'
 
 project(':trellis-db').projectDir = "$rootDir/db" as File
 project(':trellis-db-app').projectDir = "$rootDir/app" as File
 project(':trellis-db-deployment').projectDir = "$rootDir/deployment" as File
+project(':trellis-db-webapp').projectDir = "$rootDir/webapp" as File
