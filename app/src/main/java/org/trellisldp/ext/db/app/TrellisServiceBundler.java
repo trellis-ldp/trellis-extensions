@@ -45,9 +45,7 @@ import org.trellisldp.ext.db.DBResourceService;
 import org.trellisldp.ext.db.DBWrappedMementoService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
-import org.trellisldp.http.core.DefaultEtagGenerator;
 import org.trellisldp.http.core.DefaultTimemapGenerator;
-import org.trellisldp.http.core.EtagGenerator;
 import org.trellisldp.http.core.ServiceBundler;
 import org.trellisldp.http.core.TimemapGenerator;
 import org.trellisldp.io.JenaIOService;
@@ -71,7 +69,6 @@ public class TrellisServiceBundler implements ServiceBundler {
     private final EventService eventService;
     private final List<ConstraintService> constraintServices;
     private final TimemapGenerator timemapGenerator;
-    private final EtagGenerator etagGenerator;
 
     /**
      * Create a new application service bundler.
@@ -89,7 +86,6 @@ public class TrellisServiceBundler implements ServiceBundler {
                 config.getBinaryHierarchyLevels(), config.getBinaryHierarchyLength());
         ioService = buildIoService(config, jdbi);
         eventService = AppUtils.getNotificationService(config.getNotifications(), environment);
-        etagGenerator = new DefaultEtagGenerator();
         timemapGenerator = new DefaultTimemapGenerator();
         constraintServices = singletonList(new LdpConstraintService());
     }
@@ -137,11 +133,6 @@ public class TrellisServiceBundler implements ServiceBundler {
     @Override
     public TimemapGenerator getTimemapGenerator() {
         return timemapGenerator;
-    }
-
-    @Override
-    public EtagGenerator getEtagGenerator() {
-        return etagGenerator;
     }
 
     private static IOService buildIoService(final AppConfiguration config, final Jdbi jdbi) {
