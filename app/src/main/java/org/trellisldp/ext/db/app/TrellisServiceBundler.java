@@ -25,8 +25,6 @@ import io.dropwizard.setup.Environment;
 import java.util.List;
 
 import org.jdbi.v3.core.Jdbi;
-import org.trellisldp.agent.DefaultAgentService;
-import org.trellisldp.api.AgentService;
 import org.trellisldp.api.AuditService;
 import org.trellisldp.api.BinaryService;
 import org.trellisldp.api.ConstraintService;
@@ -64,7 +62,6 @@ public class TrellisServiceBundler implements ServiceBundler {
     private final AuditService auditService;
     private final ResourceService resourceService;
     private final BinaryService binaryService;
-    private final AgentService agentService;
     private final IOService ioService;
     private final EventService eventService;
     private final List<ConstraintService> constraintServices;
@@ -78,7 +75,6 @@ public class TrellisServiceBundler implements ServiceBundler {
     public TrellisServiceBundler(final AppConfiguration config, final Environment environment) {
         final Jdbi jdbi = new JdbiFactory().build(environment, config.getDataSourceFactory(), "trellis");
 
-        agentService = new DefaultAgentService();
         mementoService = new DBWrappedMementoService(jdbi, new FileMementoService(config.getMementos()));
         auditService = new DefaultAuditService();
         resourceService = new DBResourceService(jdbi);
@@ -113,11 +109,6 @@ public class TrellisServiceBundler implements ServiceBundler {
     @Override
     public AuditService getAuditService() {
         return auditService;
-    }
-
-    @Override
-    public AgentService getAgentService() {
-        return agentService;
     }
 
     @Override

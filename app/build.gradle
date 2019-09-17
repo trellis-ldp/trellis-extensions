@@ -32,7 +32,6 @@ dependencies {
     compile("org.trellisldp:trellis-http:$trellisVersion")
     compile("org.trellisldp:trellis-vocabulary:$trellisVersion")
     compile("org.trellisldp:trellis-file:$trellisVersion")
-    compile("org.trellisldp:trellis-agent:$trellisVersion")
     compile("org.trellisldp:trellis-audit:$trellisVersion")
     compile("org.trellisldp:trellis-event-serialization:$trellisVersion")
     compile("org.trellisldp:trellis-webac:$trellisVersion")
