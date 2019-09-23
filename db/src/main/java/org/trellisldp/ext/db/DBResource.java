@@ -228,7 +228,7 @@ public class DBResource implements Resource {
                 .map((rs, ctx) -> rdf.createQuad(Trellis.PreferAudit, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
                         getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .stream());
+                .list()).stream();
     }
 
     /**
@@ -248,7 +248,7 @@ public class DBResource implements Resource {
                             rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                             rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
                             getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .stream());
+                .list()).stream();
     }
 
     /**
@@ -268,7 +268,7 @@ public class DBResource implements Resource {
                 .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership, getIdentifier(),
                         rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))))
-                .stream());
+                .list()).stream();
     }
 
     /**
@@ -288,7 +288,7 @@ public class DBResource implements Resource {
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                         rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
                         rdf.createIRI(rs.getString(SUBJECT))))
-                .stream());
+                .list()).stream();
     }
 
     /**
@@ -301,7 +301,7 @@ public class DBResource implements Resource {
                         getIdentifier().getIRIString())
                     .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment, getIdentifier(),
                             LDP.contains, rdf.createIRI(rs.getString(SUBJECT))))
-                    .stream());
+                    .list()).stream();
         }
         return empty();
     }
@@ -313,7 +313,7 @@ public class DBResource implements Resource {
                 .map((rs, ctx) -> rdf.createQuad(graphName, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
                         getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .stream());
+                .list()).stream();
     }
 
     /**

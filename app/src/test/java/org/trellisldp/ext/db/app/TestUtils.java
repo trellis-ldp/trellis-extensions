@@ -48,9 +48,7 @@ final class TestUtils {
 
     private static List<ConfigOverride> defaultConfigs(final ConfigOverride... overrides) {
         final List<ConfigOverride> configs = new ArrayList<>(asList(BINARIES, MEMENTOS, NAMESPACES));
-        for (final ConfigOverride o : overrides) {
-            configs.add(o);
-        }
+        configs.addAll(asList(overrides));
         return configs;
     }
 

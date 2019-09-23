@@ -310,11 +310,10 @@ public class DBResourceTest {
         dataset.add(Trellis.PreferUserManaged, identifier, OA.annotationService, rdf.createIRI(annotations));
         assertNull(svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(), dataset)
                 .toCompletableFuture().join());
-        svc.get(identifier).thenAccept(res -> {
+        svc.get(identifier).thenAccept(res ->
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
-                    triple.getObject().equals(rdf.createIRI(inbox))));
-        }).toCompletableFuture().join();
+                    triple.getObject().equals(rdf.createIRI(inbox))))).toCompletableFuture().join();
         DBResource.findResource(pg.getPostgresDatabase(), identifier, true).thenAccept(res -> {
             assertEquals(3L, res.stream(Trellis.PreferUserManaged).count());
             assertEquals(2L, res.getExtraLinkRelations().count());

@@ -20,7 +20,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
 import static java.util.concurrent.CompletableFuture.runAsync;
-import static java.util.stream.Collectors.toSet;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.TrellisUtils.getInstance;
@@ -32,6 +31,7 @@ import static org.trellisldp.vocabulary.Trellis.PreferAudit;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -122,8 +122,8 @@ public class DBResourceService implements ResourceService {
         this.supplier = requireNonNull(identifierService, "IdentifierService may not be null!").getSupplier();
         this.batchSize = batchSize;
         this.includeLdpType = includeLdpType;
-        this.supportedIxnModels = unmodifiableSet(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource, LDP.Container,
-                LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer).stream().collect(toSet()));
+        this.supportedIxnModels = unmodifiableSet(new HashSet<>(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource,
+                LDP.Container, LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer)));
         LOGGER.info("Using database persistence with TrellisLDP");
     }
 
@@ -325,6 +325,6 @@ public class DBResourceService implements ResourceService {
     }
 
     private enum OperationType {
-        DELETE, CREATE, REPLACE;
+        DELETE, CREATE, REPLACE
     }
 }

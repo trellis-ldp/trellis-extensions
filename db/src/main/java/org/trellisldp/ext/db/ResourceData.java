@@ -38,8 +38,8 @@ class ResourceData {
     private String interactionModel;
     private long modified;
     private String isPartOf;
-    private boolean resourceHasAcl = false;
-    private boolean resourceIsDeleted = false;
+    private boolean resourceHasAcl;
+    private boolean resourceIsDeleted;
 
     private String membershipResource;
     private String hasMemberRelation;
