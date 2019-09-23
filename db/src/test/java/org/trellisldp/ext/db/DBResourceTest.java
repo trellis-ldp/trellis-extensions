@@ -77,7 +77,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
  * ResourceService tests.
  */
 @DisabledOnOs(WINDOWS)
-public class DBResourceTest {
+class DBResourceTest {
 
     private static final Logger LOGGER = getLogger(DBResourceTest.class);
     private static final RDF rdf = getInstance();
@@ -113,33 +113,33 @@ public class DBResourceTest {
     }
 
     @Test
-    public void getRoot() {
+    void getRoot() {
         assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root, false)
                 .toCompletableFuture().join().getIdentifier(), "Check the root resource");
     }
 
     @Test
-    public void testReinit() {
+    void testReinit() {
         final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase());
         assertNotNull(svc2);
     }
 
     @Test
-    public void getNonExistent() {
+    void getNonExistent() {
         assertEquals(MISSING_RESOURCE, DBResource.findResource(pg.getPostgresDatabase(),
                     rdf.createIRI(TRELLIS_DATA_PREFIX + "other"), false).toCompletableFuture().join(),
                 "Check for non-existent resource");
     }
 
     @Test
-    public void getMembershipQuads() {
+    void getMembershipQuads() {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root, false).thenAccept(res ->
                 assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join());
     }
 
     @Test
-    public void getBinary() throws Exception {
+    void getBinary() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "binary");
         final IRI binaryIri = rdf.createIRI("http://example.com/resource");
         final Dataset dataset = rdf.createDataset();
@@ -156,7 +156,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void getRootContent() throws Exception {
+    void getRootContent() {
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferUserManaged, root, DC.title, rdf.createLiteral("A title", "eng"));
         assertNull(svc.replace(builder(root).interactionModel(LDP.BasicContainer).build(), dataset)
@@ -175,14 +175,14 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testTouchMethod() throws Exception {
+    void testTouchMethod() {
         final Instant time = svc.get(root).thenApply(Resource::getModified).toCompletableFuture().join();
         svc.touch(root).toCompletableFuture().join();
         assertNotEquals(time, svc.get(root).thenApply(Resource::getModified).toCompletableFuture().join());
     }
 
     @Test
-    public void getAclQuads() {
+    void getAclQuads() {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root, true).thenAccept(res -> {
                 final Graph acl = rdf.createGraph();
@@ -195,7 +195,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testAuthQuads() throws Exception {
+    void testAuthQuads() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "auth#acl");
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Read);
@@ -213,7 +213,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testDirectContainer() throws Exception {
+    void testDirectContainer() {
         final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
         final IRI dc = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
         final IRI child = rdf.createIRI(dc.getIRIString() + "/" + idService.getSupplier().get());
@@ -237,7 +237,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testDirectContainerInverse() throws Exception {
+    void testDirectContainerInverse() {
         final IRI dc = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
         final IRI child = rdf.createIRI(dc.getIRIString() + "/" + idService.getSupplier().get());
         final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
@@ -261,7 +261,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testIndirectContainer() throws Exception {
+    void testIndirectContainer() {
         final IRI iri = rdf.createIRI("http://example.com/#foo");
         final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
         final IRI ic = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
@@ -290,7 +290,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testEmptyAudit() throws Exception {
+    void testEmptyAudit() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + idService.getSupplier().get());
 
         assertNull(svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
@@ -301,7 +301,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void getExtraLinkRelations() throws Exception {
+    void getExtraLinkRelations() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "extras");
         final String inbox = "http://example.com/inbox";
         final String annotations = "http://example.com/annotations";
@@ -325,7 +325,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testAddErrorCondition() throws Exception {
+    void testAddErrorCondition() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Dataset dataset = rdf.createDataset();
         dataset.add(Trellis.PreferAudit, rdf.createBlankNode(), type, rdf.createLiteral("Invalid quad"));
@@ -333,7 +333,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testDeleteErrorCondition() throws Exception {
+    void testDeleteErrorCondition() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Jdbi mockJdbi = mock(Jdbi.class);
         doThrow(RuntimeException.class).when(mockJdbi).useTransaction(any());
@@ -344,7 +344,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testCreateErrorCondition() throws Exception {
+    void testCreateErrorCondition() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         assertThrows(CompletionException.class, () ->
                 svc.create(builder(identifier).interactionModel(LDP.RDFSource).build(), null)
@@ -352,7 +352,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testTouchErrorCondition() throws Exception {
+    void testTouchErrorCondition() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Jdbi mockJdbi = mock(Jdbi.class);
         doThrow(RuntimeException.class).when(mockJdbi).useHandle(any());
@@ -362,7 +362,7 @@ public class DBResourceTest {
     }
 
     @Test
-    public void testCreateErrorCondition2() throws Exception {
+    void testCreateErrorCondition2() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "resource");
         final Dataset dataset = rdf.createDataset();
         final Jdbi mockJdbi = mock(Jdbi.class);

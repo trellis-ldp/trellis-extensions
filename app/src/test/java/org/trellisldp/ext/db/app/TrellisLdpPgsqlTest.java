@@ -17,8 +17,6 @@ import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -29,14 +27,14 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Run LDP-Related Tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpPgsqlTest extends AbstractLdpTests {
+class TrellisLdpPgsqlTest extends AbstractLdpTests {
 
     private static final DropwizardTestSupport<AppConfiguration> PG_APP = TestUtils.buildPgsqlApp(
             "jdbc:postgresql://localhost/trellis", "postgres", "");
     private static final Client CLIENT = TestUtils.buildClient(PG_APP);
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         PG_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
     }
 
@@ -51,7 +49,7 @@ public class TrellisLdpPgsqlTest extends AbstractLdpTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         PG_APP.after();
     }
 }

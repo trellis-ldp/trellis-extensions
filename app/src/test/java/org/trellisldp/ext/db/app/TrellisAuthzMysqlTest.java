@@ -18,8 +18,6 @@ import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -30,13 +28,13 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Authorization tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuthzMysqlTest extends AbstractAuthzTests {
+class TrellisAuthzMysqlTest extends AbstractAuthzTests {
 
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         APP = TestUtils.buildMysqlApp("jdbc:mysql://localhost/trellis", "travis", "",
                 config("auth.basic.usersFile", resourceFilePath("users.auth")));
         APP.before();
@@ -55,7 +53,7 @@ public class TrellisAuthzMysqlTest extends AbstractAuthzTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         APP.after();
     }
 }

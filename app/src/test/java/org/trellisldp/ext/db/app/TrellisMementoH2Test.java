@@ -19,21 +19,19 @@ import static org.awaitility.Awaitility.setDefaultPollInterval;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.trellisldp.test.AbstractApplicationMementoTests;
 
-public class TrellisMementoH2Test extends AbstractApplicationMementoTests {
+class TrellisMementoH2Test extends AbstractApplicationMementoTests {
 
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         setDefaultPollInterval(100L, MILLISECONDS);
         APP = TestUtils.buildH2App("jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));
         APP.before();
@@ -52,7 +50,7 @@ public class TrellisMementoH2Test extends AbstractApplicationMementoTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         APP.after();
     }
 }

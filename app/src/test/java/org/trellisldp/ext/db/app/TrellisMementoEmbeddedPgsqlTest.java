@@ -35,14 +35,14 @@ import org.trellisldp.test.AbstractApplicationMementoTests;
 
 @DisabledOnOs(WINDOWS)
 @DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisMementoEmbeddedPgsqlTest extends AbstractApplicationMementoTests {
+class TrellisMementoEmbeddedPgsqlTest extends AbstractApplicationMementoTests {
 
     private static EmbeddedPostgres pg = null;
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         setDefaultPollInterval(100L, MILLISECONDS);
         pg = EmbeddedPostgres.builder()
             .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + TestUtils.randomString(10))
@@ -66,7 +66,7 @@ public class TrellisMementoEmbeddedPgsqlTest extends AbstractApplicationMementoT
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() throws IOException {
         APP.after();
         pg.close();
     }

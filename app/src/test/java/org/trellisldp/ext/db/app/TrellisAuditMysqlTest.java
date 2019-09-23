@@ -18,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -29,7 +27,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Audit tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuditMysqlTest extends AbstractAuditTests {
+class TrellisAuditMysqlTest extends AbstractAuditTests {
 
     private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildMysqlApp(
             "jdbc:mysql://localhost/trellis", "travis", "");
@@ -54,7 +52,7 @@ public class TrellisAuditMysqlTest extends AbstractAuditTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         APP.after();
     }
 }

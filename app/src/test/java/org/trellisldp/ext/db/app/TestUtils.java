@@ -79,7 +79,7 @@ final class TestUtils {
 
     public static DropwizardTestSupport<AppConfiguration> buildGenericApp(final List<ConfigOverride> overrides) {
         final DropwizardTestSupport<AppConfiguration> app = new DropwizardTestSupport<>(TrellisApplication.class,
-                resourceFilePath("trellis-config.yml"), overrides.stream().toArray(ConfigOverride[]::new));
+                resourceFilePath("trellis-config.yml"), overrides.toArray(new ConfigOverride[0]));
         app.before();
         return app;
     }

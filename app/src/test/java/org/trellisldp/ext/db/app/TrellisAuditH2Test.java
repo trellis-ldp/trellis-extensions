@@ -18,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -27,7 +25,7 @@ import org.junit.jupiter.api.AfterAll;
 /**
  * Audit tests.
  */
-public class TrellisAuditH2Test extends AbstractAuditTests {
+class TrellisAuditH2Test extends AbstractAuditTests {
     private static final DropwizardTestSupport<AppConfiguration> APP = TestUtils.buildH2App(
                 "jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));
     private static final Client CLIENT = TestUtils.buildClient(APP);
@@ -47,7 +45,7 @@ public class TrellisAuditH2Test extends AbstractAuditTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         APP.after();
     }
 

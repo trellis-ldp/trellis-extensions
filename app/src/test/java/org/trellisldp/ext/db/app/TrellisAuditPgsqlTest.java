@@ -18,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -29,7 +27,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Audit tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisAuditPgsqlTest extends AbstractAuditTests {
+class TrellisAuditPgsqlTest extends AbstractAuditTests {
 
     private static final DropwizardTestSupport<AppConfiguration> PG_APP = TestUtils.buildPgsqlApp(
             "jdbc:postgresql://localhost/trellis", "postgres", "");
@@ -55,7 +53,7 @@ public class TrellisAuditPgsqlTest extends AbstractAuditTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         PG_APP.after();
     }
 }

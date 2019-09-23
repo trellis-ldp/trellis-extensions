@@ -25,7 +25,7 @@ import org.trellisldp.test.AbstractResourceServiceTests;
  * ResourceService tests.
  */
 @DisabledOnOs(WINDOWS)
-public class ResourceServiceTest extends AbstractResourceServiceTests {
+class ResourceServiceTest extends AbstractResourceServiceTests {
 
     private static final EmbeddedPostgres pg = DBTestUtils.setupDatabase("build");
 

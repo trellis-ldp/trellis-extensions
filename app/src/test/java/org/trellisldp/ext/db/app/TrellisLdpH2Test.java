@@ -17,8 +17,6 @@ import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -27,14 +25,14 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * Run LDP-Related Tests.
  */
-public class TrellisLdpH2Test extends AbstractLdpTests {
+class TrellisLdpH2Test extends AbstractLdpTests {
 
     private static final DropwizardTestSupport<AppConfiguration> H2_APP = TestUtils.buildH2App(
             "jdbc:h2:file:./build/data/h2-" + TestUtils.randomString(10));
     private static final Client CLIENT = TestUtils.buildClient(H2_APP);
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         H2_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
     }
 
@@ -49,7 +47,7 @@ public class TrellisLdpH2Test extends AbstractLdpTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         H2_APP.after();
     }
 }

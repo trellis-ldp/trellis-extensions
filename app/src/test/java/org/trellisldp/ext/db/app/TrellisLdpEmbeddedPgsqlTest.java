@@ -35,14 +35,14 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
  */
 @DisabledOnOs(WINDOWS)
 @DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpEmbeddedPgsqlTest extends AbstractLdpTests {
+class TrellisLdpEmbeddedPgsqlTest extends AbstractLdpTests {
 
     private static EmbeddedPostgres pg;
     private static DropwizardTestSupport<AppConfiguration> PG_APP;
     private static Client CLIENT;
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         pg = EmbeddedPostgres.builder()
             .setDataDirectory(resourceFilePath("data") + separator + "pgdata-" + TestUtils.randomString(10)).start();
 
@@ -63,7 +63,7 @@ public class TrellisLdpEmbeddedPgsqlTest extends AbstractLdpTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() throws IOException {
         PG_APP.after();
         pg.close();
     }

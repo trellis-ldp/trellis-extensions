@@ -34,14 +34,14 @@ import org.trellisldp.api.Resource;
  * ResourceService tests.
  */
 @DisabledOnOs(WINDOWS)
-public class ResourceDataTest {
+class ResourceDataTest {
 
     private static final RDF rdf = getInstance();
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
     private static final EmbeddedPostgres pg = DBTestUtils.setupDatabase("build");
 
     @Test
-    public void testTimestampOnRootIsRecent() {
+    void testTimestampOnRootIsRecent() {
         final Instant time = now().minusSeconds(1L);
         final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root, false)
             .toCompletableFuture().join();

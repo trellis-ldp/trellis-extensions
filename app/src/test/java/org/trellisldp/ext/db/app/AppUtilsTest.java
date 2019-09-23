@@ -39,7 +39,7 @@ import org.trellisldp.kafka.KafkaEventService;
 /**
  * @author acoburn
  */
-public class AppUtilsTest {
+class AppUtilsTest {
 
     @Mock
     private Environment mockEnv;
@@ -48,13 +48,13 @@ public class AppUtilsTest {
     private LifecycleEnvironment mockLifecycle;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         initMocks(this);
         when(mockEnv.lifecycle()).thenReturn(mockLifecycle);
     }
 
     @Test
-    public void testEventServiceNone() throws Exception {
+    void testEventServiceNone() {
         final NotificationsConfiguration c = new NotificationsConfiguration();
         c.setConnectionString("localhost");
         c.setEnabled(true);
@@ -65,7 +65,7 @@ public class AppUtilsTest {
     }
 
     @Test
-    public void testEventServiceDisabled() throws Exception {
+    void testEventServiceDisabled() {
         final NotificationsConfiguration c = new NotificationsConfiguration();
         c.set("batch.size", "1000");
         c.set("retries", "10");
@@ -79,7 +79,7 @@ public class AppUtilsTest {
     }
 
     @Test
-    public void testEventServiceKafka() throws Exception {
+    void testEventServiceKafka() {
         final NotificationsConfiguration c = new NotificationsConfiguration();
         c.set("batch.size", "1000");
         c.set("retries", "10");
@@ -93,7 +93,7 @@ public class AppUtilsTest {
     }
 
     @Test
-    public void testGetKafkaProps() {
+    void testGetKafkaProps() {
         final NotificationsConfiguration c = new NotificationsConfiguration();
         c.set("batch.size", "1000");
         c.set("retries", "10");
@@ -108,7 +108,7 @@ public class AppUtilsTest {
     }
 
     @Test
-    public void testEventServiceJms() throws Exception {
+    void testEventServiceJms() {
         final NotificationsConfiguration c = new NotificationsConfiguration();
         c.setConnectionString("tcp://localhost:61616");
         c.setEnabled(true);
@@ -117,7 +117,7 @@ public class AppUtilsTest {
     }
 
     @Test
-    public void testGetJmsFactory() {
+    void testGetJmsFactory() {
         final NotificationsConfiguration c = new NotificationsConfiguration();
         c.setConnectionString("localhost:61616");
 

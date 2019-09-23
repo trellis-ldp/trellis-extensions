@@ -19,8 +19,6 @@ import static org.awaitility.Awaitility.setDefaultPollInterval;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -29,13 +27,13 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.trellisldp.test.AbstractApplicationMementoTests;
 
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisMementoPgsqlTest extends AbstractApplicationMementoTests {
+class TrellisMementoPgsqlTest extends AbstractApplicationMementoTests {
 
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         APP = TestUtils.buildPgsqlApp("jdbc:postgresql://localhost/trellis", "postgres", "");
         APP.before();
         APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
@@ -54,7 +52,7 @@ public class TrellisMementoPgsqlTest extends AbstractApplicationMementoTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         APP.after();
     }
 }

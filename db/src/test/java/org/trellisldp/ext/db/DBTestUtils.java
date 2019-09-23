@@ -38,7 +38,7 @@ final class DBTestUtils {
 
     private static final Logger LOGGER = getLogger(DBTestUtils.class);
 
-    public static EmbeddedPostgres setupDatabase(final String directory) {
+    static EmbeddedPostgres setupDatabase(final String directory) {
         try {
             final EmbeddedPostgres pg = EmbeddedPostgres.builder()
                 .setDataDirectory(directory + separator + "pgdata-" + new RandomStringGenerator

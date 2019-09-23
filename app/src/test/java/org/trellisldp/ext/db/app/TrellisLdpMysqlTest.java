@@ -17,8 +17,6 @@ import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.AfterAll;
@@ -29,14 +27,14 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Run LDP-Related Tests.
  */
 @EnabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisLdpMysqlTest extends AbstractLdpTests {
+class TrellisLdpMysqlTest extends AbstractLdpTests {
 
     private static final DropwizardTestSupport<AppConfiguration> MYSQL_APP = TestUtils.buildMysqlApp(
             "jdbc:mysql://localhost/trellis", "travis", "");
     private static final Client CLIENT = TestUtils.buildClient(MYSQL_APP);
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         MYSQL_APP.getApplication().run("db", "migrate", resourceFilePath("trellis-config.yml"));
     }
 
@@ -51,7 +49,7 @@ public class TrellisLdpMysqlTest extends AbstractLdpTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         MYSQL_APP.after();
     }
 }

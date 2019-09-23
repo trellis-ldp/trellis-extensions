@@ -56,7 +56,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 
 @DisabledOnOs(WINDOWS)
-public class DBWrappedMementoServiceTest {
+class DBWrappedMementoServiceTest {
     private static final Logger LOGGER = getLogger(DBWrappedMementoService.class);
     private static final RDF rdf = getInstance();
     private static final IRI root = rdf.createIRI("trellis:data/");
@@ -83,7 +83,7 @@ public class DBWrappedMementoServiceTest {
     }
 
     @Test
-    public void testMementoUtils() {
+    void testMementoUtils() {
         final String dir = DBWrappedMementoService.class.getResource("/mementos").getFile();
         final MementoService svc = new DBWrappedMementoService(pg.getPostgresDatabase(),
                 new FileMementoService(dir));
@@ -122,6 +122,5 @@ public class DBWrappedMementoServiceTest {
         final Resource res = svc.get(identifier, time).toCompletableFuture().join();
         assertEquals(time, res.getModified());
     }
-
 }
 

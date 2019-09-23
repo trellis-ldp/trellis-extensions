@@ -38,7 +38,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 
 @DisabledOnOs(WINDOWS)
-public class DBNamespaceServiceTest {
+class DBNamespaceServiceTest {
     private static final Logger LOGGER = getLogger(DBNamespaceService.class);
 
     private static EmbeddedPostgres pg = null;
@@ -64,7 +64,7 @@ public class DBNamespaceServiceTest {
     }
 
     @Test
-    public void testNamespaceService() {
+    void testNamespaceService() {
         final NamespaceService svc = new DBNamespaceService(pg.getPostgresDatabase());
 
         assertTrue(svc.getNamespaces().containsKey("ldp"));

@@ -39,7 +39,7 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
  */
 @DisabledOnOs(WINDOWS)
 @DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
-public class TrellisEventEmbeddedPgsqlTest extends AbstractEventTests {
+class TrellisEventEmbeddedPgsqlTest extends AbstractEventTests {
 
     private static final BrokerService BROKER = new BrokerService();
 
@@ -82,7 +82,7 @@ public class TrellisEventEmbeddedPgsqlTest extends AbstractEventTests {
     }
 
     @AfterAll
-    public static void cleanup() throws Exception {
+    static void cleanup() throws Exception {
         APP.after();
         pg.close();
     }

@@ -29,12 +29,12 @@ import org.trellisldp.vocabulary.XSD;
 /**
  * DB Utility tests.
  */
-public class DBUtilsTest {
+class DBUtilsTest {
 
     private static final RDF rdf = new SimpleRDF();
 
     @Test
-    public void testGetObjectValue() {
+    void testGetObjectValue() {
         final String url = "http://example.com/resource";
         final IRI iri = rdf.createIRI(url);
         assertEquals(url, DBUtils.getObjectValue(iri));
@@ -47,7 +47,7 @@ public class DBUtilsTest {
     }
 
     @Test
-    public void testGetObjectLang() {
+    void testGetObjectLang() {
         final String lexicalForm = "A literal value";
         final String lang = "en";
         final Literal literal = rdf.createLiteral(lexicalForm, lang);
@@ -58,7 +58,7 @@ public class DBUtilsTest {
     }
 
     @Test
-    public void testGetObjectDatatype() {
+    void testGetObjectDatatype() {
         final String lexicalForm = "5";
         final Literal literal = rdf.createLiteral(lexicalForm, XSD.positiveInteger);
         assertEquals(XSD.positiveInteger.getIRIString(), DBUtils.getObjectDatatype(literal));
@@ -69,7 +69,7 @@ public class DBUtilsTest {
     }
 
     @Test
-    public void testGetBinary() {
+    void testGetBinary() {
         assertNotNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, "file:///path/to/resource", "text/plain"));
         assertNull(DBUtils.getBinaryMetadata(LDP.RDFSource, "file:///path/to/resource", "text/plain"));
         assertNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, null, "text/plain"));

@@ -18,8 +18,6 @@ import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 
 import io.dropwizard.testing.DropwizardTestSupport;
 
-import java.io.IOException;
-
 import javax.ws.rs.client.Client;
 
 import org.apache.commons.text.RandomStringGenerator;
@@ -29,13 +27,13 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * Authorization tests.
  */
-public class TrellisAuthzH2Test extends AbstractAuthzTests {
+class TrellisAuthzH2Test extends AbstractAuthzTests {
 
     private static DropwizardTestSupport<AppConfiguration> APP;
     private static Client CLIENT;
 
     @BeforeAll
-    public static void setup() throws Exception {
+    static void setup() throws Exception {
         APP = TestUtils.buildH2App("jdbc:h2:file:./build/data/h2-"
                          + new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(10),
                     config("auth.basic.usersFile", resourceFilePath("users.auth")));
@@ -55,7 +53,7 @@ public class TrellisAuthzH2Test extends AbstractAuthzTests {
     }
 
     @AfterAll
-    public static void cleanup() throws IOException {
+    static void cleanup() {
         APP.after();
     }
 }
