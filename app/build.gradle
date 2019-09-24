@@ -7,57 +7,59 @@ ext {
 }
 
 dependencies {
-    compile("io.dropwizard:dropwizard-auth:$dropwizardVersion")
-    compile("io.dropwizard:dropwizard-core:$dropwizardVersion")
-    compile("io.dropwizard:dropwizard-http2:$dropwizardVersion")
-    compile("io.dropwizard:dropwizard-jdbi3:$dropwizardVersion")
-    compile("io.dropwizard:dropwizard-metrics:$dropwizardVersion")
-    compile("io.dropwizard:dropwizard-migrations:$dropwizardVersion")
-    compile("javax.jms:javax.jms-api:$jmsApiVersion")
-    compile("io.smallrye:smallrye-config:$smallryeVersion")
-    compile("org.apache.activemq:activemq-client:$activeMqVersion")
-    //compile("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
+    implementation enforcedPlatform("org.trellisldp:trellis-bom:${trellisVersion}")
+
+    implementation "io.dropwizard:dropwizard-auth:$dropwizardVersion"
+    implementation "io.dropwizard:dropwizard-core:$dropwizardVersion"
+    implementation "io.dropwizard:dropwizard-http2:$dropwizardVersion"
+    implementation "io.dropwizard:dropwizard-jdbi3:$dropwizardVersion"
+    implementation "io.dropwizard:dropwizard-metrics:$dropwizardVersion"
+    implementation "io.dropwizard:dropwizard-migrations:$dropwizardVersion"
+    implementation "javax.jms:javax.jms-api:$jmsApiVersion"
+    implementation "io.smallrye:smallrye-config:$smallryeVersion"
+    implementation "org.apache.activemq:activemq-client:$activeMqVersion"
+    //implementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
         //exclude group: 'org.apache.jena', module: 'jena-osgi'
         //exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
     //}
-    compile("org.apache.kafka:kafka-clients:$kafkaVersion")
-    compile("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation "org.apache.kafka:kafka-clients:$kafkaVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
-    compile("mysql:mysql-connector-java:$mysqlVersion")
-    compile("org.postgresql:postgresql:$postgresVersion")
+    implementation "mysql:mysql-connector-java:$mysqlVersion"
+    implementation "org.postgresql:postgresql:$postgresVersion"
 
-    compile("org.trellisldp:trellis-constraint-rules:$trellisVersion")
-    compile("org.trellisldp:trellis-io-jena:$trellisVersion")
-    compile("org.trellisldp:trellis-api:$trellisVersion")
-    compile("org.trellisldp:trellis-http:$trellisVersion")
-    compile("org.trellisldp:trellis-vocabulary:$trellisVersion")
-    compile("org.trellisldp:trellis-file:$trellisVersion")
-    compile("org.trellisldp:trellis-audit:$trellisVersion")
-    compile("org.trellisldp:trellis-event-serialization:$trellisVersion")
-    compile("org.trellisldp:trellis-webac:$trellisVersion")
-    compile("org.trellisldp:trellis-jms:$trellisVersion")
-    compile("org.trellisldp:trellis-rdfa:$trellisVersion")
-    compile("org.trellisldp:trellis-kafka:$trellisVersion")
-    compile("org.trellisldp:trellis-dropwizard:$trellisVersion")
-    compile("org.trellisldp:trellis-app:$trellisVersion")
+    implementation "org.trellisldp:trellis-constraint-rules"
+    implementation "org.trellisldp:trellis-io-jena"
+    implementation "org.trellisldp:trellis-api"
+    implementation "org.trellisldp:trellis-http"
+    implementation "org.trellisldp:trellis-vocabulary"
+    implementation "org.trellisldp:trellis-file"
+    implementation "org.trellisldp:trellis-audit"
+    implementation "org.trellisldp:trellis-event-serialization"
+    implementation "org.trellisldp:trellis-webac"
+    implementation "org.trellisldp:trellis-jms"
+    implementation "org.trellisldp:trellis-rdfa"
+    implementation "org.trellisldp:trellis-kafka"
+    implementation "org.trellisldp:trellis-dropwizard"
+    implementation "org.trellisldp:trellis-app"
 
-    compile project(':trellis-db')
+    implementation project(':trellis-db')
 
-    runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
-    runtime("javax.activation:activation:$activationVersion")
-    runtime("org.yaml:snakeyaml:$snakeyamlVersion")
+    runtime "javax.xml.bind:jaxb-api:$jaxbVersion"
+    runtime "javax.activation:activation:$activationVersion"
+    runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
-    testCompile("com.h2database:h2:$h2Version")
-    testCompile("ch.qos.logback:logback-classic:$logbackVersion")
-    testCompile("com.google.guava:guava:$guavaVersion")
-    testCompile("com.opentable.components:otj-pg-embedded:$otjPgVersion")
-    testCompile("io.dropwizard:dropwizard-client:$dropwizardVersion")
-    testCompile("io.dropwizard:dropwizard-testing:$dropwizardVersion")
-    testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
-    testCompile("org.apache.commons:commons-text:$commonsTextVersion")
-    testCompile("org.awaitility:awaitility:$awaitilityVersion")
-    testCompile("org.mockito:mockito-core:$mockitoVersion")
-    testCompile("org.trellisldp:trellis-test:$trellisVersion")
+    testImplementation "com.h2database:h2:$h2Version"
+    testImplementation "ch.qos.logback:logback-classic:$logbackVersion"
+    testImplementation "com.google.guava:guava:$guavaVersion"
+    testImplementation "com.opentable.components:otj-pg-embedded:$otjPgVersion"
+    testImplementation "io.dropwizard:dropwizard-client:$dropwizardVersion"
+    testImplementation "io.dropwizard:dropwizard-testing:$dropwizardVersion"
+    testImplementation "org.apache.activemq:activemq-broker:$activeMqVersion"
+    testImplementation "org.apache.commons:commons-text:$commonsTextVersion"
+    testImplementation "org.awaitility:awaitility:$awaitilityVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "org.trellisldp:trellis-test"
 }
 
 test {

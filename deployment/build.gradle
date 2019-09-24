@@ -8,7 +8,7 @@ mainClassName = 'org.trellisldp.ext.db.app.TrellisApplication'
 applicationName = 'trellis-db'
 
 dependencies {
-    compile project(':trellis-db-app')
+    implementation project(':trellis-db-app')
 
     runtime("javax.xml.bind:jaxb-api:$jaxbVersion")
 }
