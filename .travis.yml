@@ -1,11 +1,12 @@
 language: java
 sudo: false
-dist: trusty
+dist: xenial
 group: edge
 
 addons:
   sonarcloud:
     organization: trellis-ldp
+  postgresql: "9.6"
 
 stages:
   - test
@@ -33,8 +34,14 @@ jobs:
     - name: "Java 8"
       stage: test
       jdk: openjdk8
-      script: travis_retry ./gradlew check install jacocoRootReport --scan
+      script: travis_retry ./gradlew check install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
+
+    - name: "Java 8 (Quarkus)"
+      stage: test
+      jdk: openjdk8
+      env: QUARKUS_EXTERNAL_PGSQL=true
+      script: travis_retry ./gradlew check -x :trellis-db-app:check install --continue --scan
 
     # JDK 11
     - name: "Java 11"

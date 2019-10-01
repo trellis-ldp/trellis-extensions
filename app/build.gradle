@@ -7,7 +7,7 @@ ext {
 }
 
 dependencies {
-    implementation enforcedPlatform("org.trellisldp:trellis-bom:${trellisVersion}")
+    implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
 
     implementation "io.dropwizard:dropwizard-auth:$dropwizardVersion"
     implementation "io.dropwizard:dropwizard-core:$dropwizardVersion"
@@ -16,32 +16,28 @@ dependencies {
     implementation "io.dropwizard:dropwizard-metrics:$dropwizardVersion"
     implementation "io.dropwizard:dropwizard-migrations:$dropwizardVersion"
     implementation "javax.jms:javax.jms-api:$jmsApiVersion"
-    implementation "io.smallrye:smallrye-config:$smallryeVersion"
+    implementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
     implementation "org.apache.activemq:activemq-client:$activeMqVersion"
-    //implementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
-        //exclude group: 'org.apache.jena', module: 'jena-osgi'
-        //exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
-    //}
     implementation "org.apache.kafka:kafka-clients:$kafkaVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     implementation "mysql:mysql-connector-java:$mysqlVersion"
     implementation "org.postgresql:postgresql:$postgresVersion"
 
-    implementation "org.trellisldp:trellis-constraint-rules"
-    implementation "org.trellisldp:trellis-io-jena"
     implementation "org.trellisldp:trellis-api"
-    implementation "org.trellisldp:trellis-http"
-    implementation "org.trellisldp:trellis-vocabulary"
-    implementation "org.trellisldp:trellis-file"
-    implementation "org.trellisldp:trellis-audit"
-    implementation "org.trellisldp:trellis-event-serialization"
-    implementation "org.trellisldp:trellis-webac"
-    implementation "org.trellisldp:trellis-jms"
-    implementation "org.trellisldp:trellis-rdfa"
-    implementation "org.trellisldp:trellis-kafka"
-    implementation "org.trellisldp:trellis-dropwizard"
     implementation "org.trellisldp:trellis-app"
+    implementation "org.trellisldp:trellis-audit"
+    implementation "org.trellisldp:trellis-constraint-rules"
+    implementation "org.trellisldp:trellis-dropwizard"
+    implementation "org.trellisldp:trellis-event-serialization"
+    implementation "org.trellisldp:trellis-file"
+    implementation "org.trellisldp:trellis-http"
+    implementation "org.trellisldp:trellis-io-jena"
+    implementation "org.trellisldp:trellis-jms"
+    implementation "org.trellisldp:trellis-kafka"
+    implementation "org.trellisldp:trellis-rdfa"
+    implementation "org.trellisldp:trellis-vocabulary"
+    implementation "org.trellisldp:trellis-webac"
 
     implementation project(':trellis-db')
 

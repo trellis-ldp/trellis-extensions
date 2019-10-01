@@ -1,0 +1,51 @@
+plugins {
+    id 'io.quarkus' version "${quarkusVersion}"
+}
+
+dependencies {
+    implementation enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion")
+    implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
+
+    implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-flyway'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-jdbc-mariadb'
+    implementation 'io.quarkus:quarkus-jdbc-h2'
+    implementation 'io.quarkus:quarkus-agroal'
+    implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
+
+    implementation project(':trellis-db')
+
+    implementation "com.github.spullara.mustache.java:compiler:$mustacheVersion"
+    implementation "com.google.guava:guava:$guavaVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+
+    implementation "org.trellisldp:trellis-api"
+    implementation "org.trellisldp:trellis-app"
+    implementation "org.trellisldp:trellis-audit"
+    implementation "org.trellisldp:trellis-auth-oauth"
+    implementation "org.trellisldp:trellis-constraint-rules"
+    implementation "org.trellisldp:trellis-event-serialization"
+    implementation "org.trellisldp:trellis-file"
+    implementation "org.trellisldp:trellis-http"
+    implementation "org.trellisldp:trellis-io-jena"
+    implementation "org.trellisldp:trellis-rdfa"
+    implementation "org.trellisldp:trellis-reactive"
+    implementation "org.trellisldp:trellis-vocabulary"
+    implementation "org.trellisldp:trellis-webac"
+
+    runtime "javax.activation:activation:$activationVersion"
+    runtime "javax.xml.bind:jaxb-api:$jaxbVersion"
+    runtime "org.yaml:snakeyaml:$snakeyamlVersion"
+
+    testImplementation "com.opentable.components:otj-pg-embedded:$otjPgVersion"
+    testImplementation "io.quarkus:quarkus-junit5"
+    testImplementation "io.rest-assured:rest-assured"
+    testImplementation "org.apache.commons:commons-text:$commonsTextVersion"
+}
+
+test {
+    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
+    systemProperty 'com.arjuna.ats.arjuna.objectstore.objectStoreDir', "$buildDir/data/ObjectStore"
+}
