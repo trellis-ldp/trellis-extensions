@@ -19,7 +19,6 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.sql.DataSource;
@@ -33,7 +32,6 @@ import org.trellisldp.api.NamespaceService;
  * A namespace service that stores data in a database.
  */
 @ApplicationScoped
-@Priority(5000)
 public class DBNamespaceService implements NamespaceService {
 
     private static final Logger LOGGER = getLogger(DBNamespaceService.class);

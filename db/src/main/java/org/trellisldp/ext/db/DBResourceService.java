@@ -20,7 +20,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
 import static java.util.concurrent.CompletableFuture.runAsync;
-import static javax.interceptor.Interceptor.Priority.APPLICATION;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.TrellisUtils.getInstance;
@@ -39,7 +38,6 @@ import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 
-import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.sql.DataSource;
@@ -75,7 +73,6 @@ import org.trellisldp.vocabulary.OA;
  * is false.
  */
 @ApplicationScoped
-@Priority(APPLICATION)
 public class DBResourceService implements ResourceService {
 
     /** Configuration key used to define the size of database write batches. */
