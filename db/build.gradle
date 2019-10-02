@@ -11,10 +11,10 @@ dependencies {
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
 
     api "javax.annotation:javax.annotation-api:$javaxAnnotationVersion"
+    api "javax.inject:javax.inject:$javaxInjectVersion"
     api "org.apache.commons:commons-lang3:$commonsLangVersion"
     api "org.apache.commons:commons-rdf-api:$commonsRdfVersion"
     api "org.eclipse.microprofile.health:microprofile-health-api:$microprofileHealthVersion"
-    api "org.glassfish.hk2.external:javax.inject:$javaxInjectVersion"
     api "org.jdbi:jdbi3-core:$jdbiVersion"
     api "org.trellisldp:trellis-api"
 
