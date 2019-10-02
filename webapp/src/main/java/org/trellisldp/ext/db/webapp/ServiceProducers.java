@@ -22,7 +22,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.trellisldp.api.*;
-import org.trellisldp.ext.db.*;
+import org.trellisldp.ext.db.DBWrappedMementoService;
 import org.trellisldp.file.FileBinaryService;
 import org.trellisldp.file.FileMementoService;
 
@@ -39,16 +39,8 @@ class ServiceProducers {
     @Produces
     MementoService mementoService;
 
-    @Produces
-    NamespaceService namespaceService;
-
-    @Produces
-    ResourceService resourceService;
-
     @PostConstruct
     void init() {
-        namespaceService = new DBNamespaceService(db);
-        resourceService = new DBResourceService(db);
         mementoService = new DBWrappedMementoService(db, new FileMementoService());
     }
 }

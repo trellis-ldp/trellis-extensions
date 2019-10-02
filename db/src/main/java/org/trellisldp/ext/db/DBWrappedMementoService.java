@@ -23,7 +23,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CompletionStage;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.sql.DataSource;
 
 import org.apache.commons.rdf.api.IRI;
@@ -32,7 +31,6 @@ import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
 import org.slf4j.Logger;
 import org.trellisldp.api.*;
 
-@ApplicationScoped
 public class DBWrappedMementoService implements MementoService {
 
     private static final Logger LOGGER = getLogger(DBWrappedMementoService.class);
