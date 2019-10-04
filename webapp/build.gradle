@@ -46,8 +46,9 @@ dependencies {
 }
 
 test {
-    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
     systemProperty 'com.arjuna.ats.arjuna.objectstore.objectStoreDir', "$buildDir/data/ObjectStore"
+    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
+    systemProperty 'trellis.file.binary.basepath', "$buildDir/data/binaries"
 }
 
 quarkusBuild.enabled = false
