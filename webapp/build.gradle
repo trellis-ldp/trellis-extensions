@@ -7,6 +7,7 @@ dependencies {
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
 
     implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-jsonb'
     implementation 'io.quarkus:quarkus-flyway'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
     implementation 'io.quarkus:quarkus-jdbc-mariadb'
@@ -26,7 +27,7 @@ dependencies {
     implementation "org.trellisldp:trellis-audit"
     implementation "org.trellisldp:trellis-auth-oauth"
     implementation "org.trellisldp:trellis-constraint-rules"
-    implementation "org.trellisldp:trellis-event-serialization"
+    implementation "org.trellisldp:trellis-event-jsonb"
     implementation "org.trellisldp:trellis-file"
     implementation "org.trellisldp:trellis-http"
     implementation "org.trellisldp:trellis-io-jena"
