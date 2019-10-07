@@ -13,6 +13,7 @@
  */
 package org.trellisldp.ext.db;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -55,11 +56,15 @@ public class DBHealthCheck implements HealthCheck {
 
     @Override
     public HealthCheckResponse call() {
-        try {
-            return HealthCheckResponse.named(DBHealthCheck.class.getSimpleName())
-                .state(dataSource != null && !dataSource.getConnection().isClosed()).build();
-        } catch (final SQLException ex) {
-            return HealthCheckResponse.named(DBHealthCheck.class.getSimpleName()).down().build();
+        if (dataSource != null) {
+            try (final Connection conn = dataSource.getConnection()) {
+                return HealthCheckResponse.named(DBHealthCheck.class.getSimpleName())
+                    .state(!conn.isClosed()).build();
+            } catch (final SQLException ex) {
+                return HealthCheckResponse.named(DBHealthCheck.class.getSimpleName())
+                    .withData("exception", ex.getMessage()).down().build();
+            }
         }
+        return HealthCheckResponse.named(DBHealthCheck.class.getSimpleName()).down().build();
     }
 }

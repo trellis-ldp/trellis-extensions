@@ -28,7 +28,7 @@ ext {
     microprofileConfigVersion = '1.3'
     microprofileHealthVersion = '2.0.1'
     mustacheVersion = '0.9.6'
-    quarkusVersion = '0.23.1'
+    quarkusVersion = '0.23.2'
     slf4jVersion = '1.7.28'
     snakeyamlVersion = '1.25'
     trellisVersion = '0.9.0-SNAPSHOT'
