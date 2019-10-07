@@ -13,7 +13,7 @@
  */
 package org.trellisldp.ext.db;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,7 +49,6 @@ class DBHealthCheckTest {
     @Test
     void testThrowsUnhealthy() throws SQLException {
         final DataSource mockDataSource = mock(DataSource.class);
-        final Connection mockConnection = mock(Connection.class);
         doThrow(SQLException.class).when(mockDataSource).getConnection();
 
         final HealthCheck check = new DBHealthCheck(mockDataSource);
