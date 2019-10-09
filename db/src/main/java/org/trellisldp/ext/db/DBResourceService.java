@@ -75,6 +75,9 @@ import org.trellisldp.vocabulary.OA;
 @ApplicationScoped
 public class DBResourceService implements ResourceService {
 
+    /** Configuration key used to define a database connection url. */
+    public static final String CONFIG_DB_URL = "trellis.db.url";
+
     /** Configuration key used to define the size of database write batches. */
     public static final String CONFIG_DB_BATCH_SIZE = "trellis.db.batchSize";
     /** The default size of a database batch write operation. */
@@ -90,6 +93,17 @@ public class DBResourceService implements ResourceService {
     private final boolean includeLdpType;
     private final Set<IRI> supportedIxnModels;
     private final int batchSize;
+
+    /**
+     * Create a Database-backed resource service.
+     *
+     * <p>This constructor is generally used by CDI proxies and should
+     * not be invoked directly.
+     */
+    public DBResourceService() {
+        this(Jdbi.create(getConfig().getOptionalValue(CONFIG_DB_URL, String.class).orElse("")),
+                DEFAULT_BATCH_SIZE, false, new DefaultIdentifierService());
+    }
 
     /**
      * Create a Database-backed resource service.
