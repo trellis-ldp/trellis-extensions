@@ -113,6 +113,25 @@ class DBResourceTest {
     }
 
     @Test
+    void testNoargResourceService() {
+        try {
+            System.setProperty(DBResourceService.CONFIG_DB_URL, pg.getJdbcUrl("postgres", "postgres"));
+            final ResourceService svc2 = new DBResourceService();
+            svc2.get(root).thenAccept(res -> {
+                assertEquals(LDP.BasicContainer, res.getInteractionModel());
+                assertFalse(res.getContainer().isPresent());
+            }).toCompletableFuture().join();
+        } finally {
+            System.clearProperty(DBResourceService.CONFIG_DB_URL);
+        }
+    }
+
+    @Test
+    void testNoargResourceServiceNoConfig() {
+        assertDoesNotThrow(() -> new DBResourceService());
+    }
+
+    @Test
     void getRoot() {
         assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root, false)
                 .toCompletableFuture().join().getIdentifier(), "Check the root resource");

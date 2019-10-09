@@ -13,6 +13,7 @@
  */
 package org.trellisldp.ext.db;
 
+import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -37,6 +38,15 @@ public class DBNamespaceService implements NamespaceService {
     private static final Logger LOGGER = getLogger(DBNamespaceService.class);
 
     private final Jdbi jdbi;
+
+    /**
+     * Create a namespace service.
+     *
+     * <p>Note: this is generally used for CDI proxies and should not be invoked directly
+     */
+    public DBNamespaceService() {
+        this(Jdbi.create(getConfig().getOptionalValue(DBResourceService.CONFIG_DB_URL, String.class).orElse("")));
+    }
 
     /**
      * Create a namespace service.

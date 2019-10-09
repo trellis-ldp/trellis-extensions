@@ -64,6 +64,24 @@ class DBNamespaceServiceTest {
     }
 
     @Test
+    void testNoargNamespaceService() {
+        try {
+            System.setProperty(DBResourceService.CONFIG_DB_URL, pg.getJdbcUrl("postgres", "postgres"));
+            final NamespaceService svc = new DBNamespaceService();
+
+            assertTrue(svc.getNamespaces().containsKey("ldp"));
+            assertEquals(LDP.getNamespace(), svc.getNamespaces().get("ldp"));
+        } finally {
+            System.clearProperty(DBResourceService.CONFIG_DB_URL);
+        }
+    }
+
+    @Test
+    void testNoargNamespaceServiceNoConfig() {
+        assertDoesNotThrow(() -> new DBNamespaceService());
+    }
+
+    @Test
     void testNamespaceService() {
         final NamespaceService svc = new DBNamespaceService(pg.getPostgresDatabase());
 
