@@ -14,7 +14,7 @@ plugins {
 ext {
 
     /* Dependencies */
-    activationVersion = '1.1.1'
+    activationApiVersion = '1.2.0'
     activeMqVersion = '5.15.9'
     commonsLangVersion = '3.9'
     commonsRdfVersion = '0.5.0'
@@ -40,7 +40,6 @@ ext {
     postgresVersion = '42.2.8'
 
     /* Testing */
-    activationVersion = '1.1.1'
     apiguardianVersion = '1.1.0'
     awaitilityVersion = '4.0.1'
     checkstyleVersion = '8.12'

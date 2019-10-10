@@ -42,7 +42,7 @@ dependencies {
     implementation project(':trellis-db')
 
     runtime "javax.xml.bind:jaxb-api:$jaxbVersion"
-    runtime "javax.activation:activation:$activationVersion"
+    runtime "javax.activation:javax.activation-api:$activationApiVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.h2database:h2:$h2Version"

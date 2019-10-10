@@ -36,7 +36,7 @@ dependencies {
     implementation "org.trellisldp:trellis-vocabulary"
     implementation "org.trellisldp:trellis-webac"
 
-    runtime "javax.activation:activation:$activationVersion"
+    runtime "javax.activation:javax.activation-api:$activationApiVersion"
     runtime "javax.xml.bind:jaxb-api:$jaxbVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
