@@ -16,9 +16,9 @@ rootProject.name = 'trellis-extensions'
 include ':trellis-db'
 include ':trellis-db-app'
 include ':trellis-db-deployment'
-include ':trellis-db-webapp'
+include ':trellis-db-quarkus'
 
 project(':trellis-db').projectDir = "$rootDir/db" as File
-project(':trellis-db-app').projectDir = "$rootDir/app" as File
-project(':trellis-db-deployment').projectDir = "$rootDir/deployment" as File
-project(':trellis-db-webapp').projectDir = "$rootDir/webapp" as File
+project(':trellis-db-app').projectDir = "$rootDir/platform/dropwizard" as File
+project(':trellis-db-deployment').projectDir = "$rootDir/platform/deployment" as File
+project(':trellis-db-quarkus').projectDir = "$rootDir/platform/quarkus" as File
