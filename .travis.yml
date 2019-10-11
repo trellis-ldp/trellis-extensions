@@ -16,6 +16,16 @@ services:
   - postgresql
   - mysql
 
+branches:
+  only:
+    - master
+    # release tags
+    - /^trellis-extensions-\d+\.\d+\.\d+$/
+    # maintenance branches
+    - /^trellis-extensions-\d+\.\d+\.x$/
+    # long-lived branches
+    - /^branch-.+/
+
 before_script:
   - psql -c 'create database trellis;' -U postgres
   - mysql -e 'CREATE DATABASE trellis;'
