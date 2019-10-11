@@ -376,7 +376,7 @@ configure(rootProject) {
 
     sonarqube {
         properties {
-            property "sonar.projectName", "Trellis Server: Database Extension"
+            property "sonar.projectName", "Trellis Server Extensions"
             property "sonar.projectKey", "org.trellisldp:trellis-extensions"
             property "sonar.links.homepage", "https://www.trellisldp.org"
             property "sonar.links.issue", "https://github.com/trellis-ldp/trellis-extensions/issues"
