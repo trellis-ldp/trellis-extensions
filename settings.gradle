@@ -18,7 +18,7 @@ include ':trellis-db-app'
 include ':trellis-db-deployment'
 include ':trellis-db-webapp'
 
-project(':trellis-db').projectDir = "$rootDir/db" as File
-project(':trellis-db-app').projectDir = "$rootDir/app" as File
-project(':trellis-db-deployment').projectDir = "$rootDir/deployment" as File
-project(':trellis-db-webapp').projectDir = "$rootDir/webapp" as File
+project(':trellis-db').projectDir = "$rootDir/database/db" as File
+project(':trellis-db-app').projectDir = "$rootDir/database/app" as File
+project(':trellis-db-deployment').projectDir = "$rootDir/database/deployment" as File
+project(':trellis-db-webapp').projectDir = "$rootDir/database/webapp" as File
