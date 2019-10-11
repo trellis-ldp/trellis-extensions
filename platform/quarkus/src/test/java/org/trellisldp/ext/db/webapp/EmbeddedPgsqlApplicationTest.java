@@ -28,7 +28,7 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
 @DisabledOnOs(WINDOWS)
 @DisabledIfEnvironmentVariable(named = "QUARKUS_EXTERNAL_PGSQL", matches = "true")
 @QuarkusTest
- class EmbeddedPgsqlApplicationTest extends AbstractApplicationTests {
+class EmbeddedPgsqlApplicationTest extends AbstractApplicationTests {
 
     private static EmbeddedPostgres pg;
 
