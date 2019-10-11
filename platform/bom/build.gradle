@@ -1,0 +1,32 @@
+
+dependencies {
+    enforcedPlatform implementation("org.trellisldp:trellis-bom:$trellisVersion")
+
+    implementation project(':trellis-db')
+    implementation project(':trellis-db-app')
+    implementation project(':trellis-db-quarkus')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom {
+                packaging = 'pom'
+            }
+            pom.withXml {
+                // eliminate test-scoped dependencies
+                asNode().dependencies.removeAll { dep -> dep.scope == "test" }
+                asNode().dependencies.dependency.forEach { dep -> dep.remove(dep.scope) }
+                // copy the dependencies node to dependencyManagement
+                asNode().dependencies.dependency.forEach { dep ->
+                    new Node(asNode().dependencyManagement.dependencies.get(0), 'dependency', dep.value())
+                }
+                // remove the dependencies node
+                asNode().remove(asNode().dependencies)
+                //return true
+            }
+            artifacts = []
+        }
+    }
+}
+
