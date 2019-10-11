@@ -60,7 +60,8 @@ ext {
 
     jacocoTestProjects = [
         'trellis-db',
-        'trellis-db-app'
+        'trellis-db-app',
+        'trellis-db-quarkus'
     ]
 }
 
