@@ -3,7 +3,7 @@
 Trellis is a scalable platform for building [linked data](https://www.w3.org/TR/ldp/) applications.
 The `trellis-extensions` projects implement additional persistence layers. For example, based on a relational database.
 
-[![Build Status](https://travis-ci.com/trellis-ldp/trellis-ext-db.svg?branch=master)](https://travis-ci.com/trellis-ldp/trellis-ext-db)
+[![Build Status](https://travis-ci.com/trellis-ldp/trellis-extensions.svg?branch=master)](https://travis-ci.com/trellis-ldp/trellis-extensions)
 [![Coverage Status](https://coveralls.io/repos/github/trellis-ldp/trellis-ext-db/badge.svg?branch=master)](https://coveralls.io/github/trellis-ldp/trellis-ext-db?branch=master)
 ![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-db.svg)
 

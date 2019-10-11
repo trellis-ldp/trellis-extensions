@@ -83,7 +83,7 @@ jobs:
           bucket: $AWS_BUCKET
           skip_cleanup: true
           local_dir: docs/apidocs/$(./gradlew -q getVersion)
-          upload-dir: docs/trellis-ext-db/$(./gradlew -q getVersion)/apidocs
+          upload-dir: docs/trellis-extensions/$(./gradlew -q getVersion)/apidocs
           default_text_charset: 'utf-8'
 
 

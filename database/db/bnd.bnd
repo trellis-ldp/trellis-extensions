@@ -8,9 +8,9 @@ Bundle-DocURL:          ${project.docURL}
 Bundle-Description:     ${project.description}
 Bundle-Name:            ${project.name}
 Bundle-SymbolicName:    ${project.group}.${project.name}
-Bundle-SCM:             url=https://github.com/trellis-ldp/trellis-ext-db, \
-                        connection=scm:git:https://github.com/trellis-ldp/trellis-ext-db.git, \
-                        developerConnection=scm:git:git@github.com:trellis-ldp/trellis-ext-db.git
+Bundle-SCM:             url=https://github.com/trellis-ldp/trellis-extensions, \
+                        connection=scm:git:https://github.com/trellis-ldp/trellis-extensions.git, \
+                        developerConnection=scm:git:git@github.com:trellis-ldp/trellis-extensions.git
 
 Require-Capability:     osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)", \
                         osgi.serviceloader; \

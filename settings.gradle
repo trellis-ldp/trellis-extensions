@@ -12,7 +12,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'trellis-ext-db'
+rootProject.name = 'trellis-extensions'
 include ':trellis-db'
 include ':trellis-db-app'
 include ':trellis-db-deployment'

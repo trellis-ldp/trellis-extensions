@@ -70,7 +70,7 @@ allprojects { subproj ->
     ext {
         vendor = 'Trellis LDP'
         homepage = 'https://www.trellisldp.org'
-        docURL = 'https://www.trellisldp.org/docs/trellis-ext-db/current/apidocs/'
+        docURL = 'https://www.trellisldp.org/docs/trellis-extensions/current/apidocs/'
         license = 'Apache 2'
     }
 
@@ -204,9 +204,9 @@ subprojects { subproj ->
                     }
 
                     scm {
-                        connection = 'scm:git:git://github.com/trellis-ldp/trellis-ext-db.git'
-                        developerConnection = 'scm:git:git@github.com/trellis-ldp/trellis-ext-db.git'
-                        url = 'https://github.com/trellis-ldp/trellis-ext-db'
+                        connection = 'scm:git:git://github.com/trellis-ldp/trellis-extensions.git'
+                        developerConnection = 'scm:git:git@github.com/trellis-ldp/trellis-extensions.git'
+                        url = 'https://github.com/trellis-ldp/trellis-extensions'
                         tag = 'HEAD'
                     }
 
@@ -377,10 +377,10 @@ configure(rootProject) {
     sonarqube {
         properties {
             property "sonar.projectName", "Trellis Server: Database Extension"
-            property "sonar.projectKey", "org.trellisldp:trellis-ext-db"
+            property "sonar.projectKey", "org.trellisldp:trellis-extensions"
             property "sonar.links.homepage", "https://www.trellisldp.org"
-            property "sonar.links.issue", "https://github.com/trellis-ldp/trellis-ext-db/issues"
-            property "sonar.links.scm_dev", "scm:git:git@github.com:trellis-ldp/trellis-ext-db.git"
+            property "sonar.links.issue", "https://github.com/trellis-ldp/trellis-extensions/issues"
+            property "sonar.links.scm_dev", "scm:git:git@github.com:trellis-ldp/trellis-extensions.git"
         }
     }
 
