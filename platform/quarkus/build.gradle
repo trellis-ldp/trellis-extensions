@@ -26,6 +26,7 @@ dependencies {
     implementation "org.trellisldp:trellis-app"
     implementation "org.trellisldp:trellis-audit"
     implementation "org.trellisldp:trellis-auth-oauth"
+    implementation "org.trellisldp:trellis-cdi"
     implementation "org.trellisldp:trellis-constraint-rules"
     implementation "org.trellisldp:trellis-event-jsonb"
     implementation "org.trellisldp:trellis-file"
