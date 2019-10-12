@@ -52,7 +52,7 @@ class ResourceData {
     public ResourceData(final ResultSet rs) throws SQLException {
         final String ixnModel = rs.getString("interaction_model");
 
-        this.interactionModel = ixnModel != null ? rdf.createIRI(ixnModel) : LDP.Resource;;
+        this.interactionModel = ixnModel != null ? rdf.createIRI(ixnModel) : LDP.Resource;
         this.id = rs.getInt("id");
         this.modified = rs.getLong("modified");
         this.isPartOf = rs.getString("is_part_of");
