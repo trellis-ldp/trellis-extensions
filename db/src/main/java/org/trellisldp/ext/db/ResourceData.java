@@ -35,11 +35,11 @@ class ResourceData {
     private static final RDF rdf = getInstance();
 
     private int id;
-    private String interactionModel;
     private long modified;
     private String isPartOf;
     private boolean resourceHasAcl;
     private boolean resourceIsDeleted;
+    private IRI interactionModel;
 
     private String membershipResource;
     private String hasMemberRelation;
@@ -50,7 +50,9 @@ class ResourceData {
     private Map<String, String> extra;
 
     public ResourceData(final ResultSet rs) throws SQLException {
-        this.interactionModel = rs.getString("interaction_model");
+        final String ixnModel = rs.getString("interaction_model");
+
+        this.interactionModel = ixnModel != null ? rdf.createIRI(ixnModel) : LDP.Resource;;
         this.id = rs.getInt("id");
         this.modified = rs.getLong("modified");
         this.isPartOf = rs.getString("is_part_of");
@@ -62,7 +64,7 @@ class ResourceData {
         this.isMemberOfRelation = rs.getString("ldp_is_member_of_relation");
         this.insertedContentRelation = rs.getString("ldp_inserted_content_relation");
 
-        this.binary = DBUtils.getBinaryMetadata(rdf.createIRI(this.interactionModel), rs.getString("binary_location"),
+        this.binary = DBUtils.getBinaryMetadata(this.interactionModel, rs.getString("binary_location"),
                 rs.getString("binary_format"));
     }
 
@@ -71,7 +73,7 @@ class ResourceData {
     }
 
     public IRI getInteractionModel() {
-        return interactionModel != null ? rdf.createIRI(interactionModel) : LDP.Resource;
+        return interactionModel;
     }
 
     public Instant getModified() {
