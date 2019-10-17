@@ -44,21 +44,21 @@ jobs:
     - name: "Java 8"
       stage: test
       jdk: openjdk8
-      script: travis_retry ./gradlew check install jacocoRootReport --continue --scan
+      script: travis_retry ./gradlew check -x pmdMain -x spotbugsMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
 
     - name: "Java 8 (Quarkus)"
       stage: test
       jdk: openjdk8
       env: QUARKUS_EXTERNAL_PGSQL=true
-      script: travis_retry ./gradlew check -x :trellis-db-app:check install --continue --scan
+      script: travis_retry ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install --continue --scan
 
     # JDK 11
     - name: "Java 11"
       stage: test
       jdk: openjdk11
       dist: xenial
-      script: travis_retry ./gradlew check install
+      script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
     # deploy JDK 8 builds to Sonatype
     - name: "Publish to Sonatype"
