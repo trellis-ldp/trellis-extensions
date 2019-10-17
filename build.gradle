@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.26.0'
+    id 'com.github.ben-manes.versions' version '0.27.0'
     id 'com.github.hierynomus.license' version '0.15.0'
     id 'com.github.kt3k.coveralls' version '2.8.4'
     id 'com.gradle.build-scan' version '2.4.2'
@@ -8,7 +8,7 @@ plugins {
     id 'org.sonarqube' version '2.8'
     id 'biz.aQute.bnd.builder' version '4.1.0' apply false
     id 'com.palantir.docker' version '0.22.1' apply false
-    id 'nebula.ospackage' version '7.5.0' apply false
+    id 'nebula.ospackage' version '7.6.3' apply false
 }
 
 ext {
@@ -19,24 +19,24 @@ ext {
     commonsLangVersion = '3.9'
     commonsRdfVersion = '0.5.0'
     dropwizardVersion = '1.3.15'
-    jacksonVersion = '2.9.10'
+    jacksonVersion = '2.10.0'
     javaxInjectVersion = '1'
     javaxAnnotationVersion = '1.3.2'
     jdbiVersion = '3.10.1'
     jmsApiVersion = '2.0.1'
     kafkaVersion = '2.3.0'
     microprofileConfigVersion = '1.3'
-    microprofileHealthVersion = '2.0.1'
+    microprofileHealthVersion = '2.1'
     mustacheVersion = '0.9.6'
-    quarkusVersion = '0.23.2'
+    quarkusVersion = '0.25.0'
     slf4jVersion = '1.7.28'
     snakeyamlVersion = '1.25'
     trellisVersion = '0.9.0-SNAPSHOT'
     smallryeConfigVersion = '1.3.9'
-    smallryeHealthVersion = '2.0.0'
+    smallryeHealthVersion = '2.1.0'
 
     /* Databases */
-    mysqlVersion = '8.0.17'
+    mysqlVersion = '8.0.18'
     postgresVersion = '42.2.8'
 
     /* Testing */
@@ -45,15 +45,15 @@ ext {
     checkstyleVersion = '8.12'
     commonsTextVersion = '1.8'
     guavaVersion = '28.1-jre'
-    h2Version = '1.4.199'
+    h2Version = '1.4.200'
     jaxbVersion = '2.3.1'
     jacocoVersion = '0.8.4'
-    jenaVersion = '3.12.0'
+    jenaVersion = '3.13.1'
     junitVersion = '5.5.2'
     liquibaseVersion = '3.8.0'
     logbackVersion = '1.2.3'
     mockitoVersion = '3.1.0'
-    otjPgVersion = '0.13.2'
+    otjPgVersion = '0.13.3'
 
     /* OSGi */
     projectOsgiVersion = project.version.replaceAll("-SNAPSHOT", ".SNAPSHOT")

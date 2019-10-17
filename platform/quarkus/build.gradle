@@ -13,6 +13,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-jdbc-mariadb'
     implementation 'io.quarkus:quarkus-jdbc-h2'
     implementation 'io.quarkus:quarkus-agroal'
+    implementation 'io.quarkus:quarkus-security'
     implementation 'io.quarkus:quarkus-smallrye-health'
     implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
 
