@@ -64,7 +64,12 @@ ext {
     /* OSGi */
     projectOsgiVersion = project.version.replaceAll("-SNAPSHOT", ".SNAPSHOT")
 
+    jacocoSkipProjects = [
+        'trellis-db-deployment',
+        'trellis-ext-bom'
+    ]
     jacocoTestProjects = [
+        'trellis-aws',
         'trellis-db',
         'trellis-db-app',
         'trellis-db-quarkus'
@@ -442,7 +447,7 @@ configure(rootProject) {
         additionalSourceDirs.from(files(subprojects.sourceSets.main.allSource.srcDirs))
         sourceDirectories.from(files(subprojects.sourceSets.main.allSource.srcDirs))
         classDirectories.from(files(subprojects.sourceSets.main.output))
-        executionData.from(files(subprojects.findAll { it.name in jacocoTestProjects }.jacocoTestReport.executionData))
+        executionData.from(files(subprojects.findAll { ! jacocoSkipProjects.contains(it.name) }.jacocoTestReport.executionData))
         reports {
             html.enabled = true
             xml.enabled = true
