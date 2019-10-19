@@ -17,6 +17,9 @@ ext {
     /* Dependencies */
     activationApiVersion = '1.2.0'
     activeMqVersion = '5.15.9'
+    awsVersion = '1.11.632'
+    commonsCompressVersion = '1.19'
+    commonsIoVersion = '2.6'
     commonsLangVersion = '3.9'
     commonsRdfVersion = '0.5.0'
     dropwizardVersion = '1.3.15'
@@ -61,7 +64,12 @@ ext {
     /* OSGi */
     projectOsgiVersion = project.version.replaceAll("-SNAPSHOT", ".SNAPSHOT")
 
+    jacocoSkipProjects = [
+        'trellis-db-deployment',
+        'trellis-ext-bom'
+    ]
     jacocoTestProjects = [
+        'trellis-aws',
         'trellis-db',
         'trellis-db-app',
         'trellis-db-quarkus'
@@ -184,6 +192,7 @@ subprojects { subproj ->
 
     spotbugs {
         ignoreFailures = true
+        excludeFilter = rootProject.file('buildtools/src/main/resources/spotbugs/exclusions.xml')
         toolVersion = spotbugsVersion
         sourceSets = [sourceSets.main]
     }
@@ -438,7 +447,7 @@ configure(rootProject) {
         additionalSourceDirs.from(files(subprojects.sourceSets.main.allSource.srcDirs))
         sourceDirectories.from(files(subprojects.sourceSets.main.allSource.srcDirs))
         classDirectories.from(files(subprojects.sourceSets.main.output))
-        executionData.from(files(subprojects.findAll { it.name in jacocoTestProjects }.jacocoTestReport.executionData))
+        executionData.from(files(subprojects.findAll { ! jacocoSkipProjects.contains(it.name) }.jacocoTestReport.executionData))
         reports {
             html.enabled = true
             xml.enabled = true

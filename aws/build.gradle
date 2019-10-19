@@ -1,0 +1,48 @@
+apply plugin: 'java-library'
+apply plugin: 'biz.aQute.bnd.builder'
+
+description = 'Trellis cloud extension'
+
+ext {
+    moduleName = 'org.trellisldp.ext.aws'
+}
+
+dependencies {
+    implementation enforcedPlatform("org.trellisldp:trellis-bom:${trellisVersion}")
+
+    api "javax.inject:javax.inject:$javaxInjectVersion"
+    api "org.apache.commons:commons-rdf-api:$commonsRdfVersion"
+    api "com.amazonaws:aws-java-sdk-s3:$awsVersion"
+    api "com.amazonaws:aws-java-sdk-sns:$awsVersion"
+    api "org.trellisldp:trellis-api"
+    api "org.trellisldp:trellis-http"
+
+    implementation "commons-io:commons-io:$commonsIoVersion"
+    implementation "org.apache.commons:commons-compress:$commonsCompressVersion"
+    implementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
+        exclude group: 'org.apache.commons', module: 'commons-rdf-simple'
+        exclude group: 'org.apache.jena', module: 'jena-osgi'
+        exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
+    }
+    implementation "org.apache.jena:jena-arq:$jenaVersion"
+    implementation "org.eclipse.microprofile.config:microprofile-config-api:$microprofileConfigVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.trellisldp:trellis-vocabulary"
+
+    testImplementation "org.apache.commons:commons-text:$commonsTextVersion"
+    testImplementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+
+    testImplementation "org.trellisldp:trellis-event-jackson"
+    testImplementation "org.trellisldp:trellis-constraint-rules"
+
+    testRuntimeClasspath "ch.qos.logback:logback-classic:$logbackVersion"
+}
+
+test {
+    systemProperty "trellis.ns-test", "http://example.com/test/"
+    systemProperty "trellis.s3.memento.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
+    systemProperty "trellis.s3.binary.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
+    systemProperty "trellis.sns.topic", System.getenv("AWS_TEST_TOPIC") ?: "test-topic"
+}
+
