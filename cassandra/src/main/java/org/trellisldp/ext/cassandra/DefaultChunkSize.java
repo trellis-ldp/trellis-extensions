@@ -28,10 +28,8 @@ import javax.inject.Qualifier;
 @Qualifier
 public @interface DefaultChunkSize {
 
-    String DEFAULT_CHUNK_SIZE = "1048576";
-
     /**
      * Default chunk size to use.
      */
-    String value = DEFAULT_CHUNK_SIZE;
+    String value = "1048576";
 }
