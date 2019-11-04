@@ -65,7 +65,7 @@ import org.trellisldp.vocabulary.LDP;
  *
  * @author ajs6f
  */
-class CassandraResourceService extends CassandraBuildingService implements ResourceService {
+class CassandraResourceService implements ResourceService, CassandraBuildingService {
 
     private static final Set<IRI> SUPPORTED_INTERACTION_MODELS;
 

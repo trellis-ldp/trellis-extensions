@@ -46,7 +46,7 @@ import org.trellisldp.ext.cassandra.query.rdf.Mementos;
  * A {@link MementoService} that stores Mementos in a Cassandra table.
  *
  */
-public class CassandraMementoService extends CassandraBuildingService implements MementoService {
+public class CassandraMementoService implements MementoService, CassandraBuildingService {
 
     private static final Logger LOGGER = getLogger(CassandraMementoService.class);
 

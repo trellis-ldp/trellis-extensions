@@ -24,9 +24,9 @@ import org.apache.commons.rdf.api.IRI;
 import org.slf4j.Logger;
 import org.trellisldp.api.Resource;
 
-abstract class CassandraBuildingService {
+interface CassandraBuildingService {
 
-    Resource parse(final Row metadata, final Logger log, final IRI id) {
+    default Resource parse(final Row metadata, final Logger log, final IRI id) {
         if (metadata == null) {
             log.debug("{} was not found.", id);
             return MISSING_RESOURCE;
