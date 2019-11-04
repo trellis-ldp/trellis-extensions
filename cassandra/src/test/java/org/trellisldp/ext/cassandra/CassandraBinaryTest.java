@@ -15,9 +15,7 @@ package org.trellisldp.ext.cassandra;
 
 import static java.util.Arrays.copyOf;
 import static java.util.Arrays.copyOfRange;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
@@ -33,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.ext.cassandra.query.binary.Read;
 import org.trellisldp.ext.cassandra.query.binary.ReadRange;
 
@@ -54,43 +51,21 @@ class CassandraBinaryTest {
     private ReadRange mockReadRange;
 
     @Mock
-    private InputStream mockInputStream1;
-
-    @Mock
-    private InputStream mockInputStream2;
+    private InputStream mockInputStream;
 
     @Test
     @SuppressWarnings("unused")
     void badChunkLength() {
-        try {
-            new CassandraBinary(testId, mockRead, mockReadRange, -1);
-        } catch (Exception e) {
-            assertTrue(e instanceof IllegalArgumentException, "Wrong exception type!");
-        }
-        try {
-            new CassandraBinary(testId, mockRead, mockReadRange, 0);
-        } catch (Exception e) {
-            assertTrue(e instanceof IllegalArgumentException, "Wrong exception type!");
-        }
-    }
-
-    @Test
-    void noContent() {
-        final CassandraBinary testCassandraBinary = new CassandraBinary(testId, mockRead, mockReadRange, testChunkSize);
-
-        try {
-            testCassandraBinary.getContent();
-        } catch (Exception e) {
-            assertTrue(e instanceof RuntimeTrellisException, "Wrong exception type!");
-        }
+        assertThrows(IllegalArgumentException.class, () -> new CassandraBinary(testId, mockRead, mockReadRange, -1));
+        assertThrows(IllegalArgumentException.class, () -> new CassandraBinary(testId, mockRead, mockReadRange, 0));
     }
 
     @Test
     void someContent() {
-        when(mockRead.execute(any())).thenReturn(mockInputStream1);
+        when(mockRead.execute(any())).thenReturn(mockInputStream);
         final CassandraBinary testCassandraBinary = new CassandraBinary(testId, mockRead, mockReadRange, testChunkSize);
         final InputStream result = testCassandraBinary.getContent();
-        assertSame(mockInputStream1, result, "Got wrong InputStream!");
+        assertSame(mockInputStream, result, "Got wrong InputStream!");
     }
 
     @Test

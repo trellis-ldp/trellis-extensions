@@ -13,6 +13,7 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.trellisldp.api.Metadata.builder;
 
@@ -22,24 +23,27 @@ import java.util.SortedSet;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.Metadata;
+import org.trellisldp.vocabulary.DC;
+import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.Trellis;
 
-@Disabled("These tests require a running Cassandra node")
+@EnabledIfSystemProperty(named = "trellis.enable.cassandra.tests", matches = "true")
 class CassandraMementoServiceIT extends CassandraServiceIT {
 
     @Test
     void mementos() {
-        final IRI id = createIRI("http://example.com/id/foo2");
-        final IRI ixnModel = createIRI("http://example.com/ixnModel2");
+        final IRI id = createIRI("http://example.com/testing/" + randomUUID());
+        final IRI relation = createIRI("http://example.com/testing/" + randomUUID());
         @SuppressWarnings("resource")
         final Dataset quads = rdfFactory.createDataset();
-        final Quad quad = rdfFactory.createQuad(id, ixnModel, id, ixnModel);
+        final Quad quad = rdfFactory.createQuad(Trellis.PreferUserManaged, id, DC.relation, relation);
         quads.add(quad);
 
         // build resource
-        final Metadata meta = builder(id).interactionModel(ixnModel).build();
+        final Metadata meta = builder(id).interactionModel(LDP.RDFSource).build();
         connection.resourceService.create(meta, quads).toCompletableFuture().join();
         connection.mementoService.put(connection.resourceService, id).toCompletableFuture().join();
 

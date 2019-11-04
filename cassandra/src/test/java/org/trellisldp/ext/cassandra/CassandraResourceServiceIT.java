@@ -22,14 +22,14 @@ import java.time.Instant;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.test.ResourceServiceTests;
 
-@Disabled("These tests require a running Cassandra node")
+@EnabledIfSystemProperty(named = "trellis.enable.cassandra.tests", matches = "true")
 class CassandraResourceServiceIT extends CassandraServiceIT implements ResourceServiceTests {
 
     @Test

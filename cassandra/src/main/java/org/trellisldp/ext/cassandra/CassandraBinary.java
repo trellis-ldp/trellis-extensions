@@ -13,12 +13,15 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.rdf.api.IRI;
+import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.ext.cassandra.query.binary.Read;
 import org.trellisldp.ext.cassandra.query.binary.ReadRange;
@@ -28,6 +31,8 @@ import org.trellisldp.ext.cassandra.query.binary.ReadRange;
  *
  */
 public class CassandraBinary implements Binary {
+
+    private static final Logger LOGGER = getLogger(CassandraBinary.class);
 
     private final IRI id;
 
@@ -65,7 +70,8 @@ public class CassandraBinary implements Binary {
         final InputStream retrieve = readRange.execute(id, firstChunk, lastChunk);
         // skip to fulfill lower end of range
         try {
-            retrieve.skip(chunkStreamStart);
+            final long skipped = retrieve.skip(chunkStreamStart);
+            LOGGER.debug("Skipped {} bytes", skipped);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } // we needn't check the result; see BinaryReadQuery#retrieve

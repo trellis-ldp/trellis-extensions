@@ -14,7 +14,6 @@
 package org.trellisldp.ext.cassandra.query.binary;
 
 import static java.util.stream.StreamSupport.stream;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
@@ -27,7 +26,6 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
-import org.slf4j.Logger;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.ext.cassandra.LazyChunkInputStream;
 
@@ -35,8 +33,6 @@ import org.trellisldp.ext.cassandra.LazyChunkInputStream;
  * A query that reads binary data from Cassandra.
  */
 abstract class BinaryReadQuery extends BinaryQuery {
-
-    private static final Logger log = getLogger(BinaryReadQuery.class);
 
     private static final String READ_CHUNK_QUERY = "SELECT chunk FROM " + BINARY_TABLENAME
                     + " WHERE identifier = :identifier and chunkIndex = :chunkIndex;";
@@ -61,7 +57,6 @@ abstract class BinaryReadQuery extends BinaryQuery {
                     .mapToObj(chunkIndex -> readChunkStatement.bind()
                                         .setInt("chunkIndex", chunkIndex)
                                         .set("identifier", id, IRI.class))
-                    .peek(chunkIndex -> log.debug("Retrieving stream for chunk: {}", chunkIndex))
                     .<InputStream>map(s -> new LazyChunkInputStream(session, s))
                     .reduce(SequenceInputStream::new) // chunks now in one large stream
                     .orElseThrow(() -> new RuntimeTrellisException("Binary not found under IRI: " + id.getIRIString()));

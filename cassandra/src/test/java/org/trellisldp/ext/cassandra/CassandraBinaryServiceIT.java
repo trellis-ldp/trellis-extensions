@@ -18,9 +18,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.UUID.randomUUID;
 import static org.apache.commons.io.IOUtils.contentEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.BinaryMetadata.builder;
 import static org.trellisldp.ext.cassandra.CassandraBinaryService.CASSANDRA_CHUNK_HEADER_NAME;
@@ -32,19 +30,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.RuntimeTrellisException;
 
-@Disabled("These tests require a running Cassandra node")
+@EnabledIfSystemProperty(named = "trellis.enable.cassandra.tests", matches = "true")
 class CassandraBinaryServiceIT extends CassandraServiceIT {
 
     private static final Logger log = getLogger(CassandraBinaryServiceIT.class);
@@ -76,7 +75,7 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
     }
 
     @Test
-    void shouldNotFindDeletedContent() throws IOException {
+    void shouldNotFindDeletedContent() throws Exception {
         final IRI id = createIRI();
         log.debug("Using identifier: {}", id);
         final String testContent = "This is only a short test, but it has meaning";
@@ -85,14 +84,9 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
         }
         connection.binaryService.purgeContent(id).toCompletableFuture().join();
 
-        try {
-            connection.binaryService.get(id).toCompletableFuture().join();
-            fail();
-        } catch (Exception e) {
-            final Throwable cause = e.getCause();
-            assertTrue(cause instanceof NullPointerException);
-            assertTrue(cause.getMessage().contains(id.getIRIString()));
-        }
+        final Throwable cause = assertThrows(NullPointerException.class, () ->
+                unwrapAsyncException(connection.binaryService.get(id)));
+        assertTrue(cause.getMessage().contains(id.getIRIString()));
     }
 
     @Test
@@ -140,18 +134,21 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
         try (FileInputStream testData = new FileInputStream("src/test/resources/test.jpg")) {
             final Map<String, List<String>> hints = singletonMap(CASSANDRA_CHUNK_HEADER_NAME,
                             Arrays.asList(chunkSize, chunkSize + 1000));
-            try {
-                connection.binaryService.setContent(builder(id).hints(hints).build(), testData).toCompletableFuture()
-                                .get();
-                fail();
-            } catch (Exception e) {
-                assertTrue(e instanceof RuntimeTrellisException);
-                assertTrue(e.getMessage().contains(CASSANDRA_CHUNK_HEADER_NAME));
-            }
+            final Throwable ex = assertThrows(RuntimeTrellisException.class, () ->
+                unwrapAsyncException(connection.binaryService.setContent(builder(id).hints(hints).build(), testData)));
+            assertTrue(ex.getMessage().contains(CASSANDRA_CHUNK_HEADER_NAME));
         }
     }
 
     private IRI createIRI() {
         return rdfFactory.createIRI("http://example.com/" + randomUUID());
+    }
+
+    private void unwrapAsyncException(final CompletionStage async) throws Throwable {
+        try {
+            async.toCompletableFuture().join();
+        } catch (final CompletionException ex) {
+            throw ex.getCause();
+        }
     }
 }

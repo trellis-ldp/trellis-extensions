@@ -60,8 +60,8 @@ class ReadQueryTest {
                 count++;
                 assertEquals(read, answer.read(), "Got wrong byte from read()!");
             }
-            assertEquals(answer.read(), -1, "Answer stream was not exhausted after comparison!");
-            assertEquals(count, 22, "Not enough bytes were read!");
+            assertEquals(-1, answer.read(), "Answer stream was not exhausted after comparison!");
+            assertEquals(22, count, "Not enough bytes were read!");
         }
     }
 
