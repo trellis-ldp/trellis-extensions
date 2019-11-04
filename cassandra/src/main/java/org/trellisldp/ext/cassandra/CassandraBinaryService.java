@@ -118,10 +118,7 @@ public class CassandraBinaryService implements BinaryService {
 
         try (final NoopCloseCountingInputStream countingChunk = new NoopCloseCountingInputStream(
                         new BoundedInputStream(data, chunkLength))) {
-            @SuppressWarnings("cast")
-            // upcast to match this object with InputStreamCodec
-            final InputStream chunk = (InputStream) countingChunk;
-            return insert.execute(id, chunkLength, chunkIndex.getAndIncrement(), chunk)
+            return insert.execute(id, chunkLength, chunkIndex.getAndIncrement(), countingChunk)
                             .thenComposeAsync(future -> countingChunk.getByteCount() == chunkLength
                                             ? setChunk(meta, data, chunkIndex, chunkLength)
                                             : DONE, insert);
