@@ -51,6 +51,7 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.MementoService;
 import org.trellisldp.api.Resource;
@@ -60,6 +61,7 @@ import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
+@EnabledIfSystemProperty(named = "trellis.enable.aws.tests", matches = "true")
 public class S3MementoServiceTest {
 
     private static final RDF rdf = getInstance();

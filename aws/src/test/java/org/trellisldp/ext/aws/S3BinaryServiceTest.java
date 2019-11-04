@@ -33,9 +33,11 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
 
+@EnabledIfSystemProperty(named = "trellis.enable.aws.tests", matches = "true")
 public class S3BinaryServiceTest {
 
     private static final RDF rdf = getInstance();
