@@ -15,7 +15,6 @@ package org.trellisldp.ext.cassandra;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -32,9 +31,7 @@ class ByteBufferInputStream extends InputStream {
 
     ByteBufferInputStream(final ByteBuffer b) {
         // https://github.com/trellis-ldp/trellis-cassandra/issues/51#issuecomment-474970424
-        @SuppressWarnings("cast")
-        final Buffer marked = (Buffer) b.mark();
-        this.buffer = (ByteBuffer) marked;
+        this.buffer = (ByteBuffer) b.mark();
         this.readSinceMark = 0;
         this.readLimit = buffer.remaining();
     }
