@@ -1,0 +1,28 @@
+<configuration debug="false">
+
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+
+  <property name="log.dir" value="${project.build.directory:-logs}"/>
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${log.dir}/system.log</file>
+    <immediateFlush>true</immediateFlush>
+    <encoder>
+      <pattern>%-5level [%thread] %date{ISO8601} %F:%L - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%-5level %date{HH:mm:ss,SSS} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+  <logger name="org.apache.cassandra" level="WARN"/>
+  <logger name="org.apache.tamaya" level="ERROR"/>
+  <logger name="edu.si" level="INFO"/>
+</configuration>

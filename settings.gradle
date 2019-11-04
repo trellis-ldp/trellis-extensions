@@ -14,6 +14,7 @@ pluginManagement {
 
 rootProject.name = 'trellis-extensions'
 include ':trellis-aws'
+include ':trellis-cassandra'
 include ':trellis-db'
 include ':trellis-db-app'
 include ':trellis-db-deployment'
@@ -21,6 +22,7 @@ include ':trellis-db-quarkus'
 include ':trellis-ext-bom'
 
 project(':trellis-aws').projectDir = "$rootDir/aws" as File
+project(':trellis-cassandra').projectDir = "$rootDir/cassandra" as File
 project(':trellis-db').projectDir = "$rootDir/db" as File
 project(':trellis-db-app').projectDir = "$rootDir/platform/dropwizard" as File
 project(':trellis-db-deployment').projectDir = "$rootDir/platform/deployment" as File
