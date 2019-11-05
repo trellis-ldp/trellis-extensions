@@ -13,6 +13,10 @@
     <rule ref="category/java/security.xml"/>
     <rule ref="category/java/errorprone.xml">
       <exclude name="BeanMembersShouldSerialize"/>
+      <exclude name="AvoidLiteralsInIfCondition"/>
+      <exclude name="AvoidFieldNameMatchingTypeName"/>
+      <exclude name="AvoidFieldNameMatchingMethodName"/>
+      <exclude name="NullAssignment"/>
     </rule>
     <rule ref="category/java/multithreading.xml">
       <exclude name="UseConcurrentHashMap"/>

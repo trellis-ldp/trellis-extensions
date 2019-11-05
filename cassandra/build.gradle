@@ -1,0 +1,40 @@
+apply plugin: 'java-library'
+apply plugin: 'biz.aQute.bnd.builder'
+
+description = 'Trellis cassandra extension'
+
+ext {
+    moduleName = 'org.trellisldp.ext.cassandra'
+}
+
+dependencies {
+    implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
+
+    api "javax.annotation:javax.annotation-api:$javaxAnnotationVersion"
+    api "javax.inject:javax.inject:$javaxInjectVersion"
+    api "org.apache.commons:commons-rdf-api:$commonsRdfVersion"
+    api("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
+        exclude group: 'org.apache.jena', module: 'jena-osgi'
+        exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
+    }
+    api("org.apache.jena:jena-arq:$jenaVersion")
+    api "org.trellisldp:trellis-api"
+    api("com.datastax.oss:java-driver-core:$cassandraDriverVersion") {
+        exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
+    }
+
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.trellisldp:trellis-vocabulary"
+
+    testImplementation "org.awaitility:awaitility:$awaitilityVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
+    testImplementation "org.trellisldp:trellis-test"
+
+    testRuntimeClasspath("ch.qos.logback:logback-classic:$logbackVersion")
+}
+
+test {
+    systemProperty "trellis.enable.cassandra.tests", project.findProperty("trellis.enable.cassandra.tests") ?: System.getenv("ENABLE_CASSANDRA_TESTS")
+    systemProperty 'project.build.directory', "${project.buildDir}/logs"
+}

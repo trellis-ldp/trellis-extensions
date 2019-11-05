@@ -40,6 +40,7 @@ ext {
     smallryeHealthVersion = '2.1.0'
 
     /* Databases */
+    cassandraDriverVersion = '4.2.0'
     mysqlVersion = '8.0.18'
     postgresVersion = '42.2.8'
 
@@ -58,7 +59,7 @@ ext {
     logbackVersion = '1.2.3'
     mockitoVersion = '3.1.0'
     otjPgVersion = '0.13.3'
-    pmdVersion = '6.18.0'
+    pmdVersion = '6.19.0'
     spotbugsVersion = '3.1.12'
 
     /* OSGi */
