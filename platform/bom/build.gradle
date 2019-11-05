@@ -3,6 +3,7 @@ dependencies {
     enforcedPlatform implementation("org.trellisldp:trellis-bom:$trellisVersion")
 
     implementation project(':trellis-aws')
+    implementation project(':trellis-cassandra')
     implementation project(':trellis-db')
     implementation project(':trellis-db-app')
     implementation project(':trellis-db-quarkus')
