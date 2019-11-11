@@ -40,7 +40,7 @@ dependencies {
     implementation "org.trellisldp:trellis-webac"
 
     runtime "jakarta.activation:jakarta.activation-api:$activationApiVersion"
-    runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion"
+    runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.opentable.components:otj-pg-embedded:$otjPgVersion"

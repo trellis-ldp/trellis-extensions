@@ -10,7 +10,7 @@ applicationName = 'trellis-db'
 dependencies {
     implementation project(':trellis-db-app')
 
-    runtime("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+    runtime("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion")
 }
 
 ospackage {

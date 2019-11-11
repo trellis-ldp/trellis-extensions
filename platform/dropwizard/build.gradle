@@ -42,7 +42,7 @@ dependencies {
 
     implementation project(':trellis-db')
 
-    runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion"
+    runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
     runtime "jakarta.activation:jakarta.activation-api:$activationApiVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
