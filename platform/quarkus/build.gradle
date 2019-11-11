@@ -2,42 +2,57 @@ plugins {
     id 'io.quarkus' version "${quarkusVersion}"
 }
 
+def installForQuarkus = [
+    "trellis-db"
+]
+
 dependencies {
     implementation enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion")
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
 
-    implementation 'io.quarkus:quarkus-resteasy'
-    implementation 'io.quarkus:quarkus-jsonb'
+    implementation 'io.quarkus:quarkus-agroal'
     implementation 'io.quarkus:quarkus-flyway'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
-    implementation 'io.quarkus:quarkus-jdbc-mariadb'
-    implementation 'io.quarkus:quarkus-jdbc-h2'
-    implementation 'io.quarkus:quarkus-agroal'
+    implementation 'io.quarkus:quarkus-jsonb'
+    implementation 'io.quarkus:quarkus-resteasy'
     implementation 'io.quarkus:quarkus-security'
     implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-smallrye-metrics'
     implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
 
-    implementation project(':trellis-db')
-
-    implementation "com.github.spullara.mustache.java:compiler:$mustacheVersion"
-    implementation "com.google.guava:guava:$guavaVersion"
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
-
-    implementation "org.trellisldp:trellis-api"
+    // Trellis Application
     implementation "org.trellisldp:trellis-app"
-    implementation "org.trellisldp:trellis-audit"
-    implementation "org.trellisldp:trellis-auth-oauth"
-    implementation "org.trellisldp:trellis-cache"
     implementation "org.trellisldp:trellis-cdi"
+
+    // Trellis authN/authZ
+    implementation "org.trellisldp:trellis-auth-oauth"
+    implementation "org.trellisldp:trellis-webac"
+
+    // Trellis components
+    implementation "org.trellisldp:trellis-audit"
+    implementation "org.trellisldp:trellis-cache"
     implementation "org.trellisldp:trellis-constraint-rules"
     implementation "org.trellisldp:trellis-event-jsonb"
     implementation "org.trellisldp:trellis-file"
-    implementation "org.trellisldp:trellis-http"
     implementation "org.trellisldp:trellis-io-jena"
     implementation "org.trellisldp:trellis-rdfa"
     implementation "org.trellisldp:trellis-reactive"
     implementation "org.trellisldp:trellis-vocabulary"
-    implementation "org.trellisldp:trellis-webac"
+    implementation "org.trellisldp.ext:trellis-db:${project.version}"
+
+    // Other dependencies
+    implementation "com.github.spullara.mustache.java:compiler:$mustacheVersion"
+    implementation "com.google.guava:guava:$guavaVersion"
+    implementation "io.jsonwebtoken:jjwt-jackson:$jjwtVersion"
+    implementation "io.jsonwebtoken:jjwt-api:$jjwtVersion"
+    implementation "io.jsonwebtoken:jjwt-impl:$jjwtVersion"
+    implementation "org.apache.jena:jena-arq:$jenaVersion"
+    implementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
+        exclude group: "org.apache.commons", module: "commons-rdf-simple"
+        exclude group: 'org.apache.jena', module: 'jena-osgi'
+        exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
+    }
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     runtime "jakarta.activation:jakarta.activation-api:$activationApiVersion"
     runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
@@ -57,9 +72,17 @@ test {
     systemProperty 'trellis.file.binary.basepath', "$buildDir/data/binaries"
 }
 
-quarkusBuild.enabled = false
-buildNative.enabled = false
-
 sonarqube {
     skipProject = true
 }
+
+/* Quarkus-related settings */
+// native builds require Graal-VM to be installed
+buildNative.enabled = project.hasProperty("hasGraalVm")
+
+rootProject.childProjects.each { n, p ->
+    if (installForQuarkus.contains(p.name)) {
+        tasks.compileJava.dependsOn p.tasks.install
+    }
+}
+
