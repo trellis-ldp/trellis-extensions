@@ -39,8 +39,8 @@ dependencies {
     implementation "org.trellisldp:trellis-vocabulary"
     implementation "org.trellisldp:trellis-webac"
 
-    runtime "javax.activation:javax.activation-api:$activationApiVersion"
-    runtime "javax.xml.bind:jaxb-api:$jaxbVersion"
+    runtime "jakarta.activation:jakarta.activation-api:$activationApiVersion"
+    runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.opentable.components:otj-pg-embedded:$otjPgVersion"

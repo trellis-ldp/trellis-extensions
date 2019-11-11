@@ -10,8 +10,8 @@ ext {
 dependencies {
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
 
-    api "javax.annotation:javax.annotation-api:$javaxAnnotationVersion"
-    api "javax.inject:javax.inject:$javaxInjectVersion"
+    api "jakarta.annotation:jakarta.annotation-api:$annotationApiVersion"
+    api "jakarta.inject:jakarta.inject-api:$injectApiVersion"
     api "org.apache.commons:commons-lang3:$commonsLangVersion"
     api "org.apache.commons:commons-rdf-api:$commonsRdfVersion"
     api "org.eclipse.microprofile.health:microprofile-health-api:$microprofileHealthVersion"

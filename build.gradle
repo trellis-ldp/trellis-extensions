@@ -15,7 +15,6 @@ plugins {
 ext {
 
     /* Dependencies */
-    activationApiVersion = '1.2.0'
     activeMqVersion = '5.15.9'
     awsVersion = '1.11.632'
     commonsCompressVersion = '1.19'
@@ -24,13 +23,8 @@ ext {
     commonsRdfVersion = '0.5.0'
     dropwizardVersion = '1.3.15'
     jacksonVersion = '2.10.0'
-    javaxInjectVersion = '1'
-    javaxAnnotationVersion = '1.3.2'
     jdbiVersion = '3.10.1'
-    jmsApiVersion = '2.0.1'
     kafkaVersion = '2.3.0'
-    microprofileConfigVersion = '1.3'
-    microprofileHealthVersion = '2.1'
     mustacheVersion = '0.9.6'
     quarkusVersion = '0.25.0'
     slf4jVersion = '1.7.28'
@@ -38,6 +32,16 @@ ext {
     trellisVersion = '0.9.0-SNAPSHOT'
     smallryeConfigVersion = '1.3.9'
     smallryeHealthVersion = '2.1.0'
+
+    /* JavaEE */
+    activationApiVersion = '1.2.1'
+    annotationApiVersion = '1.3.5'
+    injectApiVersion = '1.0'
+    jmsApiVersion = '2.0.3'
+
+    /* Miroprofile */
+    microprofileConfigVersion = '1.3'
+    microprofileHealthVersion = '2.1'
 
     /* Databases */
     cassandraDriverVersion = '4.2.0'
@@ -131,7 +135,7 @@ allprojects { subproj ->
 
     configurations.all {
         resolutionStrategy.dependencySubstitution {
-            substitute module("org.apache.geronimo.specs:geronimo-annotation_1.2_spec") with module ("javax.annotation:javax.annotation-api:$javaxAnnotationVersion")
+            substitute module("org.apache.geronimo.specs:geronimo-annotation_1.2_spec") with module ("jakarta.annotation:jakarta.annotation-api:$annotationApiVersion")
         }
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group.startsWith('com.fasterxml.jackson.')) {

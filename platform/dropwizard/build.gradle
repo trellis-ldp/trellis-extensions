@@ -15,7 +15,7 @@ dependencies {
     implementation "io.dropwizard:dropwizard-jdbi3:$dropwizardVersion"
     implementation "io.dropwizard:dropwizard-metrics:$dropwizardVersion"
     implementation "io.dropwizard:dropwizard-migrations:$dropwizardVersion"
-    implementation "javax.jms:javax.jms-api:$jmsApiVersion"
+    implementation "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
     implementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
     implementation "org.apache.activemq:activemq-client:$activeMqVersion"
     implementation "org.apache.kafka:kafka-clients:$kafkaVersion"
@@ -42,8 +42,8 @@ dependencies {
 
     implementation project(':trellis-db')
 
-    runtime "javax.xml.bind:jaxb-api:$jaxbVersion"
-    runtime "javax.activation:javax.activation-api:$activationApiVersion"
+    runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion"
+    runtime "jakarta.activation:jakarta.activation-api:$activationApiVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.h2database:h2:$h2Version"
