@@ -95,4 +95,8 @@ docker {
     dockerfile file('src/main/docker/Dockerfile.jvm')
     pull false
     noCache false
+
+    dependsOn(assemble)
 }
+
+
