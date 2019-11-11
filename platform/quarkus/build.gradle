@@ -58,6 +58,7 @@ test {
 }
 
 quarkusBuild.enabled = false
+buildNative.enabled = false
 
 sonarqube {
     skipProject = true
