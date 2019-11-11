@@ -2,8 +2,6 @@ plugins {
     id 'io.quarkus' version "${quarkusVersion}"
 }
 
-apply plugin: 'com.palantir.docker'
-
 def installForQuarkus = [
     "trellis-db"
 ]
@@ -86,17 +84,6 @@ rootProject.childProjects.each { n, p ->
     if (installForQuarkus.contains(p.name)) {
         tasks.compileJava.dependsOn p.tasks.install
     }
-}
-
-/* Docker-related settings */
-docker {
-    name "trellisldp/trellis-database:${project.version}"
-    tags 'latest', 'develop'
-    dockerfile file('src/main/docker/Dockerfile.jvm')
-    pull false
-    noCache false
-
-    dependsOn(assemble)
 }
 
 
