@@ -8,9 +8,10 @@ BRANCH=$(git branch 2>/dev/null | sed -n -e 's/^\* \(.*\)/\1/p')
 ./gradlew assemble
 cd platform/quarkus
 
+echo $VERSION
 TAG=latest
 # Use the develop tag for snapshots
-if [[ $VERSION == *SNAPSHOT* ]]
+if [[ $VERSION == *SNAPSHOT ]]
 then
     TAG=develop
 fi
