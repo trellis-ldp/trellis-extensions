@@ -73,8 +73,6 @@ $ ./bin/trellis-db db migrate ./path/to/config.yml
 
 The docker image will handle this migration step automatically.
 
-
-
 ## Cloud-based storage
 
 A cloud-based container can be built with the
