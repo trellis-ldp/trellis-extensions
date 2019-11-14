@@ -60,7 +60,7 @@ jobs:
     - name: "Java 11"
       stage: test
       jdk: openjdk11
-      dist: xenial
+      install: ./gradlew assemble --stacktrace
       script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
     # deploy JDK 8 builds to Sonatype
