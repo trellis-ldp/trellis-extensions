@@ -3,7 +3,8 @@ plugins {
 }
 
 def installForQuarkus = [
-    "trellis-db"
+    "trellis-db",
+    "trellis-aws"
 ]
 
 dependencies {
@@ -20,7 +21,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-smallrye-health'
     implementation 'io.quarkus:quarkus-smallrye-metrics'
     implementation 'io.quarkus:quarkus-smallrye-openapi'
-    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
 
     // Trellis Application
     implementation "org.trellisldp:trellis-app"
@@ -35,12 +35,19 @@ dependencies {
     implementation "org.trellisldp:trellis-cache"
     implementation "org.trellisldp:trellis-constraint-rules"
     implementation "org.trellisldp:trellis-event-jsonb"
-    implementation "org.trellisldp:trellis-file"
     implementation "org.trellisldp:trellis-io-jena"
     implementation "org.trellisldp:trellis-rdfa"
-    implementation "org.trellisldp:trellis-reactive"
     implementation "org.trellisldp:trellis-vocabulary"
+
+    // Persistence
     implementation "org.trellisldp.ext:trellis-db:${project.version}"
+    if (project.hasProperty("cloud")) {
+        implementation "org.trellisldp.ext:trellis-aws:${project.version}"
+    } else {
+        implementation "org.trellisldp:trellis-file"
+        implementation "org.trellisldp:trellis-reactive"
+        implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
+    }
 
     // Other dependencies
     implementation "com.github.spullara.mustache.java:compiler:$mustacheVersion"
@@ -73,6 +80,10 @@ test {
     systemProperty 'quarkus.flyway.migrate-at-start', 'true'
     systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
     systemProperty 'trellis.file.binary.basepath', "$buildDir/data/binaries"
+    systemProperty "trellis.s3.memento.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
+    systemProperty "trellis.s3.binary.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
+    systemProperty "trellis.sns.topic", System.getenv("AWS_TEST_TOPIC") ?: "test-topic"
+
 }
 
 sonarqube {

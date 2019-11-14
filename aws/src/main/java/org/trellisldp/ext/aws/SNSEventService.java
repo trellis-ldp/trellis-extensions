@@ -61,6 +61,7 @@ public class SNSEventService implements EventService {
         this.serializer = requireNonNull(serializer, "the event serializer may not be null!");
         this.sns = requireNonNull(client, "the SNS client may not be null!");
         this.topic = requireNonNull(topic, "the SNS topic may not be null!");
+        LOGGER.info("Using AWS for notifications. SNS topic: {}", topic);
     }
 
     @Override

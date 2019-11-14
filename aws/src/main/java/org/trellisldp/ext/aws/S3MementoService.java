@@ -101,6 +101,7 @@ public class S3MementoService implements MementoService {
         this.client = requireNonNull(client, "S3 client may not be null!");
         this.bucketName = requireNonNull(bucketName, "AWS Bucket may not be null!");
         this.pathPrefix = pathPrefix != null ? pathPrefix : "";
+        LOGGER.info("Using AWS for memento persistence. S3 bucket: '{}'", bucketName);
     }
 
     @Override
