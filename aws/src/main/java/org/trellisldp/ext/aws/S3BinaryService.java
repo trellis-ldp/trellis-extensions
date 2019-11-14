@@ -19,6 +19,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -38,6 +39,7 @@ import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
 import org.eclipse.microprofile.config.Config;
+import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
@@ -50,6 +52,8 @@ import org.trellisldp.api.RuntimeTrellisException;
  */
 @ApplicationScoped
 public class S3BinaryService implements BinaryService {
+
+    private static final Logger LOGGER = getLogger(S3BinaryService.class);
 
     public static final String CONFIG_BINARY_BUCKET = "trellis.s3.binary.bucket";
     public static final String CONFIG_BINARY_PATH_PREFIX = "trellis.s3.binary.path.prefix";
@@ -84,6 +88,7 @@ public class S3BinaryService implements BinaryService {
         this.client = requireNonNull(client, "client may not be null!");
         this.bucketName = requireNonNull(bucketName, "bucket name may not be null!");
         this.pathPrefix = pathPrefix != null ? pathPrefix : "";
+        LOGGER.info("Using AWS for binary persistence. S3 bucket: {}", bucketName);
     }
 
     @Override

@@ -9,7 +9,45 @@ For example, one extension uses a relational database to persist resources.
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/trellis-ldp/trellis-extensions.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/trellis-ldp/trellis-extensions/alerts/)
 ![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-db.svg)
 
-## Database extension
+## Database persistence layer
+
+The databse persistence layer is considerably faster
+than using a triplestore. In some cases, it is an
+order of magnitude faster.
+
+PostgreSQL and embedded H2 database connections are supported.
+
+A [Docker container](https://hub.docker.com/r/trellisldp/trellis-database/) is available via:
+
+```sh
+docker pull trellisldp/trellis-database
+```
+
+By default, this container will use a local H2 database, but that is not recommended for production deployments.
+
+To configure the database for this container, the following environment variables
+should be set:
+
+```sh
+QUARKUS_DATASOURCE_DRIVER=org.postgresql.Driver
+QUARKUS_DATASOURCE_URL=jdbc:postgresql://db-host/db-name
+QUARKUS_DATASOURCE_USERNAME=user
+QUARKUS_DATASOURCE_PASSWORD=pass
+```
+
+By default, a database migration will run when the
+container is started. Once the database is set up,
+this step is no longer necessary and it can be
+disabled with the following environment variable:
+
+```sh
+QUARKUS_FLYWAY_MIGRATE_AT_START=false
+```
+
+## Legacy Database container
+
+A legacy database container is available using
+[Dropwizard](https://dropwizard.io).
 
 PostgreSQL and MySQL/MariaDB database connections are supported.
 
@@ -23,12 +61,6 @@ This container assumes the presence of an external database. Additional informat
 [running Trellis in a Docker container](https://github.com/trellis-ldp/trellis/wiki/Dockerized-Trellis)
 can be found on the TrellisLDP wiki.
 
-Java 8+ is required to run Trellis. To build this project, use this command:
-
-```sh
-$ ./gradlew install
-```
-
 ### Database setup
 
 In order to connect Trellis to a database, please first ensure that a database server is running and accessible. Please also
@@ -40,6 +72,32 @@ $ ./bin/trellis-db db migrate ./path/to/config.yml
 ```
 
 The docker image will handle this migration step automatically.
+
+## Cloud-based storage
+
+A cloud-based container can be built with the
+`-Pcloud` flag when running gradle.
+
+When using the AWS/Cloud extension with a docker
+container, the following environment variables need
+to be set (in addition to the database-related
+configuration):
+
+```sh
+AWS_ACCESS_KEY_ID=ABCDEFG
+AWS_SECRET_ACCESS_KEY=HIJKLMNOPQRSTUVWXYZ
+AWS_REGION=us-east-1
+
+TRELLIS_S3_MEMENTO_BUCKET=mementos.example.com
+TRELLIS_S3_BINARY_BUCKET=binaries.example.com
+TRELLIS_SNS_TOPIC=arn:aws:sns:us-east-1:123456789:MyTopic
+```
+
+Java 8+ is required to run Trellis. To build this project, use this command:
+
+```sh
+$ ./gradlew install
+```
 
 For more information about Trellis, please visit either the
 [main source repository](https://github.com/trellis-ldp/trellis) or the
