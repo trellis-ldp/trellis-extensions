@@ -75,7 +75,7 @@ jobs:
       script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew publish ; fi
 
     # deploy to Docker hub
-    - name: "Publish to Docker hub"
+    - name: "Publish to Docker hub (trellis-database)"
       stage: deploy
       jdk: openjdk8
       env: JOB=docker
@@ -85,7 +85,20 @@ jobs:
       # Note: for maintenance branches, remove the dockerPushLatest task
       script:
           - if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew dockerPush dockerPushDevelop; else ./gradlew dockerPush dockerPushLatest; fi
-          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh
+          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database"
+
+    # deploy to Docker hub
+    - name: "Publish to Docker hub (trellis-database-aws)"
+      stage: deploy
+      jdk: openjdk8
+      env: JOB=docker
+      # Note: allow maintenance branches
+      if: branch = master AND type = push
+      install: ./gradlew assemble -Pcloud
+      before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      # Note: for maintenance branches, remove the dockerPushLatest task
+      script:
+          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database-aws"
 
     - name: "Publish JavaDocs"
       stage: deploy
