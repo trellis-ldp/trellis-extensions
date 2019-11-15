@@ -31,11 +31,11 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.junit.jupiter.api.Test;
 
-class CassandraHealthCheckTest {
+class CassandraLivenessCheckTest {
 
     @Test
     void testUnhealthyDefault() {
-        final HealthCheck check = new CassandraHealthCheck();
+        final HealthCheck check = new CassandraLivenessCheck();
         assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(), "Connection isn't healthy!");
     }
 
@@ -48,7 +48,7 @@ class CassandraHealthCheckTest {
         when(mockResultSet.getExecutionInfo()).thenReturn(mockExecutionInfo);
         when(mockExecutionInfo.getErrors()).thenReturn(emptyList());
 
-        final HealthCheck check = new CassandraHealthCheck(mockSession);
+        final HealthCheck check = new CassandraLivenessCheck(mockSession);
         assertEquals(HealthCheckResponse.State.UP, check.call().getState(), "Connection isn't healthy!");
     }
 
@@ -63,7 +63,7 @@ class CassandraHealthCheckTest {
         when(mockExecutionInfo.getErrors()).thenReturn(singletonList(
                     new SimpleEntry<>(mockNode, new RuntimeException("Expected exception."))));
 
-        final HealthCheck check = new CassandraHealthCheck(mockSession);
+        final HealthCheck check = new CassandraLivenessCheck(mockSession);
         assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(),
                 "Connection doesn't report as unhealthy!");
     }

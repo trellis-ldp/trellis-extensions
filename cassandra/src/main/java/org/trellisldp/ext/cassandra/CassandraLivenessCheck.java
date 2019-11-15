@@ -22,15 +22,13 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
-import org.eclipse.microprofile.health.Readiness;
 
 /**
  * Check the health of the cassandra connection.
  */
 @Liveness
-@Readiness
 @ApplicationScoped
-public class CassandraHealthCheck implements HealthCheck {
+public class CassandraLivenessCheck implements HealthCheck {
 
     private final CqlSession session;
 
@@ -40,7 +38,7 @@ public class CassandraHealthCheck implements HealthCheck {
      * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
      *          It should not be invoked directly in user code.
      */
-    public CassandraHealthCheck() {
+    public CassandraLivenessCheck() {
         this(null);
     }
 
@@ -49,7 +47,7 @@ public class CassandraHealthCheck implements HealthCheck {
      * @param session the cassandra session
      */
     @Inject
-    public CassandraHealthCheck(final CqlSession session) {
+    public CassandraLivenessCheck(final CqlSession session) {
         this.session = session;
     }
 
@@ -58,9 +56,9 @@ public class CassandraHealthCheck implements HealthCheck {
         if (session != null) {
             final ResultSet res = session.execute("SELECT identifier FROM mutabledata LIMIT 1");
 
-            return HealthCheckResponse.named(CassandraHealthCheck.class.getSimpleName())
+            return HealthCheckResponse.named(CassandraLivenessCheck.class.getSimpleName())
                 .state(res.getExecutionInfo().getErrors().isEmpty()).build();
         }
-        return HealthCheckResponse.named(CassandraHealthCheck.class.getSimpleName()).down().build();
+        return HealthCheckResponse.named(CassandraLivenessCheck.class.getSimpleName()).down().build();
     }
 }
