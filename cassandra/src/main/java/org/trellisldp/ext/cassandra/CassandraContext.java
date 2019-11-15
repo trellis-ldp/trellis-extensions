@@ -45,6 +45,16 @@ public class CassandraContext {
 
     private static final Logger LOGGER = getLogger(CassandraContext.class);
 
+    private CqlSession session;
+
+    @Inject
+    @ConfigProperty(name = "trellis.cassandra.keyspace", defaultValue = "trellis")
+    String keyspace;
+
+    @Inject
+    @ConfigProperty(name = "trellis.cassandra.datacenter", defaultValue = "datacenter1")
+    String datacenter;
+
     @Inject
     @ConfigProperty(name = "trellis.cassandra.contact-port", defaultValue = "9042")
     String contactPort;
@@ -118,8 +128,6 @@ public class CassandraContext {
         return DefaultConsistencyLevel.valueOf(rdfWriteConsistency);
     }
 
-    private CqlSession session;
-
     /**
      * Connect to Cassandra, lazily.
      */
@@ -131,8 +139,8 @@ public class CassandraContext {
 
         this.session = CqlSession.builder()
                         .addTypeCodecs(STANDARD_CODECS)
-                        .withKeyspace("trellis")
-                        .withLocalDatacenter("datacenter1")
+                        .withKeyspace(keyspace)
+                        .withLocalDatacenter(datacenter)
                         .addContactPoint(socketAddress)
                         .build();
     }

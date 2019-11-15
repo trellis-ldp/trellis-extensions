@@ -19,6 +19,7 @@ dependencies {
     }
     api("org.apache.jena:jena-arq:$jenaVersion")
     api "org.eclipse.microprofile.config:microprofile-config-api:$microprofileConfigVersion"
+    api "org.eclipse.microprofile.health:microprofile-health-api:$microprofileHealthVersion"
     api "org.trellisldp:trellis-api"
     api("com.datastax.oss:java-driver-core:$cassandraDriverVersion") {
         exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
@@ -28,6 +29,7 @@ dependencies {
     implementation "org.trellisldp:trellis-vocabulary"
 
     testImplementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
+    testImplementation "io.smallrye:smallrye-health:$smallryeHealthVersion"
     testImplementation "org.awaitility:awaitility:$awaitilityVersion"
     testImplementation "org.jboss.weld:weld-junit5:$weldVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
