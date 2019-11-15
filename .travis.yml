@@ -59,7 +59,10 @@ jobs:
     - name: "Java 11"
       stage: test
       dist: bionic
-      jdk: oraclejdk11
+      before_script:
+          - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
+          - source ./install-jdk.sh --feature 11
+          - java -version
       script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
     # deploy JDK 8 builds to Sonatype
