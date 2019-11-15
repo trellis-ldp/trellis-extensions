@@ -32,7 +32,7 @@ class DBHealthCheckTest {
     @Test
     void testUnhealthyDefault() {
         final HealthCheck check = new DBHealthCheck();
-        assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(), "RDFConnection isn't healthy!");
+        assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(), "Database connection isn't healthy!");
     }
 
     @Test
