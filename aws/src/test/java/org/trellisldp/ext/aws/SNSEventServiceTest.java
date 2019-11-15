@@ -38,7 +38,7 @@ import org.trellisldp.event.jackson.DefaultEventSerializationService;
 import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.LDP;
 
-@EnabledIfSystemProperty(named = "trellis.enable.aws.tests", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.aws.enable", matches = "true")
 public class SNSEventServiceTest {
 
     private static final RDF rdf = getInstance();

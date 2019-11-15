@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.RuntimeTrellisException;
 
-@EnabledIfSystemProperty(named = "trellis.enable.cassandra.tests", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
 class CassandraBinaryServiceIT extends CassandraServiceIT {
 
     private static final Logger log = getLogger(CassandraBinaryServiceIT.class);

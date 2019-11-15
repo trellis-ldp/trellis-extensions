@@ -37,7 +37,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
 
-@EnabledIfSystemProperty(named = "trellis.enable.aws.tests", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.aws.enable", matches = "true")
 public class S3BinaryServiceTest {
 
     private static final RDF rdf = getInstance();

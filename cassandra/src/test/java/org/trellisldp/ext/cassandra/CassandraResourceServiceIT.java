@@ -29,7 +29,7 @@ import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.test.ResourceServiceTests;
 
-@EnabledIfSystemProperty(named = "trellis.enable.cassandra.tests", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
 class CassandraResourceServiceIT extends CassandraServiceIT implements ResourceServiceTests {
 
     @Test

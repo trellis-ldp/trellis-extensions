@@ -35,6 +35,6 @@ dependencies {
 }
 
 test {
-    systemProperty "trellis.enable.cassandra.tests", project.findProperty("trellis.enable.cassandra.tests") ?: System.getenv("ENABLE_CASSANDRA_TESTS")
+    systemProperty "trellis.test.cassandra.enable", project.findProperty("trellis.test.cassandra.enable") ?: System.getenv("TEST_CASSANDRA_ENABLE")
     systemProperty 'project.build.directory', "${project.buildDir}/logs"
 }

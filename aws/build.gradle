@@ -40,7 +40,7 @@ dependencies {
 }
 
 test {
-    systemProperty "trellis.enable.aws.tests", project.findProperty("trellis.enable.aws.tests") ?: System.getenv("ENABLE_AWS_TESTS")
+    systemProperty "trellis.test.aws.enable", project.findProperty("trellis.test.aws.enable") ?: System.getenv("TEST_AWS_ENABLE")
     systemProperty "trellis.ns-test", "http://example.com/test/"
     systemProperty "trellis.s3.memento.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
     systemProperty "trellis.s3.binary.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"

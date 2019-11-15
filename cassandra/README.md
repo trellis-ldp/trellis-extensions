@@ -10,11 +10,11 @@ The Cassandra integration testing code relies on an external Cassandra cluster, 
 integration tests are disabled by default. To enable them, please set the following
 environment variable:
 
-    ENABLE_CASSANDRA_TESTS=true
+    TEST_CASSANDRA_ENABLE=true
 
 or, in `~/.gradle/gradle.properties`, add this setting:
 
-    trellis.enable.cassandra.tests=true
+    trellis.test.cassandra.enable=true
 
 The tests also rely on having the database schema already set up. The schema document can be
 loaded into the cluster via:

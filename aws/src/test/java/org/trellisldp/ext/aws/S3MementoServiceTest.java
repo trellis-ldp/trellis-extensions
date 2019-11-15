@@ -61,7 +61,7 @@ import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
-@EnabledIfSystemProperty(named = "trellis.enable.aws.tests", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.aws.enable", matches = "true")
 public class S3MementoServiceTest {
 
     private static final RDF rdf = getInstance();
