@@ -6,8 +6,6 @@ group: edge
 addons:
   sonarcloud:
     organization: trellis-ldp
-  apt:
-    update: true
 
 stages:
   - test
@@ -61,7 +59,9 @@ jobs:
     - name: "Java 11"
       stage: test
       dist: bionic
-      before_install: sudo apt-get -y install openjdk-11-jdk
+      before_install:
+          - sudo apt-get update
+          - sudo apt-get -y install openjdk-11-jdk
       script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
     # deploy JDK 8 builds to Sonatype
