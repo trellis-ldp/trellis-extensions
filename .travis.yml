@@ -59,6 +59,7 @@ jobs:
     # JDK 11
     - name: "Java 11"
       stage: test
+      dist: bionic
       jdk: oraclejdk11
       script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
