@@ -18,6 +18,7 @@ dependencies {
         exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
     }
     api("org.apache.jena:jena-arq:$jenaVersion")
+    api "org.eclipse.microprofile.config:microprofile-config-api:$microprofileConfigVersion"
     api "org.trellisldp:trellis-api"
     api("com.datastax.oss:java-driver-core:$cassandraDriverVersion") {
         exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
@@ -26,7 +27,9 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.trellisldp:trellis-vocabulary"
 
+    testImplementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
     testImplementation "org.awaitility:awaitility:$awaitilityVersion"
+    testImplementation "org.jboss.weld:weld-junit5:$weldVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
     testImplementation "org.trellisldp:trellis-test"
@@ -36,5 +39,7 @@ dependencies {
 
 test {
     systemProperty "trellis.test.cassandra.enable", project.findProperty("trellis.test.cassandra.enable") ?: System.getenv("TEST_CASSANDRA_ENABLE")
+    systemProperty 'trellis.cassandra.binary-read-consistency', 'ALL'
+    systemProperty 'trellis.cassandra.binary-write-consistency', 'ALL'
     systemProperty 'project.build.directory', "${project.buildDir}/logs"
 }
