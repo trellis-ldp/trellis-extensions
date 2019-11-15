@@ -2,7 +2,7 @@
 
 IMAGE=$1
 
-if [ -z $1 ]; then
+if [ -z "$1" ]; then
     echo "Please include an image name parameter (e.g. trellisldp/trellis-database)"
     exit 1
 else
@@ -29,7 +29,7 @@ then
         docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
     fi
 
-    docker push $IMAGE
+    docker push "$IMAGE"
 else
     echo "Build artifacts not present. Please run 'gradle assemble' first"
     exit 1
