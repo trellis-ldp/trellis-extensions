@@ -41,8 +41,6 @@ jobs:
       - env: JOB=sonatype
       - env: JOB=docker
       - env: JOB=aws
-      # this is temporary, until the gradle plugin portal is running again for jdk11
-      - env: JOB=jdk11
 
   include:
     # JDK 8
@@ -61,8 +59,7 @@ jobs:
     # JDK 11
     - name: "Java 11"
       stage: test
-      jdk: openjdk11
-      env: JOB=jdk11
+      jdk: oraclejdk11
       script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
     # deploy JDK 8 builds to Sonatype
