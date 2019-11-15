@@ -13,11 +13,19 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.ExecutionInfo;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.metadata.Node;
+
+import java.util.AbstractMap.SimpleEntry;
 
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
@@ -34,7 +42,11 @@ class CassandraHealthCheckTest {
     @Test
     void testHealthy() {
         final CqlSession mockSession = mock(CqlSession.class);
-        when(mockSession.isClosed()).thenReturn(false);
+        final ResultSet mockResultSet = mock(ResultSet.class);
+        final ExecutionInfo mockExecutionInfo = mock(ExecutionInfo.class);
+        when(mockSession.execute(anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.getExecutionInfo()).thenReturn(mockExecutionInfo);
+        when(mockExecutionInfo.getErrors()).thenReturn(emptyList());
 
         final HealthCheck check = new CassandraHealthCheck(mockSession);
         assertEquals(HealthCheckResponse.State.UP, check.call().getState(), "Connection isn't healthy!");
@@ -43,7 +55,13 @@ class CassandraHealthCheckTest {
     @Test
     void testUnhealthy() {
         final CqlSession mockSession = mock(CqlSession.class);
-        when(mockSession.isClosed()).thenReturn(true);
+        final ResultSet mockResultSet = mock(ResultSet.class);
+        final ExecutionInfo mockExecutionInfo = mock(ExecutionInfo.class);
+        final Node mockNode = mock(Node.class);
+        when(mockSession.execute(anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.getExecutionInfo()).thenReturn(mockExecutionInfo);
+        when(mockExecutionInfo.getErrors()).thenReturn(singletonList(
+                    new SimpleEntry<>(mockNode, new RuntimeException("Expected exception."))));
 
         final HealthCheck check = new CassandraHealthCheck(mockSession);
         assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(),

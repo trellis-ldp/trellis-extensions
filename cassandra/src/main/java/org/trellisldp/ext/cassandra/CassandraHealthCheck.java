@@ -14,6 +14,7 @@
 package org.trellisldp.ext.cassandra;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -55,8 +56,10 @@ public class CassandraHealthCheck implements HealthCheck {
     @Override
     public HealthCheckResponse call() {
         if (session != null) {
+            final ResultSet res = session.execute("SELECT identifier FROM mutabledata LIMIT 1");
+
             return HealthCheckResponse.named(CassandraHealthCheck.class.getSimpleName())
-                    .state(!session.isClosed()).build();
+                .state(res.getExecutionInfo().getErrors().isEmpty()).build();
         }
         return HealthCheckResponse.named(CassandraHealthCheck.class.getSimpleName()).down().build();
     }
