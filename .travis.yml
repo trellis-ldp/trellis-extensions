@@ -7,6 +7,9 @@ addons:
   sonarcloud:
     organization: trellis-ldp
   postgresql: "9.6"
+  apt:
+    packages:
+      - oracle-java11-installer
 
 stages:
   - test
