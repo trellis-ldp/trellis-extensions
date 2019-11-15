@@ -59,7 +59,7 @@ jobs:
     - name: "Java 11"
       stage: test
       dist: bionic
-      before_script:
+      before_install:
           - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
           - source ./install-jdk.sh --feature 11
           - java -version
