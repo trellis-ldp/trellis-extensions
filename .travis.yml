@@ -6,9 +6,6 @@ group: edge
 addons:
   sonarcloud:
     organization: trellis-ldp
-  apt:
-    packages:
-      - openjdk-11-jdk
 
 stages:
   - test
@@ -63,7 +60,9 @@ jobs:
       stage: test
       dist: bionic
       before_install:
-          - update-java-alternatives --list
+          - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
+          - source install-jdk.sh --url https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-linux-x64.tar.gz
+          - java -version
       script: travis_retry ./gradlew check install -x pmdMain -x spotbugsMain
 
     # deploy JDK 8 builds to Sonatype
