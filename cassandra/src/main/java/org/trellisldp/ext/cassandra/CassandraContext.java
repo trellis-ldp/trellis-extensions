@@ -13,7 +13,6 @@
  */
 package org.trellisldp.ext.cassandra;
 
-import static com.datastax.oss.driver.api.core.DefaultConsistencyLevel.ONE;
 import static java.lang.Integer.parseInt;
 import static java.net.InetSocketAddress.createUnresolved;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -39,11 +38,10 @@ import org.slf4j.Logger;
 @ApplicationScoped
 public class CassandraContext {
 
+    private static final Logger LOGGER = getLogger(CassandraContext.class);
     private static final String ONE = "ONE";
     private static final TypeCodec<?>[] STANDARD_CODECS = new TypeCodec<?>[] { INPUTSTREAM_CODEC, IRI_CODEC,
             DATASET_CODEC };
-
-    private static final Logger LOGGER = getLogger(CassandraContext.class);
 
     private CqlSession session;
 
