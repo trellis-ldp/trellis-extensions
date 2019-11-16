@@ -21,9 +21,6 @@ dependencies {
     implementation "org.apache.kafka:kafka-clients:$kafkaVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
-    implementation "mysql:mysql-connector-java:$mysqlVersion"
-    implementation "org.postgresql:postgresql:$postgresVersion"
-
     implementation "org.trellisldp:trellis-api"
     implementation "org.trellisldp:trellis-app"
     implementation "org.trellisldp:trellis-audit"
@@ -42,6 +39,8 @@ dependencies {
 
     implementation project(':trellis-db')
 
+    runtime "org.postgresql:postgresql:$postgresVersion"
+    runtime "mysql:mysql-connector-java:$mysqlVersion"
     runtime "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
     runtime "jakarta.activation:jakarta.activation-api:$activationApiVersion"
     runtime "org.yaml:snakeyaml:$snakeyamlVersion"
