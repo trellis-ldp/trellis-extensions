@@ -64,6 +64,7 @@ ext {
     logbackVersion = '1.2.3'
     mockitoVersion = '3.1.0'
     otjPgVersion = '0.13.3'
+    weldVersion = '2.0.1.Final'
 
     /* Tools */
     checkstyleVersion = '8.26'

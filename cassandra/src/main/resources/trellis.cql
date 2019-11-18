@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS mutabledata (identifier text, quads text, interaction
     hasAcl boolean, binaryIdentifier text, mimeType text, container text, modified timestamp,
     created timeuuid,
     PRIMARY KEY (identifier));
-    
+
 CREATE TABLE IF NOT EXISTS mementodata (identifier text, quads text, interactionModel text,
     hasAcl boolean, binaryIdentifier text, mimeType text, container text, created timeuuid,
     modified timestamp, mementomodified timestamp,
