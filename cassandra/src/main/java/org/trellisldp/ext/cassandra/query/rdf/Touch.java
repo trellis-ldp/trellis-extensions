@@ -13,22 +13,38 @@
  */
 package org.trellisldp.ext.cassandra.query.rdf;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.time.Instant;
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
+import org.slf4j.Logger;
 import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 
 /**
  * A query that adjusts the modified time of a resource.
  */
+@ApplicationScoped
 public class Touch extends ResourceQuery {
+
+    private static Logger LOGGER = getLogger(Touch.class);
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public Touch() {
+        super();
+    }
 
     /**
      * Create a query that adjusts the modified time of a resource.
@@ -47,9 +63,11 @@ public class Touch extends ResourceQuery {
      * @return whether and when the modification succeeds
      */
     public CompletionStage<Void> execute(final Instant modified, final IRI id) {
-        final BoundStatement statement = preparedStatement().bind()
-                        .set("modified", modified, Instant.class)
-                        .set("identifier", id, IRI.class);
-        return executeWrite(statement);
+        return preparedStatementAsync().thenApply(stmt ->
+                stmt.bind().set("modified", modified, Instant.class)
+                           .set("identifier", id, IRI.class)
+                           .setConsistencyLevel(consistency))
+            .thenCompose(session::executeAsync)
+            .thenAccept(r -> LOGGER.debug("Executed query: {}", queryString));
     }
 }

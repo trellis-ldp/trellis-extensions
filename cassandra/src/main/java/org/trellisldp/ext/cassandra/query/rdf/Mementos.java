@@ -19,6 +19,7 @@ import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
@@ -27,7 +28,18 @@ import org.trellisldp.ext.cassandra.MutableReadConsistency;
 /**
  * A query to retrieve a list of the Mementos of a resource.
  */
+@ApplicationScoped
 public class Mementos extends ResourceQuery {
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public Mementos() {
+        super();
+    }
 
     /**
      * Create a query that retrieves a list of mementos.
@@ -46,6 +58,7 @@ public class Mementos extends ResourceQuery {
      *         There will be at least one (the most recent one).
      */
     public CompletionStage<AsyncResultSet> execute(final IRI id) {
-        return executeRead(preparedStatement().bind().set("identifier", id, IRI.class));
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class))
+            .thenCompose(session::executeAsync);
     }
 }

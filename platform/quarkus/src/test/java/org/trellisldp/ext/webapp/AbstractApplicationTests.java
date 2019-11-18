@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.db.webapp;
+package org.trellisldp.ext.webapp;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
@@ -24,20 +24,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 abstract class AbstractApplicationTests {
-
-    @Test
-    void healthCheckTest() {
-        given().when().get("/health").then().assertThat()
-            .contentType(ContentType.JSON)
-            .statusCode(200);
-    }
-
-    @Test
-    void readinessCheckTest() {
-        given().when().get("/health/ready").then().assertThat()
-            .contentType(ContentType.JSON)
-            .statusCode(200);
-    }
 
     @Test
     void livenessCheckTest() {

@@ -28,6 +28,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -44,8 +45,8 @@ import org.trellisldp.ext.cassandra.query.rdf.Mementos;
 
 /**
  * A {@link MementoService} that stores Mementos in a Cassandra table.
- *
  */
+@ApplicationScoped
 public class CassandraMementoService implements MementoService, CassandraBuildingService {
 
     private static final Logger LOGGER = getLogger(CassandraMementoService.class);
@@ -57,6 +58,10 @@ public class CassandraMementoService implements MementoService, CassandraBuildin
     private final GetMemento getMemento;
 
     private final GetFirstMemento getFirstMemento;
+
+    CassandraMementoService() {
+        this(null, null, null, null);
+    }
 
     @Inject
     CassandraMementoService(final Mementos mementos, final Mementoize mementoize, final GetMemento getMemento,

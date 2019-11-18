@@ -18,13 +18,13 @@ import static org.trellisldp.vocabulary.LDP.contains;
 
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Stream;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
@@ -37,9 +37,20 @@ import org.trellisldp.ext.cassandra.MutableReadConsistency;
 /**
  * A query to retrieve basic containment information from a materialized view or index table.
  */
+@ApplicationScoped
 public class BasicContainment extends ResourceQuery {
 
     private static final RDF rdfFactory = TrellisUtils.getInstance();
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public BasicContainment() {
+        super();
+    }
 
     /**
      * A class to query basic containment data.
@@ -57,11 +68,11 @@ public class BasicContainment extends ResourceQuery {
      * @return a {@link ResultSet} of the resources contained in {@code id}
      */
     public CompletionStage<Stream<Quad>> execute(final IRI id) {
-        final BoundStatement query = preparedStatement().bind().set("container", id, IRI.class);
-        return executeRead(query)
-                        .thenApply(AsyncResultSetUtils::stream)
-                        .thenApply(rows -> rows.map(this::getContained))
-                        .thenApply(rows -> rows.map(con -> containmentQuad(id, con)));
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("container", id, IRI.class))
+            .thenCompose(session::executeAsync)
+            .thenApply(AsyncResultSetUtils::stream)
+            .thenApply(rows -> rows.map(this::getContained))
+            .thenApply(rows -> rows.map(con -> containmentQuad(id, con)));
     }
 
     private IRI getContained(final Row r) {

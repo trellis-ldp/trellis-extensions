@@ -13,24 +13,40 @@
  */
 package org.trellisldp.ext.cassandra.query.rdf;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
+import org.slf4j.Logger;
 import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 
 /**
  * A query to insert mutable data about a resource into Cassandra.
  */
+@ApplicationScoped
 public class MutableInsert extends ResourceQuery {
+
+    private static final Logger LOGGER = getLogger(MutableInsert.class);
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public MutableInsert() {
+        super();
+    }
 
     /**
      * A query that inserts mutable data into Cassandra.
@@ -57,8 +73,10 @@ public class MutableInsert extends ResourceQuery {
      */
     public CompletionStage<Void> execute(final IRI ixnModel, final String mimeType, final IRI container,
             final Dataset data, final Instant modified, final IRI binaryIdentifier, final UUID creation, final IRI id) {
-        final BoundStatement statement = preparedStatement().bind(ixnModel, mimeType, container, data, modified,
-                        binaryIdentifier, creation, id);
-        return executeWrite(statement);
+        return preparedStatementAsync().thenApply(stmt ->
+                stmt.bind(ixnModel, mimeType, container, data, modified, binaryIdentifier, creation, id)
+                    .setConsistencyLevel(consistency))
+            .thenCompose(session::executeAsync)
+            .thenAccept(r -> LOGGER.debug("Executed query: {}", queryString));
     }
 }

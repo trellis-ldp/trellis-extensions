@@ -62,10 +62,6 @@ public class CassandraContext {
     String contactAddress;
 
     @Inject
-    @ConfigProperty(name = "trellis.cassandra.max-chunk-size", defaultValue = DefaultChunkSize.value)
-    String defaultChunkSize;
-
-    @Inject
     @ConfigProperty(name = "trellis.cassandra.binary-read-consistency", defaultValue = ONE)
     String binaryReadConsistency;
 
@@ -80,15 +76,6 @@ public class CassandraContext {
     @Inject
     @ConfigProperty(name = "trellis.cassandra.rdf-write-consistency", defaultValue = ONE)
     String rdfWriteConsistency;
-
-    /**
-     * @return the default size of chunk for a {@link CassandraBinaryService}
-     */
-    @Produces
-    @DefaultChunkSize
-    public int getChunkSize() {
-        return parseInt(defaultChunkSize);
-    }
 
     /**
      * @return the read-consistency to use querying Cassandra binary data

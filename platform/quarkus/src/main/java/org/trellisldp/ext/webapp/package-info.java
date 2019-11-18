@@ -11,25 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.cassandra;
-
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-
-import javax.inject.Qualifier;
 
 /**
- * The default size of any chunk in this service.
+ * A microprofile-based Trellis application.
  */
-@Documented
-@Retention(RUNTIME)
-@Qualifier
-public @interface DefaultChunkSize {
-
-    /**
-     * Default chunk size to use.
-     */
-    String value = "1048576";
-}
+package org.trellisldp.ext.webapp;

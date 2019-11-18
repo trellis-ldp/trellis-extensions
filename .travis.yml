@@ -49,11 +49,18 @@ jobs:
       script: travis_retry ./gradlew check -x pmdMain -x spotbugsMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
 
-    - name: "Java 8 (Quarkus)"
+    - name: "Java 8 (Quarkus Database)"
       stage: test
       jdk: openjdk8
       env: QUARKUS_EXTERNAL_PGSQL=true
-      script: travis_retry ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install --continue --scan
+      script: ./gradlew check -p platform/quarkus -x pmdMain -x spotbugsMain install --scan
+
+    - name: "Java 8 (Quarkus Cassandra)"
+      stage: test
+      jdk: openjdk8
+      env: TEST_CASSANDRA_ENABLE=true
+      install: ./gradlew assemble -Pcassandra
+      script: ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
 
     # JDK 11
     - name: "Java 11"
@@ -96,9 +103,18 @@ jobs:
       if: branch = master AND type = push
       install: ./gradlew assemble -Pcloud
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      # Note: for maintenance branches, remove the dockerPushLatest task
-      script:
-          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database-aws"
+      script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database-aws"
+
+    # deploy to Docker hub
+    - name: "Publish to Docker hub (trellis-cassandra)"
+      stage: deploy
+      jdk: openjdk8
+      env: JOB=docker
+      # Note: allow maintenance branches
+      if: branch = master AND type = push
+      install: ./gradlew assemble -Pcassandra
+      before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-cassandra"
 
     - name: "Publish JavaDocs"
       stage: deploy

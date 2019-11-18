@@ -18,11 +18,11 @@ import static java.util.Objects.requireNonNull;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
@@ -32,7 +32,18 @@ import org.trellisldp.ext.cassandra.BinaryReadConsistency;
  * A query to retrieve the chunk size metadata for a binary.
  *
  */
+@ApplicationScoped
 public class GetChunkSize extends BinaryQuery {
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public GetChunkSize() {
+        super();
+    }
 
     /**
      * @param session the cassandra session
@@ -49,10 +60,10 @@ public class GetChunkSize extends BinaryQuery {
      * @return a {@link Row} with the chunk size for this binary
      */
     public CompletionStage<Row> execute(final IRI id) {
-        final BoundStatement statement = preparedStatement().bind().set("identifier", id, IRI.class);
-        return executeRead(statement)
-                        .thenApply(AsyncResultSet::one)
-                        .thenApply(row -> requireNonNull(row,
-                                        () -> "Binary not found under IRI: " + id.getIRIString() + " !"));
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class))
+            .thenCompose(session::executeAsync)
+            .thenApply(AsyncResultSet::one)
+            .thenApply(row -> requireNonNull(row,
+                            () -> "Binary not found under IRI: " + id.getIRIString() + " !"));
     }
 }

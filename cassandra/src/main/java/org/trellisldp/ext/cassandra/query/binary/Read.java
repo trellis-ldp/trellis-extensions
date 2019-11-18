@@ -19,6 +19,7 @@ import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.io.InputStream;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
@@ -28,7 +29,18 @@ import org.trellisldp.ext.cassandra.BinaryReadConsistency;
  * Reads all bytes from a binary to an {@link InputStream}.
  *
  */
+@ApplicationScoped
 public class Read extends BinaryReadQuery {
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public Read() {
+        super();
+    }
 
     /**
      * @param session the cassandra session
