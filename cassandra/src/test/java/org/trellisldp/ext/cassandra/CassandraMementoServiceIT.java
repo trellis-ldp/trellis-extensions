@@ -14,7 +14,7 @@
 package org.trellisldp.ext.cassandra;
 
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.trellisldp.api.Metadata.builder;
 
 import java.time.Instant;
@@ -49,6 +49,9 @@ class CassandraMementoServiceIT extends CassandraServiceIT {
 
         SortedSet<Instant> mementos = connection.mementoService.mementos(id).toCompletableFuture().join();
         assertEquals(1, mementos.size());
+
+        assertEquals(id, connection.mementoService.get(id, mementos.first()).toCompletableFuture().join()
+                .getIdentifier());
         waitTwoSeconds();
 
         // again
@@ -57,5 +60,15 @@ class CassandraMementoServiceIT extends CassandraServiceIT {
 
         mementos = connection.mementoService.mementos(id).toCompletableFuture().join();
         assertEquals(2, mementos.size());
+
+        mementos.forEach(time ->
+            assertEquals(id, connection.mementoService.get(id, time).toCompletableFuture().join()
+                .getIdentifier()));
+
+    }
+
+    @Test
+    void testNoArgCtor() {
+        assertDoesNotThrow(() -> new CassandraMementoService());
     }
 }

@@ -13,8 +13,7 @@
  */
 package org.trellisldp.ext.cassandra;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.trellisldp.api.Metadata.builder;
 
 import java.time.Instant;
@@ -67,6 +66,11 @@ class CassandraResourceServiceIT extends CassandraServiceIT implements ResourceS
         final Instant newModified = connection.resourceService.get(container)
             .toCompletableFuture().join().getModified();
         assertTrue(modified.compareTo(newModified) < 0);
+    }
+
+    @Test
+    void testNoArgCtor() {
+        assertDoesNotThrow(() -> new CassandraResourceService());
     }
 
     @Override
