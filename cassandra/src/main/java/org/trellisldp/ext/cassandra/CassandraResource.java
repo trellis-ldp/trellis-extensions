@@ -14,10 +14,6 @@
 package org.trellisldp.ext.cassandra;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.BinaryMetadata.builder;
-import static org.trellisldp.vocabulary.LDP.Container;
-import static org.trellisldp.vocabulary.LDP.NonRDFSource;
-import static org.trellisldp.vocabulary.LDP.getSuperclassOf;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -28,56 +24,36 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 
 class CassandraResource implements Resource {
 
     private static final Logger log = getLogger(CassandraResource.class);
 
-    private final IRI identifier;
-    private final IRI container;
-    private final IRI interactionModel;
-
-    final boolean hasAcl;
-    final boolean isContainer;
-
+    private final Metadata metadata;
+    private final Dataset dataset;
     private final Instant modified;
 
-    private final BinaryMetadata binary;
-
-    private final Dataset dataset;
-
-    public CassandraResource(final IRI id, final IRI ixnModel, final boolean hasAcl, final IRI binaryIdentifier,
-            final String mimeType, final IRI container, final Instant modified, final Dataset dataset) {
-        this.identifier = id;
-        this.interactionModel = ixnModel;
-        this.isContainer = Container.equals(ixnModel) || Container.equals(getSuperclassOf(ixnModel));
-        this.hasAcl = hasAcl;
-        this.container = container;
-        log.trace("Resource is {}a container.", !isContainer ? "not " : "");
-        this.modified = modified;
-        final boolean isBinary = NonRDFSource.equals(ixnModel);
-        this.binary = isBinary ? builder(binaryIdentifier).mimeType(mimeType).build() : null;
-        log.trace("Resource is {}a NonRDFSource.", !isBinary ? "not " : "");
+    public CassandraResource(final Metadata metadata, final Instant modified, final Dataset dataset) {
+        this.metadata = metadata;
         this.dataset = dataset;
+        this.modified = modified;
     }
 
     @Override
     public IRI getIdentifier() {
-        return identifier;
+        return metadata.getIdentifier();
     }
 
-    /**
-     * @return a container for this resource
-     */
     @Override
     public Optional<IRI> getContainer() {
-        return Optional.ofNullable(container);
+        return metadata.getContainer();
     }
 
     @Override
     public IRI getInteractionModel() {
-        return interactionModel;
+        return metadata.getInteractionModel();
     }
 
     @Override
@@ -87,12 +63,12 @@ class CassandraResource implements Resource {
 
     @Override
     public boolean hasAcl() {
-        return hasAcl;
+        return metadata.getHasAcl();
     }
 
     @Override
     public Optional<BinaryMetadata> getBinaryMetadata() {
-        return Optional.ofNullable(binary);
+        return metadata.getBinary();
     }
 
     @Override
