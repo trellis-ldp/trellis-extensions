@@ -13,8 +13,6 @@
  */
 package org.trellisldp.ext.cassandra;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.time.Instant;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -22,14 +20,11 @@ import java.util.stream.Stream;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
-import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 
 class CassandraResource implements Resource {
-
-    private static final Logger log = getLogger(CassandraResource.class);
 
     private final Metadata metadata;
     private final Dataset dataset;
