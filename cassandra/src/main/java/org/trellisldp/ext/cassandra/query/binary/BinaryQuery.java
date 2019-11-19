@@ -18,9 +18,13 @@ import com.datastax.oss.driver.api.core.CqlSession;
 
 import org.trellisldp.ext.cassandra.query.CassandraQuery;
 
-abstract class BinaryQuery extends CassandraQuery {
+public abstract class BinaryQuery extends CassandraQuery {
 
     static final String BINARY_TABLENAME = "binarydata";
+
+    BinaryQuery() {
+        super();
+    }
 
     BinaryQuery(final CqlSession session, final String queryString, final ConsistencyLevel consistency) {
         super(session, queryString, consistency);

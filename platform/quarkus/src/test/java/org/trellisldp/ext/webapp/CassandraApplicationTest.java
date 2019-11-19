@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.db.webapp;
+package org.trellisldp.ext.webapp;
 
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 
@@ -20,23 +20,20 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 @DisabledOnOs(WINDOWS)
-@EnabledIfEnvironmentVariable(named = "QUARKUS_EXTERNAL_PGSQL", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
 @QuarkusTest
-class PgsqlApplicationTest extends AbstractApplicationTests {
+class CassandraApplicationTest extends AbstractApplicationTests {
 
     @BeforeAll
-    static void setUp() throws Exception {
-        System.setProperty("quarkus.datasource.username", "postgres");
-        System.clearProperty("quarkus.datasource.password");
-        System.setProperty("quarkus.datasource.url", "jdbc:postgresql://localhost/trellis");
+    static void setUp() {
+        System.setProperty("quarkus.flyway.migrate-at-start", "false");
     }
 
     @AfterAll
-    static void tearDown() throws Exception {
-        System.clearProperty("quarkus.datasource.url");
-        System.clearProperty("quarkus.datasource.username");
+    static void tearDown() {
+        System.clearProperty("quarkus.flyway.migrate-at-start");
     }
 }

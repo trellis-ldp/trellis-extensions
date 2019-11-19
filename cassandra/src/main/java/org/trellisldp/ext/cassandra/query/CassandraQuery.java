@@ -18,7 +18,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.BoundStatement;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
@@ -34,30 +33,31 @@ import org.slf4j.Logger;
  */
 public class CassandraQuery {
 
-    private static final Logger log = getLogger(CassandraQuery.class);
+    private static final Logger LOGGER = getLogger(CassandraQuery.class);
 
     /**
      * A Cassandra session for use with this query.
      */
     protected final CqlSession session;
+    protected final ConsistencyLevel consistency;
+    protected final String queryString;
 
     /**
      * Worker threads that read and write from and to Cassandra. Reading and writing are thereby uncoupled from threads
      * calling into this class.
      */
     protected final Executor writeWorkers = newCachedThreadPool();
-    protected final Executor readWorkers = newCachedThreadPool();
     protected final Executor readBinaryWorkers = newCachedThreadPool();
 
-    private final PreparedStatement statement;
 
-    private final ConsistencyLevel consistency;
-
-    /**
-     * @return the {@link PreparedStatement} that underlies this query
+     /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
      */
-    protected PreparedStatement preparedStatement() {
-        return statement;
+    protected CassandraQuery() {
+        this(null, null, ConsistencyLevel.ONE);
     }
 
     /**
@@ -67,28 +67,24 @@ public class CassandraQuery {
      */
     public CassandraQuery(final CqlSession session, final String queryString, final ConsistencyLevel consistency) {
         this.session = session;
-        this.statement = session.prepare(queryString);
+        this.queryString = queryString;
         this.consistency = consistency;
     }
 
     /**
-     * @param statement the CQL statement to execute
-     * @return when and whether the statement completed
+     * @return the {@link PreparedStatement} that underlies this query
      */
-    protected CompletionStage<Void> executeWrite(final BoundStatement statement) {
-        final String queryString = statement.getPreparedStatement().getQuery();
-        log.debug("Executing CQL write: {}", queryString);
-        final BoundStatement consistentStatement = statement.setConsistencyLevel(consistency);
-        return session.executeAsync(consistentStatement)
-                        .thenAccept(r -> log.debug("Executed CQL write: {}", queryString));
+    protected PreparedStatement preparedStatement() {
+        LOGGER.debug("Preparing statement {}", queryString);
+        return session.prepare(queryString);
     }
 
     /**
-     * @param statement the CQL statement to execute
-     * @return the results of that statement
+     * @return the {@link PreparedStatement} that underlies this query
      */
-    protected CompletionStage<AsyncResultSet> executeRead(final BoundStatement statement) {
-        return session.executeAsync(statement);
+    protected CompletionStage<PreparedStatement> preparedStatementAsync() {
+        LOGGER.debug("Preparing async statement {}", queryString);
+        return session.prepareAsync(queryString);
     }
 
     /**

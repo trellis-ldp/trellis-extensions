@@ -73,9 +73,4 @@ class CassandraContextIT {
     void testRdfWriteConsistency() {
         assertEquals(DefaultConsistencyLevel.ONE, ctx.getRdfWriteConsistency());
     }
-
-    @Test
-    void testDefaultChunkSize() {
-        assertEquals(Integer.parseInt(DefaultChunkSize.value), ctx.getChunkSize());
-    }
 }

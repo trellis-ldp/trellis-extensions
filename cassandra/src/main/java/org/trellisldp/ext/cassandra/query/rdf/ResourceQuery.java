@@ -31,6 +31,10 @@ abstract class ResourceQuery extends CassandraQuery {
 
     static final String BASIC_CONTAINMENT_TABLENAME = "basiccontainment";
 
+    ResourceQuery() {
+        super();
+    }
+
     ResourceQuery(final CqlSession session, final String queryString, final ConsistencyLevel consistency) {
         super(session, queryString, consistency);
     }

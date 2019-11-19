@@ -16,11 +16,11 @@ package org.trellisldp.ext.cassandra.query.rdf;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.time.Instant;
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
@@ -29,7 +29,18 @@ import org.trellisldp.ext.cassandra.MutableReadConsistency;
 /**
  * Retrieve data for a Memento.
  */
+@ApplicationScoped
 public class GetMemento extends ResourceQuery {
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public GetMemento() {
+        super();
+    }
 
     /**
      * A class that retrieves data for a Memento.
@@ -49,9 +60,8 @@ public class GetMemento extends ResourceQuery {
      * @return the data for the Memento
      */
     public CompletionStage<AsyncResultSet> execute(final IRI id, final Instant time) {
-        final BoundStatement statement = preparedStatement().bind()
-                        .set("time", time, Instant.class)
-                        .set("identifier", id, IRI.class);
-        return executeRead(statement);
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("time", time, Instant.class)
+                .set("identifier", id, IRI.class))
+            .thenCompose(session::executeAsync);
     }
 }

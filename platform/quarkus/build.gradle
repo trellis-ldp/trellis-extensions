@@ -3,18 +3,16 @@ plugins {
 }
 
 def installForQuarkus = [
+    "trellis-aws",
+    "trellis-cassandra",
     "trellis-db",
-    "trellis-aws"
+    "trellis-namespaces"
 ]
 
 dependencies {
     implementation enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion")
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
 
-    implementation 'io.quarkus:quarkus-agroal'
-    implementation 'io.quarkus:quarkus-flyway'
-    implementation 'io.quarkus:quarkus-jdbc-h2'
-    implementation 'io.quarkus:quarkus-jdbc-postgresql'
     implementation 'io.quarkus:quarkus-jsonb'
     implementation 'io.quarkus:quarkus-resteasy'
     implementation 'io.quarkus:quarkus-security'
@@ -40,13 +38,27 @@ dependencies {
     implementation "org.trellisldp:trellis-vocabulary"
 
     // Persistence
-    implementation "org.trellisldp.ext:trellis-db:${project.version}"
-    if (project.hasProperty("cloud")) {
-        implementation "org.trellisldp.ext:trellis-aws:${project.version}"
-    } else {
-        implementation "org.trellisldp:trellis-file"
-        implementation "org.trellisldp:trellis-reactive"
+    if (project.hasProperty("cassandra")) {
+        // Cassandra dependencies
         implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
+        implementation "org.trellisldp.ext:trellis-cassandra:${project.version}"
+        implementation "org.trellisldp.ext:trellis-namespaces:${project.version}"
+        implementation "org.trellisldp:trellis-reactive"
+    } else {
+        // Database dependencies
+        implementation 'io.quarkus:quarkus-agroal'
+        implementation 'io.quarkus:quarkus-flyway'
+        implementation 'io.quarkus:quarkus-jdbc-h2'
+        implementation 'io.quarkus:quarkus-jdbc-postgresql'
+        implementation "org.trellisldp.ext:trellis-db:${project.version}"
+
+        if (project.hasProperty("cloud")) {
+            implementation "org.trellisldp.ext:trellis-aws:${project.version}"
+        } else {
+            implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
+            implementation "org.trellisldp:trellis-file"
+            implementation "org.trellisldp:trellis-reactive"
+        }
     }
 
     // Other dependencies
@@ -71,6 +83,8 @@ dependencies {
     testImplementation "io.quarkus:quarkus-junit5"
     testImplementation "io.rest-assured:rest-assured"
     testImplementation "org.apache.commons:commons-text:$commonsTextVersion"
+    testImplementation "org.jboss.resteasy:resteasy-client"
+    testImplementation "org.trellisldp:trellis-test"
 }
 
 test {
@@ -80,9 +94,21 @@ test {
     systemProperty 'quarkus.flyway.migrate-at-start', 'true'
     systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
     systemProperty 'trellis.file.binary.basepath', "$buildDir/data/binaries"
+    systemProperty 'trellis.http.weak.etag', 'true'
     systemProperty "trellis.s3.memento.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
     systemProperty "trellis.s3.binary.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
     systemProperty "trellis.sns.topic", System.getenv("AWS_TEST_TOPIC") ?: "test-topic"
+
+    if (project.hasProperty("cassandra")) {
+        systemProperty "trellis.test.cassandra.enable", project.findProperty("trellis.test.cassandra.enable") ?: System.getenv("TEST_CASSANDRA_ENABLE")
+    } else {
+        // enable the db tests
+        if (System.getenv("QUARKUS_EXTERNAL_PGSQL")) {
+            systemProperty 'trellis.test.quarkus.external-pgsql', 'true'
+        } else {
+            systemProperty 'trellis.test.quarkus.embedded-pgsql', 'true'
+        }
+    }
 
 }
 

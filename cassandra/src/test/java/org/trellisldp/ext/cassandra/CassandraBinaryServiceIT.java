@@ -140,6 +140,11 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
         }
     }
 
+    @Test
+    void testNoArgCtor() {
+        assertDoesNotThrow(() -> new CassandraBinaryService());
+    }
+
     private IRI createIRI() {
         return rdfFactory.createIRI("http://example.com/" + randomUUID());
     }

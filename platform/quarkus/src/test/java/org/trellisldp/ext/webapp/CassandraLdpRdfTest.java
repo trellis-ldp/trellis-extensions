@@ -11,8 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.trellisldp.ext.webapp;
 
-/**
- * A microprofile-based Trellis application.
- */
-package org.trellisldp.ext.db.webapp;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
+
+import io.quarkus.test.junit.QuarkusTest;
+
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
+@DisabledOnOs(WINDOWS)
+@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
+@QuarkusTest
+class CassandraLdpRdfTest extends AbstractLdpRdfTests {
+}

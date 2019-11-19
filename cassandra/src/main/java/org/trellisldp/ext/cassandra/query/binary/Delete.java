@@ -13,22 +13,38 @@
  */
 package org.trellisldp.ext.cassandra.query.binary;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
+import org.slf4j.Logger;
 import org.trellisldp.ext.cassandra.BinaryWriteConsistency;
 
 /**
  * A query that deletes a binary.
  *
  */
+@ApplicationScoped
 public class Delete extends BinaryQuery {
+
+    private static final Logger LOGGER = getLogger(Delete.class);
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public Delete() {
+        super();
+    }
 
     /**
      * @param session the cassandra session
@@ -44,7 +60,8 @@ public class Delete extends BinaryQuery {
      * @return whether and when it has been deleted
      */
     public CompletionStage<Void> execute(final IRI id) {
-        final BoundStatement statement = preparedStatement().bind().set("identifier", id, IRI.class);
-        return executeWrite(statement);
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class))
+            .thenCompose(session::executeAsync)
+            .thenAccept(r -> LOGGER.debug("Executed query: {}", queryString));
     }
 }

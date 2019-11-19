@@ -14,6 +14,7 @@
 package org.trellisldp.ext.cassandra;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.InputStream;
@@ -24,6 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.io.input.BoundedInputStream;
@@ -37,9 +39,15 @@ import org.trellisldp.ext.cassandra.query.binary.*;
  * Implements {@link BinaryService} by chunking binary data across Cassandra.
  *
  */
+@ApplicationScoped
 public class CassandraBinaryService implements BinaryService {
 
-    private static final Logger log = getLogger(CassandraBinaryService.class);
+    /** Configuration key for adjusting the chunk size of binary resources. */
+    public static final String CONFIG_MAX_CHUNK_SIZE = "trellis.cassandra.max-chunk-size";
+    /** The default chunk size for binary resources, in bytes. */
+    public static final int DEFAULT_CHUNK_SIZE = 1048576;
+
+    private static final Logger LOGGER = getLogger(CassandraBinaryService.class);
 
     @SuppressWarnings("boxing")
     private static final CompletableFuture<Long> DONE = completedFuture(-1L);
@@ -64,8 +72,17 @@ public class CassandraBinaryService implements BinaryService {
     private Executor readBinaryWorkers = Executors.newCachedThreadPool();
 
     /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public CassandraBinaryService() {
+        this(new DefaultIdentifierService(), null, null, null, null, null);
+    }
+
+    /**
      * @param idService {@link IdentifierService} to use for binaries
-     * @param chunkLength the maximum size of any chunk in this service
      * @param get a {@link GetChunkSize} query to use
      * @param insert a {@link Insert} query to use
      * @param delete a {@link Delete} query to use
@@ -73,12 +90,12 @@ public class CassandraBinaryService implements BinaryService {
      * @param readRange a {@link ReadRange} query to use
      */
     @Inject
-    public CassandraBinaryService(final IdentifierService idService, @DefaultChunkSize final int chunkLength,
-            final GetChunkSize get, final Insert insert, final Delete delete, final Read read,
-            final ReadRange readRange) {
+    public CassandraBinaryService(final IdentifierService idService, final GetChunkSize get, final Insert insert,
+            final Delete delete, final Read read, final ReadRange readRange) {
+        this.defaultChunkLength = getConfig().getOptionalValue(CONFIG_MAX_CHUNK_SIZE, Integer.class)
+            .orElse(DEFAULT_CHUNK_SIZE);
+        LOGGER.info("Using configured default chunk length: {}", defaultChunkLength);
         this.idService = idService;
-        this.defaultChunkLength = chunkLength;
-        log.info("Using configured default chunk length: {}", chunkLength);
         this.get = get;
         this.insert = insert;
         this.delete = delete;
@@ -88,7 +105,7 @@ public class CassandraBinaryService implements BinaryService {
 
     @Override
     public CompletionStage<Binary> get(final IRI id) {
-        log.debug("Retrieving binary content from: {}", id);
+        LOGGER.debug("Retrieving binary content from: {}", id);
         return get.execute(id)
                         .thenApplyAsync(r -> new CassandraBinary(id, read, readRange, r.getInt("chunkSize")),
                         readBinaryWorkers);
@@ -96,7 +113,7 @@ public class CassandraBinaryService implements BinaryService {
 
     @Override
     public CompletionStage<Void> setContent(final BinaryMetadata meta, final InputStream stream) {
-        log.debug("Recording binary content under: {}", meta.getIdentifier());
+        LOGGER.debug("Recording binary content under: {}", meta.getIdentifier());
         final int chunkSize;
         if (meta.getHints() == null) chunkSize = defaultChunkLength;
         else {
@@ -107,14 +124,14 @@ public class CassandraBinaryService implements BinaryService {
             else chunkSize = Integer.parseInt(headers.get(0));
         }
         return setChunk(meta, stream, new AtomicInteger(), chunkSize)
-                        .thenAccept(l -> log.debug("Recorded binary content under: {}", meta.getIdentifier()));
+                        .thenAccept(l -> LOGGER.debug("Recorded binary content under: {}", meta.getIdentifier()));
     }
 
     @SuppressWarnings("resource")
     private CompletionStage<Long> setChunk(final BinaryMetadata meta, final InputStream data,
             final AtomicInteger chunkIndex, final int chunkLength) {
         final IRI id = meta.getIdentifier();
-        log.debug("Recording chunk {} of binary content under: {}", chunkIndex.get(), id);
+        LOGGER.debug("Recording chunk {} of binary content under: {}", chunkIndex.get(), id);
 
         try (final NoopCloseCountingInputStream countingChunk = new NoopCloseCountingInputStream(
                         new BoundedInputStream(data, chunkLength))) {

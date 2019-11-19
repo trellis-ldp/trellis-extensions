@@ -13,23 +13,39 @@
  */
 package org.trellisldp.ext.cassandra.query.rdf;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.time.Instant;
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
+import org.slf4j.Logger;
 import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 
 /**
  * A query to insert immutable data about a resource into Cassandra.
  */
+@ApplicationScoped
 public class ImmutableInsert extends ResourceQuery {
+
+    private static final Logger LOGGER = getLogger(ImmutableInsert.class);
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public ImmutableInsert() {
+        super();
+    }
 
     /**
      * Create a query to insert immutable data into Cassandra.
@@ -49,7 +65,9 @@ public class ImmutableInsert extends ResourceQuery {
      * @return whether and when the insertion succeeds
      */
     public CompletionStage<Void> execute(final IRI id, final Dataset data, final Instant time) {
-        final BoundStatement statement = preparedStatement().bind(id, data, time);
-        return executeWrite(statement);
+        return preparedStatementAsync().thenApply(stmt ->
+                stmt.bind(id, data, time).setConsistencyLevel(consistency))
+            .thenCompose(session::executeAsync)
+            .thenAccept(r -> LOGGER.debug("Executed CQL write: {}", queryString));
     }
 }

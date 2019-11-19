@@ -94,7 +94,7 @@ class CassandraConnection implements AfterAllCallback, BeforeAllCallback {
         this.mementoService = new CassandraMementoService(new Mementos(session, testConsistency),
                         new Mementoize(session, testConsistency), new GetMemento(session, testConsistency),
                         new GetFirstMemento(session, testConsistency));
-        this.binaryService = new CassandraBinaryService((IdentifierService) null, 1024 * 1024,
+        this.binaryService = new CassandraBinaryService((IdentifierService) null,
                         new GetChunkSize(session, testConsistency),
                         new Insert(session, testConsistency),
                         new org.trellisldp.ext.cassandra.query.binary.Delete(session, testConsistency),

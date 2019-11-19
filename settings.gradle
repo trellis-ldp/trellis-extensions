@@ -18,14 +18,17 @@ include ':trellis-cassandra'
 include ':trellis-db'
 include ':trellis-db-app'
 include ':trellis-db-deployment'
-include ':trellis-db-quarkus'
 include ':trellis-ext-bom'
+include ':trellis-namespaces'
+include ':trellis-quarkus'
 
 project(':trellis-aws').projectDir = "$rootDir/aws" as File
 project(':trellis-cassandra').projectDir = "$rootDir/cassandra" as File
 project(':trellis-db').projectDir = "$rootDir/db" as File
+project(':trellis-namespaces').projectDir = "$rootDir/namespaces" as File
+
 project(':trellis-db-app').projectDir = "$rootDir/platform/dropwizard" as File
 project(':trellis-db-deployment').projectDir = "$rootDir/platform/deployment" as File
-project(':trellis-db-quarkus').projectDir = "$rootDir/platform/quarkus" as File
+project(':trellis-quarkus').projectDir = "$rootDir/platform/quarkus" as File
 
 project(':trellis-ext-bom').projectDir = "$rootDir/platform/bom" as File

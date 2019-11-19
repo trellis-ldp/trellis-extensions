@@ -19,6 +19,7 @@ import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 
 import java.util.concurrent.CompletionStage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
@@ -27,7 +28,18 @@ import org.trellisldp.ext.cassandra.MutableReadConsistency;
 /**
  * Retrieve data for a resource.
  */
+@ApplicationScoped
 public class Get extends ResourceQuery {
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public Get() {
+        super();
+    }
 
     /**
      * Retrieve data for a resource.
@@ -44,6 +56,7 @@ public class Get extends ResourceQuery {
      * @return a {@link AsyncResultSet} of the resource data
      */
     public CompletionStage<AsyncResultSet> execute(final IRI id) {
-        return executeRead(preparedStatement().bind().set("identifier", id, IRI.class));
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class))
+            .thenCompose(session::executeAsync);
     }
 }

@@ -32,12 +32,17 @@ import org.trellisldp.ext.cassandra.LazyChunkInputStream;
 /**
  * A query that reads binary data from Cassandra.
  */
-abstract class BinaryReadQuery extends BinaryQuery {
+public abstract class BinaryReadQuery extends BinaryQuery {
 
     private static final String READ_CHUNK_QUERY = "SELECT chunk FROM " + BINARY_TABLENAME
                     + " WHERE identifier = :identifier and chunkIndex = :chunkIndex;";
 
     private final PreparedStatement readChunkStatement;
+
+    BinaryReadQuery() {
+        super();
+        this.readChunkStatement = null;
+    }
 
     BinaryReadQuery(final CqlSession session, final String queryString, final ConsistencyLevel consistency) {
         super(session, queryString, consistency);

@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -65,6 +66,7 @@ import org.trellisldp.vocabulary.LDP;
  *
  * @author ajs6f
  */
+@ApplicationScoped
 class CassandraResourceService implements ResourceService, CassandraBuildingService {
 
     private static final Set<IRI> SUPPORTED_INTERACTION_MODELS;
@@ -90,6 +92,10 @@ class CassandraResourceService implements ResourceService, CassandraBuildingServ
     private final BasicContainment bcontainment;
 
     private final ImmutableRetrieve immutableRetrieve;
+
+    CassandraResourceService() {
+        this(null, null, null, null, null, null, null);
+    }
 
     @Inject
     CassandraResourceService(final Delete delete, final Get get, final ImmutableInsert immutableInsert,

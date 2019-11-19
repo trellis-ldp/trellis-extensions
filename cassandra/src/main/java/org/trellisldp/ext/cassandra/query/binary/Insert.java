@@ -13,23 +13,39 @@
  */
 package org.trellisldp.ext.cassandra.query.binary;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.io.InputStream;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.IRI;
+import org.slf4j.Logger;
 import org.trellisldp.ext.cassandra.BinaryWriteConsistency;
 
 /**
  * Insert binary data into a table.
  */
+@ApplicationScoped
 public class Insert extends BinaryQuery implements Executor {
+
+    private static final Logger LOGGER = getLogger(Insert.class);
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public Insert() {
+        super();
+    }
 
     /**
      * @param session the cassandra session
@@ -50,10 +66,12 @@ public class Insert extends BinaryQuery implements Executor {
      */
     public CompletionStage<Void> execute(final IRI id, final int chunkSize, final int chunkIndex,
             final InputStream chunk) {
-        final BoundStatement boundStatement = preparedStatement().bind().set("identifier", id, IRI.class)
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class)
                         .setInt("chunkSize", chunkSize).setInt("chunkIndex", chunkIndex)
-                        .set("chunk", chunk, InputStream.class);
-        return executeWrite(boundStatement);
+                        .set("chunk", chunk, InputStream.class)
+                        .setConsistencyLevel(consistency))
+            .thenCompose(session::executeAsync)
+            .thenAccept(r -> LOGGER.debug("Executed query: {}", queryString));
     }
 
     @Override

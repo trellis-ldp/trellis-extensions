@@ -11,42 +11,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.db.webapp;
+package org.trellisldp.ext.webapp;
 
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
-
 import io.quarkus.test.junit.QuarkusTest;
 
-import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 @DisabledOnOs(WINDOWS)
-@DisabledIfEnvironmentVariable(named = "QUARKUS_EXTERNAL_PGSQL", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.quarkus.external-pgsql", matches = "true")
 @QuarkusTest
-class EmbeddedPgsqlApplicationTest extends AbstractApplicationTests {
-
-    private static EmbeddedPostgres pg;
+class PgsqlApplicationTest extends AbstractApplicationTests {
 
     @BeforeAll
     static void setUp() throws Exception {
-        pg = EmbeddedPostgres.builder()
-            .setDataDirectory("/tmp/testing/" + "pgdata-" + new RandomStringGenerator
-                    .Builder().withinRange('a', 'z').build().generate(10)).start();
         System.setProperty("quarkus.datasource.username", "postgres");
-        System.setProperty("quarkus.datasource.password", "postgres");
-        System.setProperty("quarkus.datasource.url", "jdbc:postgresql://localhost:" + pg.getPort() + "/postgres");
+        System.clearProperty("quarkus.datasource.password");
+        System.setProperty("quarkus.datasource.url", "jdbc:postgresql://localhost/trellis");
     }
 
     @AfterAll
     static void tearDown() throws Exception {
         System.clearProperty("quarkus.datasource.url");
         System.clearProperty("quarkus.datasource.username");
-        System.clearProperty("quarkus.datasource.password");
-        pg.close();
     }
 }

@@ -20,6 +20,7 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Stream;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -31,7 +32,18 @@ import org.trellisldp.ext.cassandra.MutableReadConsistency;
 /**
  * A query to retrieve immutable data about a resource from Cassandra.
  */
+@ApplicationScoped
 public class ImmutableRetrieve extends ResourceQuery {
+
+    /**
+     * For use with RESTeasy and CDI proxies.
+     *
+     * @apiNote This construtor is used by CDI runtimes that require a public, no-argument constructor.
+     *          It should not be invoked directly in user code.
+     */
+    public ImmutableRetrieve() {
+        super();
+    }
 
     /**
      * Retrieve immutable data about a resource.
@@ -48,10 +60,11 @@ public class ImmutableRetrieve extends ResourceQuery {
      * @return the RDF retrieved
      */
     public CompletionStage<Stream<Quad>> execute(final IRI id) {
-        return executeRead(preparedStatement().bind().set("identifier", id, IRI.class))
-                        .thenApply(AsyncResultSetUtils::stream)
-                        .thenApply(row -> row.map(this::getDataset))
-                        .thenApply(r -> r.flatMap(Dataset::stream));
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class))
+            .thenCompose(session::executeAsync)
+            .thenApply(AsyncResultSetUtils::stream)
+            .thenApply(row -> row.map(this::getDataset))
+            .thenApply(r -> r.flatMap(Dataset::stream));
     }
 
     private Dataset getDataset(final Row r) {
