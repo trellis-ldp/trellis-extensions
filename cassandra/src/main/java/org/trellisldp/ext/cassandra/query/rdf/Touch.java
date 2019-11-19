@@ -34,7 +34,7 @@ import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 @ApplicationScoped
 public class Touch extends ResourceQuery {
 
-    private static Logger LOGGER = getLogger(Touch.class);
+    private static final Logger LOGGER = getLogger(Touch.class);
 
     /**
      * For use with RESTeasy and CDI proxies.
