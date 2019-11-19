@@ -20,7 +20,7 @@ if [[ $VERSION == *SNAPSHOT* ]]; then
     TAG=develop
 fi
 
-if [[ -f "build/trellis-db-quarkus-${VERSION}-runner.jar" && -d "build/lib" ]]
+if [[ -f "build/trellis-quarkus-${VERSION}-runner.jar" && -d "build/lib" ]]
 then
     # Don't use latest/develop tags for maintenance branches
     if [[ $BRANCH == *.x ]]; then
