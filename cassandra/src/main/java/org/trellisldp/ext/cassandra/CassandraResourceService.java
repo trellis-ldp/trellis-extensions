@@ -28,11 +28,9 @@ import static org.trellisldp.vocabulary.LDP.getSuperclassOf;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -46,7 +44,6 @@ import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.slf4j.Logger;
-import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
@@ -199,15 +196,6 @@ class CassandraResourceService implements ResourceService, CassandraBuildingServ
     }
 
     private CompletionStage<Void> write(final Metadata meta, final Dataset data) {
-        final IRI id = meta.getIdentifier();
-        final IRI ixnModel = meta.getInteractionModel();
-        final IRI container = meta.getContainer().orElse(null);
-
-        final Optional<BinaryMetadata> binary = meta.getBinary();
-        final IRI binaryIdentifier = binary.map(BinaryMetadata::getIdentifier).orElse(null);
-        final String mimeType = binary.flatMap(BinaryMetadata::getMimeType).orElse(null);
-        final Instant now = now();
-
-        return mutableInsert.execute(ixnModel, mimeType, container, data, now, binaryIdentifier, Uuids.timeBased(), id);
+        return mutableInsert.execute(meta, now(), data, Uuids.timeBased());
     }
 }

@@ -22,7 +22,6 @@ import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -34,8 +33,8 @@ import javax.inject.Inject;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.slf4j.Logger;
-import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.MementoService;
+import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.ext.cassandra.query.rdf.GetFirstMemento;
 import org.trellisldp.ext.cassandra.query.rdf.GetMemento;
@@ -75,18 +74,13 @@ public class CassandraMementoService implements MementoService, CassandraBuildin
     @Override
     public CompletionStage<Void> put(final Resource r) {
 
-        final IRI id = r.getIdentifier();
-        final IRI ixnModel = r.getInteractionModel();
-        final IRI container = r.getContainer().orElse(null);
-        final Optional<BinaryMetadata> binary = r.getBinaryMetadata();
-        final IRI binaryIdentifier = binary.map(BinaryMetadata::getIdentifier).orElse(null);
-        final String mimeType = binary.flatMap(BinaryMetadata::getMimeType).orElse(null);
+        final Metadata metadata = Metadata.builder(r).build();
         final Dataset data = r.dataset();
         final Instant modified = r.getModified();
         final UUID creation = Uuids.timeBased();
 
-        LOGGER.debug("Writing Memento for {} at time: {}", id, modified);
-        return mementoize.execute(ixnModel, mimeType, container, data, modified, binaryIdentifier, creation, id);
+        LOGGER.debug("Writing Memento for {} at time: {}", metadata.getIdentifier(), modified);
+        return mementoize.execute(metadata, modified, data, creation);
     }
 
     //@formatter:off

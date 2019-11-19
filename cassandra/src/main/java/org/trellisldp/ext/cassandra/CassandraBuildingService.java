@@ -22,6 +22,8 @@ import java.time.Instant;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.slf4j.Logger;
+import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 
 interface CassandraBuildingService {
@@ -35,19 +37,27 @@ interface CassandraBuildingService {
         log.debug("{} was found, computing metadata.", id);
         final IRI ixnModel = metadata.get("interactionModel", IRI.class);
         log.debug("Found interactionModel = {} for resource {}", ixnModel, id);
+        final IRI container = metadata.get("container", IRI.class);
+        log.debug("Found container = {} for resource {}", container, id);
         final boolean hasAcl = metadata.getBoolean("hasAcl");
         log.debug("Found hasAcl = {} for resource {}", hasAcl, id);
+
         final IRI binaryId = metadata.get("binaryIdentifier", IRI.class);
         log.debug("Found binaryIdentifier = {} for resource {}", binaryId, id);
         final String mimeType = metadata.getString("mimetype");
         log.debug("Found mimeType = {} for resource {}", mimeType, id);
-        final IRI container = metadata.get("container", IRI.class);
-        log.debug("Found container = {} for resource {}", container, id);
+
         final Instant modified = metadata.get("modified", Instant.class);
         log.debug("Found modified = {} for resource {}", modified, id);
         final Dataset dataset = metadata.get("quads", Dataset.class);
         log.debug("Found dataset = {} for resource {}", dataset, id);
 
-        return new CassandraResource(id, ixnModel, hasAcl, binaryId, mimeType, container, modified, dataset);
+        final BinaryMetadata binary = binaryId != null ?
+            BinaryMetadata.builder(binaryId).mimeType(mimeType).build() : null;
+
+        final Metadata meta = Metadata.builder(id).container(container).interactionModel(ixnModel)
+            .hasAcl(hasAcl).binary(binary).build();
+
+        return new CassandraResource(meta, modified, dataset);
     }
 }

@@ -27,8 +27,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.rdf.api.Dataset;
-import org.apache.commons.rdf.api.IRI;
 import org.slf4j.Logger;
+import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.api.Metadata;
 import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 
 /**
@@ -65,20 +66,19 @@ public class Mementoize extends ResourceQuery {
      * Store a Memento. Note that the value for {@code modified} is truncated to seconds because Memento requires HTTP
      * time management.
      *
-     * @param ixnModel an {@link IRI} for the interaction model for this resource
-     * @param mimeType if this resource has a binary, the mimeType therefor
-     * @param container if this resource has a container, the {@link IRI} therefor
-     * @param data RDF for this resource
+     * @param metadata metadata for this resource
      * @param modified the time at which this resource was last modified
-     * @param binaryIdentifier if this resource has a binary, the identifier therefor
+     * @param data RDF for this resource
      * @param creation a time-based (version 1) UUID for the moment this resource is created
-     * @param id an {@link IRI} that identifies this resource
      * @return whether and when it has been inserted
      */
-    public CompletionStage<Void> execute(final IRI ixnModel, final String mimeType, final IRI container,
-            final Dataset data, final Instant modified, final IRI binaryIdentifier, final UUID creation, final IRI id) {
-        return preparedStatementAsync().thenApply(stmt -> stmt.bind(ixnModel, mimeType, container, data,
-                    modified, binaryIdentifier, creation, id, modified.truncatedTo(SECONDS))
+    public CompletionStage<Void> execute(final Metadata metadata, final Instant modified,
+            final Dataset data, final UUID creation) {
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind(metadata.getInteractionModel(),
+                    metadata.getBinary().flatMap(BinaryMetadata::getMimeType).orElse(null),
+                    metadata.getContainer().orElse(null), data, modified,
+                    metadata.getBinary().map(BinaryMetadata::getIdentifier).orElse(null),
+                    creation, metadata.getIdentifier(), modified.truncatedTo(SECONDS))
                 .setConsistencyLevel(consistency))
             .thenCompose(session::executeAsync)
             .thenAccept(r -> LOGGER.debug("Executed query: {}", queryString));
