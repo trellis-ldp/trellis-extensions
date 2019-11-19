@@ -40,10 +40,10 @@ dependencies {
     // Persistence
     if (project.hasProperty("cassandra")) {
         // Cassandra dependencies
+        implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
         implementation "org.trellisldp.ext:trellis-cassandra:${project.version}"
         implementation "org.trellisldp.ext:trellis-namespaces:${project.version}"
         implementation "org.trellisldp:trellis-reactive"
-        implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
     } else {
         // Database dependencies
         implementation 'io.quarkus:quarkus-agroal'
@@ -55,9 +55,9 @@ dependencies {
         if (project.hasProperty("cloud")) {
             implementation "org.trellisldp.ext:trellis-aws:${project.version}"
         } else {
+            implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
             implementation "org.trellisldp:trellis-file"
             implementation "org.trellisldp:trellis-reactive"
-            implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
         }
     }
 
