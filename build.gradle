@@ -79,11 +79,10 @@ ext {
         'trellis-db-deployment',
         'trellis-ext-bom'
     ]
-    jacocoTestProjects = [
-        'trellis-aws',
-        'trellis-db',
-        'trellis-db-app',
-        'trellis-db-quarkus'
+
+    omitFromMavenPublishing = [
+        'trellis-db-deployment',
+        'trellis-quarkus'
     ]
 }
 
@@ -302,12 +301,12 @@ subprojects { subproj ->
 
     tasks.withType(PublishToMavenRepository) {
         onlyIf {
-            subproj.name != "trellis-db-deployment"
+            ! omitFromMavenPublishing.contains(subproj.name)
         }
     }
     tasks.withType(PublishToMavenLocal) {
         onlyIf {
-            subproj.name != "trellis-db-deployment"
+            ! omitFromMavenPublishing.contains(subproj.name)
         }
     }
     task install(dependsOn: [assemble, publishToMavenLocal])

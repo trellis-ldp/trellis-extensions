@@ -7,7 +7,6 @@ dependencies {
     implementation project(':trellis-db')
     implementation project(':trellis-db-app')
     implementation project(':trellis-namespaces')
-    implementation project(':trellis-quarkus')
 }
 
 publishing {
