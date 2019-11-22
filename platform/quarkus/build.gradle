@@ -17,6 +17,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-resteasy'
     implementation 'io.quarkus:quarkus-security'
     implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-smallrye-jwt'
     implementation 'io.quarkus:quarkus-smallrye-metrics'
     implementation 'io.quarkus:quarkus-smallrye-openapi'
 
@@ -25,7 +26,7 @@ dependencies {
     implementation "org.trellisldp:trellis-cdi"
 
     // Trellis authN/authZ
-    implementation "org.trellisldp:trellis-auth-oauth"
+    implementation "org.trellisldp:trellis-auth-jwt"
     implementation "org.trellisldp:trellis-webac"
 
     // Trellis components
