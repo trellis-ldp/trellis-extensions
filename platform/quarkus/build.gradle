@@ -1,6 +1,4 @@
-plugins {
-    id 'io.quarkus' version "${quarkusVersion}"
-}
+apply plugin: 'io.quarkus'
 
 def installForQuarkus = [
     "trellis-aws",
