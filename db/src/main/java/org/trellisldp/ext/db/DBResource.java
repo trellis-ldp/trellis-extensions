@@ -13,6 +13,7 @@
  */
 package org.trellisldp.ext.db;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
@@ -27,8 +28,10 @@ import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -54,14 +57,26 @@ public class DBResource implements Resource {
     private static final Logger LOGGER = getLogger(DBResource.class);
     private static final RDF rdf = getInstance();
 
+    private static final String SLASH = "/";
     private static final String OBJECT = "object";
     private static final String LANG = "lang";
     private static final String DATATYPE = "datatype";
+    private static final String IXN_MODEL = "interaction_model";
     private static final String SUBJECT = "subject";
     private static final String PREDICATE = "predicate";
     private static final String MEMBERSHIP_RESOURCE = "ldp_membership_resource";
     private static final String HAS_MEMBER_RELATION = "ldp_has_member_relation";
     private static final String IS_MEMBER_OF_RELATION = "ldp_is_member_of_relation";
+    private static final Set<IRI> containerTypes;
+
+    static {
+        final Set<IRI> types = new HashSet<>();
+        types.add(LDP.Container);
+        types.add(LDP.BasicContainer);
+        types.add(LDP.DirectContainer);
+        types.add(LDP.IndirectContainer);
+        containerTypes = unmodifiableSet(types);
+    }
 
     private final IRI identifier;
     private final Jdbi jdbi;
@@ -206,7 +221,8 @@ public class DBResource implements Resource {
      */
     private Stream<Quad> fetchUserQuads() {
         if (includeLdpType) {
-            return concat(of(rdf.createQuad(Trellis.PreferUserManaged, getIdentifier(), type, getInteractionModel())),
+            return concat(of(rdf.createQuad(Trellis.PreferUserManaged,
+                            adjustIdentifier(getIdentifier(), getInteractionModel()), type, getInteractionModel())),
                     fetchQuadsFromTable("description", Trellis.PreferUserManaged));
         }
         return fetchQuadsFromTable("description", Trellis.PreferUserManaged);
@@ -265,7 +281,8 @@ public class DBResource implements Resource {
 
         return jdbi.withHandle(handle -> handle.select(query,
                     getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
-                .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership, getIdentifier(),
+                .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
+                        adjustIdentifier(getIdentifier(), getInteractionModel()),
                         rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))))
                 .list()).stream();
@@ -277,7 +294,7 @@ public class DBResource implements Resource {
      */
     private Stream<Quad> fetchDirectMemberQuads() {
         final String query
-            = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject "
+            = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject, r2.interaction_model "
             + "FROM resource AS r INNER JOIN resource AS r2 ON r.subject = r2.is_part_of "
             + "WHERE r.ldp_member = ? AND r.ldp_inserted_content_relation = ? "
             + "AND r.ldp_has_member_relation IS NOT NULL";
@@ -287,8 +304,8 @@ public class DBResource implements Resource {
                 .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                         rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
-                        rdf.createIRI(rs.getString(SUBJECT))))
-                .list()).stream();
+                        rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
+                .list()).stream().peek(t -> LOGGER.info("Direct Member Triple: {}", t));
     }
 
     /**
@@ -296,11 +313,13 @@ public class DBResource implements Resource {
      */
     private Stream<Quad> fetchContainmentQuads() {
         if (getInteractionModel().getIRIString().endsWith("Container")) {
-            final String query = "SELECT subject FROM resource WHERE is_part_of = ?";
+            final String query = "SELECT subject, interaction_model FROM resource WHERE is_part_of = ?";
             return jdbi.withHandle(handle -> handle.select(query,
                         getIdentifier().getIRIString())
-                    .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment, getIdentifier(),
-                            LDP.contains, rdf.createIRI(rs.getString(SUBJECT))))
+                    .map((rs, ctx) -> rdf.createQuad(LDP.PreferContainment,
+                            adjustIdentifier(getIdentifier(), getInteractionModel()),
+                            LDP.contains,
+                            rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
                     .list()).stream();
         }
         return empty();
@@ -351,5 +370,19 @@ public class DBResource implements Resource {
             return rdf.createLiteral(value, rdf.createIRI(datatype));
         }
         return rdf.createIRI(value);
+    }
+
+    private static String adjustIdentifier(final String identifier, final String type) {
+        if (containerTypes.contains(rdf.createIRI(type)) && !identifier.endsWith(SLASH)) {
+            return identifier + SLASH;
+        }
+        return identifier;
+    }
+
+    private static IRI adjustIdentifier(final IRI identifier, final IRI type) {
+        if (containerTypes.contains(type) && !identifier.getIRIString().endsWith(SLASH)) {
+            return rdf.createIRI(identifier.getIRIString() + SLASH);
+        }
+        return identifier;
     }
 }
