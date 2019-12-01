@@ -13,14 +13,15 @@
  */
 package org.trellisldp.ext.cassandra.query.rdf;
 
-import static org.trellisldp.vocabulary.LDP.PreferContainment;
-import static org.trellisldp.vocabulary.LDP.contains;
+import static java.util.Collections.unmodifiableSet;
 
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Stream;
 
@@ -33,6 +34,7 @@ import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.TrellisUtils;
 import org.trellisldp.ext.cassandra.AsyncResultSetUtils;
 import org.trellisldp.ext.cassandra.MutableReadConsistency;
+import org.trellisldp.vocabulary.LDP;
 
 /**
  * A query to retrieve basic containment information from a materialized view or index table.
@@ -41,6 +43,16 @@ import org.trellisldp.ext.cassandra.MutableReadConsistency;
 public class BasicContainment extends ResourceQuery {
 
     private static final RDF rdfFactory = TrellisUtils.getInstance();
+    private static final Set<IRI> containerTypes;
+
+    static {
+        final Set<IRI> types = new HashSet<>();
+        types.add(LDP.Container);
+        types.add(LDP.BasicContainer);
+        types.add(LDP.DirectContainer);
+        types.add(LDP.IndirectContainer);
+        containerTypes = unmodifiableSet(types);
+    }
 
     /**
      * For use with RESTeasy and CDI proxies.
@@ -59,7 +71,7 @@ public class BasicContainment extends ResourceQuery {
      */
     @Inject
     public BasicContainment(final CqlSession session, @MutableReadConsistency final ConsistencyLevel consistency) {
-        super(session, "SELECT identifier AS contained FROM " + BASIC_CONTAINMENT_TABLENAME
+        super(session, "SELECT identifier AS contained, interactionModel AS type FROM " + BASIC_CONTAINMENT_TABLENAME
                         + " WHERE container = :container ;", consistency);
     }
 
@@ -76,10 +88,20 @@ public class BasicContainment extends ResourceQuery {
     }
 
     private IRI getContained(final Row r) {
-        return r.get("contained", IRI.class);
+        final IRI contained = r.get("contained", IRI.class);
+        final IRI type = r.get("type", IRI.class);
+        return adjustIdentifier(contained, type);
     }
 
     private static Quad containmentQuad(final IRI id, final IRI con) {
-        return rdfFactory.createQuad(PreferContainment, id, contains, con);
+        return rdfFactory.createQuad(LDP.PreferContainment, adjustIdentifier(id, LDP.BasicContainer),
+                LDP.contains, con);
+    }
+
+    private static IRI adjustIdentifier(final IRI identifier, final IRI type) {
+        if (containerTypes.contains(type) && !identifier.getIRIString().endsWith("/")) {
+            return rdfFactory.createIRI(identifier.getIRIString() + "/");
+        }
+        return identifier;
     }
 }
