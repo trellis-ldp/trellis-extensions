@@ -305,7 +305,7 @@ public class DBResource implements Resource {
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                         rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
                         rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
-                .list()).stream().peek(t -> LOGGER.info("Direct Member Triple: {}", t));
+                .list()).stream();
     }
 
     /**
