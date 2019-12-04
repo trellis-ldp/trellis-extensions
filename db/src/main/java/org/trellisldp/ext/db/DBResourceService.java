@@ -59,6 +59,7 @@ import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisUtils;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.OA;
 
@@ -253,8 +254,8 @@ public class DBResourceService implements ResourceService {
                 .bind(3, isDelete)
                 .bind(4, metadata.getContainer().map(IRI::getIRIString).orElse(null))
                 .bind(5, dataset.contains(of(PreferAccessControl), null, null, null))
-                .bind(6, metadata.getMembershipResource().map(IRI::getIRIString)
-                    .map(str -> str.split("#")[0]).orElse(null))
+                .bind(6, metadata.getMembershipResource().map(TrellisUtils::normalizeIdentifier)
+                    .map(IRI::getIRIString).orElse(null))
                 .bind(7, metadata.getMembershipResource().map(IRI::getIRIString).orElse(null))
                 .bind(8, metadata.getMemberRelation().map(IRI::getIRIString).orElse(null))
                 .bind(9, metadata.getMemberOfRelation().map(IRI::getIRIString).orElse(null))
