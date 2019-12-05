@@ -121,7 +121,7 @@ public class DBResourceService implements ResourceService {
      */
     public DBResourceService(final Jdbi jdbi) {
         this(jdbi, getConfig().getOptionalValue(CONFIG_DB_BATCH_SIZE, Integer.class).orElse(DEFAULT_BATCH_SIZE),
-                getConfig().getOptionalValue(CONFIG_DB_LDP_TYPE, Boolean.class).orElse(Boolean.FALSE),
+                getConfig().getOptionalValue(CONFIG_DB_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE),
                 of(load(IdentifierService.class)).map(ServiceLoader::iterator).filter(Iterator::hasNext)
                     .map(Iterator::next).orElseGet(DefaultIdentifierService::new));
     }
