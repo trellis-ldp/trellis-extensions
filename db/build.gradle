@@ -18,6 +18,9 @@ dependencies {
     api "org.jdbi:jdbi3-core:$jdbiVersion"
     api "org.trellisldp:trellis-api"
 
+    // Transitive dependency
+    api "org.apache.thrift:libthrift:$thriftVersion"
+
     implementation "org.eclipse.microprofile.config:microprofile-config-api:$microprofileConfigVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
