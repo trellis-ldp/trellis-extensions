@@ -3,8 +3,7 @@ apply plugin: 'io.quarkus'
 def installForQuarkus = [
     "trellis-aws",
     "trellis-cassandra",
-    "trellis-db",
-    "trellis-namespaces"
+    "trellis-db"
 ]
 
 dependencies {
@@ -33,6 +32,7 @@ dependencies {
     implementation "org.trellisldp:trellis-constraint-rules"
     implementation "org.trellisldp:trellis-event-jsonb"
     implementation "org.trellisldp:trellis-io-jena"
+    implementation "org.trellisldp:trellis-namespaces"
     implementation "org.trellisldp:trellis-rdfa"
     implementation "org.trellisldp:trellis-vocabulary"
 
@@ -41,7 +41,6 @@ dependencies {
         // Cassandra dependencies
         implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
         implementation "org.trellisldp.ext:trellis-cassandra:${project.version}"
-        implementation "org.trellisldp.ext:trellis-namespaces:${project.version}"
         implementation "org.trellisldp:trellis-reactive"
     } else {
         // Database dependencies
