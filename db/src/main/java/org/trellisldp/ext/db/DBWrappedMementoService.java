@@ -23,8 +23,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CompletionStage;
 
-import javax.decorator.Decorator;
-import javax.decorator.Delegate;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 
@@ -34,7 +33,7 @@ import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
 import org.slf4j.Logger;
 import org.trellisldp.api.*;
 
-@Decorator
+@ApplicationScoped
 public class DBWrappedMementoService implements MementoService {
 
     private static final Logger LOGGER = getLogger(DBWrappedMementoService.class);
@@ -44,10 +43,18 @@ public class DBWrappedMementoService implements MementoService {
     /**
      * Create a new DB enhanced MementoService object.
      * @param ds the DataSource object
-     * @param service the memento service implementation
      */
     @Inject
-    public DBWrappedMementoService(final DataSource ds, @Delegate final MementoService service) {
+    public DBWrappedMementoService(final DataSource ds) {
+        this(ds, DBUtils.findFirst(MementoService.class).orElseGet(NoopMementoService::new));
+    }
+
+    /**
+     * Create a new DB enhanced MementoService object.
+     * @param ds the DataSource object
+     * @param service the memento service implementation
+     */
+    public DBWrappedMementoService(final DataSource ds, final MementoService service) {
         this(Jdbi.create(ds), service);
     }
 

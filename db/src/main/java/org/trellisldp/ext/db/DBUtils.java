@@ -13,7 +13,13 @@
  */
 package org.trellisldp.ext.db;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static java.util.ServiceLoader.load;
 import static org.trellisldp.api.TrellisUtils.getInstance;
+
+import java.util.Iterator;
+import java.util.Optional;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
@@ -57,6 +63,11 @@ final class DBUtils {
             return BinaryMetadata.builder(rdf.createIRI(location)).mimeType(format).build();
         }
         return null;
+    }
+
+    static <T> Optional<T> findFirst(final Class<T> service) {
+        final Iterator<T> services = load(service).iterator();
+        return services.hasNext() ? of(services.next()) : empty();
     }
 
     private DBUtils() {

@@ -83,6 +83,45 @@ class DBWrappedMementoServiceTest {
     }
 
     @Test
+    void testMementoService() {
+        final MementoService svc = new DBWrappedMementoService(pg.getPostgresDatabase());
+
+        final Instant time = now();
+        final IRI identifier = rdf.createIRI("trellis:data/resource");
+
+        final Resource mockResource = mock(Resource.class);
+
+        when(mockResource.getIdentifier()).thenReturn(identifier);
+        when(mockResource.getInteractionModel()).thenReturn(LDP.RDFSource);
+        when(mockResource.getModified()).thenReturn(time);
+        when(mockResource.getContainer()).thenReturn(of(root));
+        when(mockResource.stream()).thenAnswer(inv -> Stream.of(
+                    rdf.createQuad(Trellis.PreferUserManaged, identifier, DC.title, rdf.createLiteral("Title"))));
+        when(mockResource.getBinaryMetadata()).thenReturn(empty());
+        when(mockResource.getMemberOfRelation()).thenReturn(empty());
+        when(mockResource.getMemberRelation()).thenReturn(empty());
+        when(mockResource.getMembershipResource()).thenReturn(empty());
+        when(mockResource.getInsertedContentRelation()).thenReturn(empty());
+
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
+
+        when(mockResource.getModified()).thenReturn(time.plusSeconds(2L));
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
+
+        when(mockResource.getModified()).thenReturn(time.plusSeconds(4L));
+        assertDoesNotThrow(svc.put(mockResource).toCompletableFuture()::join);
+
+        final SortedSet<Instant> mementos = svc.mementos(identifier).toCompletableFuture().join();
+        assertTrue(mementos.contains(time.truncatedTo(SECONDS)));
+        assertTrue(mementos.contains(time.plusSeconds(2L).truncatedTo(SECONDS)));
+        assertTrue(mementos.contains(time.plusSeconds(4L).truncatedTo(SECONDS)));
+
+        final Resource res = svc.get(identifier, time).toCompletableFuture().join();
+        assertEquals(time, res.getModified());
+    }
+
+    @Test
     void testMementoUtils() {
         final String dir = DBWrappedMementoService.class.getResource("/mementos").getFile();
         final MementoService svc = new DBWrappedMementoService(pg.getPostgresDatabase(),
