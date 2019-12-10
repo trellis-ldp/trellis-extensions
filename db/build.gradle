@@ -38,3 +38,6 @@ dependencies {
     testImplementation "org.trellisldp:trellis-test"
 }
 
+test {
+    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
+}

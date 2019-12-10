@@ -13,9 +13,7 @@
  */
 package org.trellisldp.ext.db;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.trellisldp.vocabulary.RDF.langString;
 
 import org.apache.commons.rdf.api.IRI;
@@ -73,5 +71,11 @@ class DBUtilsTest {
         assertNotNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, "file:///path/to/resource", "text/plain"));
         assertNull(DBUtils.getBinaryMetadata(LDP.RDFSource, "file:///path/to/resource", "text/plain"));
         assertNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, null, "text/plain"));
+    }
+
+    @Test
+    void testFindFirst() {
+        assertTrue(DBUtils.findFirst(RDF.class).isPresent());
+        assertFalse(DBUtils.findFirst(LDP.class).isPresent());
     }
 }
