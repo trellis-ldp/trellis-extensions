@@ -71,7 +71,7 @@ ext {
     /* Tools */
     checkstyleVersion = '8.26'
     jacocoVersion = '0.8.5'
-    pmdVersion = '6.19.0'
+    pmdVersion = '6.20.0'
     spotbugsVersion = '3.1.12'
 
     /* OSGi */
