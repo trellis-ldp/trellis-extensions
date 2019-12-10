@@ -16,7 +16,7 @@ plugins {
 ext {
 
     /* Dependencies */
-    activeMqVersion = '5.15.9'
+    activeMqVersion = '5.15.11'
     awsVersion = '1.11.671'
     commonsCompressVersion = '1.19'
     commonsIoVersion = '2.6'
