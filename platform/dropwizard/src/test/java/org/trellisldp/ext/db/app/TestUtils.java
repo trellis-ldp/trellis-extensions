@@ -30,6 +30,7 @@ import java.util.List;
 import javax.ws.rs.client.Client;
 
 import org.apache.commons.text.RandomStringGenerator;
+import org.trellisldp.api.RuntimeTrellisException;
 
 /**
  * Testing utilities.
@@ -80,7 +81,11 @@ final class TestUtils {
     public static DropwizardTestSupport<AppConfiguration> buildGenericApp(final List<ConfigOverride> overrides) {
         final DropwizardTestSupport<AppConfiguration> app = new DropwizardTestSupport<>(TrellisApplication.class,
                 resourceFilePath("trellis-config.yml"), overrides.toArray(new ConfigOverride[0]));
-        app.before();
+        try {
+            app.before();
+        } catch (final Exception ex) {
+            throw new RuntimeTrellisException("Error starting application", ex);
+        }
         return app;
     }
 
