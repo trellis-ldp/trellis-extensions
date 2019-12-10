@@ -55,8 +55,8 @@ public class S3BinaryService implements BinaryService {
 
     private static final Logger LOGGER = getLogger(S3BinaryService.class);
 
-    public static final String CONFIG_BINARY_BUCKET = "trellis.s3.binary.bucket";
-    public static final String CONFIG_BINARY_PATH_PREFIX = "trellis.s3.binary.path.prefix";
+    public static final String CONFIG_AWS_BINARY_BUCKET = "trellis.aws.binary-bucket";
+    public static final String CONFIG_AWS_BINARY_PATH_PREFIX = "trellis.aws.binary-path-prefix";
 
     private static final String PREFIX = "s3://";
 
@@ -74,8 +74,8 @@ public class S3BinaryService implements BinaryService {
     }
 
     private S3BinaryService(final AmazonS3 client, final Config config) {
-        this(client, config.getValue(CONFIG_BINARY_BUCKET, String.class),
-                config.getOptionalValue(CONFIG_BINARY_PATH_PREFIX, String.class).orElse(""));
+        this(client, config.getValue(CONFIG_AWS_BINARY_BUCKET, String.class),
+                config.getOptionalValue(CONFIG_AWS_BINARY_PATH_PREFIX, String.class).orElse(""));
     }
 
     /**

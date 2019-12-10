@@ -21,7 +21,7 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 @DisabledOnOs(WINDOWS)
-@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 @QuarkusTest
 class CassandraMementoTimeMapTest extends AbstractMementoTimeMapTests {
 }

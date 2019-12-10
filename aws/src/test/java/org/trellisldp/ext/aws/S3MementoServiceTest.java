@@ -61,7 +61,7 @@ import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
-@EnabledIfSystemProperty(named = "trellis.test.aws.enable", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 public class S3MementoServiceTest {
 
     private static final RDF rdf = getInstance();
@@ -73,7 +73,8 @@ public class S3MementoServiceTest {
     @AfterAll
     public static void tearDown() throws Exception {
         final AmazonS3 client = defaultClient();
-        final String bucket = ConfigProvider.getConfig().getValue(S3MementoService.CONFIG_MEMENTO_BUCKET, String.class);
+        final String bucket = ConfigProvider.getConfig()
+            .getValue(S3MementoService.CONFIG_AWS_MEMENTO_BUCKET, String.class);
         client.listObjects(bucket, "mementos/" + base).getObjectSummaries().stream()
             .map(S3ObjectSummary::getKey).forEach(key -> client.deleteObject(bucket, key));
     }

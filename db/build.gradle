@@ -39,5 +39,5 @@ dependencies {
 }
 
 test {
-    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
+    systemProperty 'trellis.file.memento-path', "$buildDir/data/mementos"
 }

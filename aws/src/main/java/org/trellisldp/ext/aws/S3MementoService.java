@@ -69,8 +69,8 @@ import org.trellisldp.vocabulary.Trellis;
 public class S3MementoService implements MementoService {
 
     public static final Logger LOGGER = getLogger(S3MementoService.class);
-    public static final String CONFIG_MEMENTO_BUCKET = "trellis.s3.memento.bucket";
-    public static final String CONFIG_MEMENTO_PATH_PREFIX = "trellis.s3.memento.path.prefix";
+    public static final String CONFIG_AWS_MEMENTO_BUCKET = "trellis.aws.memento-bucket";
+    public static final String CONFIG_AWS_MEMENTO_PATH_PREFIX = "trellis.aws.memento-path-prefix";
 
     private static final JenaRDF rdf = new JenaRDF();
 
@@ -87,8 +87,8 @@ public class S3MementoService implements MementoService {
     }
 
     private S3MementoService(final AmazonS3 client, final Config config) {
-        this(client, config.getValue(CONFIG_MEMENTO_BUCKET, String.class),
-                config.getOptionalValue(CONFIG_MEMENTO_PATH_PREFIX, String.class).orElse(""));
+        this(client, config.getValue(CONFIG_AWS_MEMENTO_BUCKET, String.class),
+                config.getOptionalValue(CONFIG_AWS_MEMENTO_PATH_PREFIX, String.class).orElse(""));
     }
 
     /**

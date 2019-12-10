@@ -90,15 +90,15 @@ test {
     systemProperty 'quarkus.datasource.driver', 'org.postgresql.Driver'
     systemProperty 'quarkus.datasource.url', 'jdbc:postgresql://localhost/postgres'
     systemProperty 'quarkus.flyway.migrate-at-start', 'true'
-    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
-    systemProperty 'trellis.file.binary.basepath', "$buildDir/data/binaries"
-    systemProperty 'trellis.http.weak.etag', 'true'
-    systemProperty "trellis.s3.memento.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
-    systemProperty "trellis.s3.binary.bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
-    systemProperty "trellis.sns.topic", System.getenv("AWS_TEST_TOPIC") ?: "test-topic"
+    systemProperty 'trellis.file.memento-path', "$buildDir/data/mementos"
+    systemProperty 'trellis.file.binary-path', "$buildDir/data/binaries"
+    systemProperty 'trellis.http.weak-etag', 'true'
+    systemProperty "trellis.aws.memento-bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
+    systemProperty "trellis.aws.binary-bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
+    systemProperty "trellis.aws.topic", System.getenv("AWS_TEST_TOPIC") ?: "test-topic"
 
     if (project.hasProperty("cassandra")) {
-        systemProperty "trellis.test.cassandra.enable", project.findProperty("trellis.test.cassandra.enable") ?: System.getenv("TEST_CASSANDRA_ENABLE")
+        systemProperty "trellis.test.cassandra", project.findProperty("trellis.test.cassandra") ?: System.getenv("TEST_CASSANDRA")
     } else {
         // enable the db tests
         if (System.getenv("QUARKUS_EXTERNAL_PGSQL")) {

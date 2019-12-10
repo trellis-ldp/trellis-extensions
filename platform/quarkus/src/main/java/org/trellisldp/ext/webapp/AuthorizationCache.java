@@ -35,10 +35,10 @@ import org.trellisldp.webac.WebAcService.TrellisAuthorizationCache;
 public class AuthorizationCache extends TrellisCache<String, Set<IRI>> {
 
     /** The configuration key for setting the maximum authZ cache size. */
-    public static final String CONFIG_AUTHZ_CACHE_SIZE = "trellis.authz.cache.size";
+    public static final String CONFIG_AUTHZ_CACHE_SIZE = "trellis.quarkus.authz.cache-size";
 
     /** The configuration key for setting the authZ cache expiry. */
-    public static final String CONFIG_AUTHZ_CACHE_EXPIRE_SECONDS = "trellis.authz.cache.expireSeconds";
+    public static final String CONFIG_AUTHZ_CACHE_EXPIRE_SECONDS = "trellis.quarkus.authz.cache-expire-seconds";
 
     /** Create a cache suitable for authorization data. */
     public AuthorizationCache() {
