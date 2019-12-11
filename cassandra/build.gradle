@@ -36,7 +36,7 @@ dependencies {
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
     testImplementation "org.trellisldp:trellis-test"
 
-    testRuntimeClasspath("ch.qos.logback:logback-classic:$logbackVersion")
+    testRuntimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 }
 
 test {

@@ -41,8 +41,8 @@ dependencies {
 
     runtimeOnly "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
     runtimeOnly "jakarta.activation:jakarta.activation-api:$activationApiVersion"
-    runtimeOnly "org.postgresql:postgresql:$postgresVersion"
     runtimeOnly "mysql:mysql-connector-java:$mysqlVersion"
+    runtimeOnly "org.postgresql:postgresql:$postgresVersion"
     runtimeOnly "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.h2database:h2:$h2Version"
