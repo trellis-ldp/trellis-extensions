@@ -42,6 +42,17 @@ public class DBWrappedMementoService implements MementoService {
 
     /**
      * Create a new DB enhanced MementoService object.
+     *
+     * <p>This constructor is generally used by CDI proxies and should
+     * not be invoked directly.
+     */
+    public DBWrappedMementoService() {
+        jdbi = null;
+        svc = null;
+    }
+
+    /**
+     * Create a new DB enhanced MementoService object.
      * @param ds the DataSource object
      */
     @Inject
