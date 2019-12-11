@@ -29,7 +29,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.trellisldp.api.DefaultIdentifierService;
 
-@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 @ExtendWith(WeldJunit5Extension.class)
 class CassandraContextIT {
 

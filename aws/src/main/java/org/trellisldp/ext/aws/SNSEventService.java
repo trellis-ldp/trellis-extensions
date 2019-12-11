@@ -34,7 +34,7 @@ import org.trellisldp.api.EventService;
 @ApplicationScoped
 public class SNSEventService implements EventService {
 
-    public static final String TRELLIS_SNS_TOPIC = "trellis.sns.topic";
+    public static final String CONFIG_AWS_TOPIC = "trellis.aws.topic";
 
     private static final Logger LOGGER = getLogger(SNSEventService.class);
 
@@ -48,7 +48,7 @@ public class SNSEventService implements EventService {
      */
     @Inject
     public SNSEventService(final EventSerializationService serializer) {
-        this(serializer, defaultClient(), getConfig().getValue(TRELLIS_SNS_TOPIC, String.class));
+        this(serializer, defaultClient(), getConfig().getValue(CONFIG_AWS_TOPIC, String.class));
     }
 
     /**

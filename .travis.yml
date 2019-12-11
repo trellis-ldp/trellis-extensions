@@ -58,7 +58,7 @@ jobs:
     - name: "Java 8 (Quarkus Cassandra)"
       stage: test
       jdk: openjdk8
-      env: TEST_CASSANDRA_ENABLE=true
+      env: TEST_CASSANDRA=true
       install: ./gradlew assemble -Pcassandra
       script: ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
 

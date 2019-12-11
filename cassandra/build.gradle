@@ -40,7 +40,7 @@ dependencies {
 }
 
 test {
-    systemProperty "trellis.test.cassandra.enable", project.findProperty("trellis.test.cassandra.enable") ?: System.getenv("TEST_CASSANDRA_ENABLE")
+    systemProperty "trellis.test.cassandra", project.findProperty("trellis.test.cassandra") ?: System.getenv("TEST_CASSANDRA")
     systemProperty 'trellis.cassandra.binary-read-consistency', 'ALL'
     systemProperty 'trellis.cassandra.binary-write-consistency', 'ALL'
     systemProperty 'project.build.directory', "${project.buildDir}/logs"

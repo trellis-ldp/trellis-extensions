@@ -67,7 +67,7 @@ import org.trellisldp.vocabulary.OA;
  * A Database-backed implementation of the Trellis ResourceService API.
  *
  * <p>Note: one can manipulate the size of a batched query by setting
- * a property for {@code trellis.db.batchSize}. By default, this
+ * a property for {@code trellis.db.batch-size}. By default, this
  * value is 1,000. One can also configure the persistence layer to add
  * the LDP type to the body of an RDF response by setting the environment
  * variable {@code trellis.db.ldp.type} to "true". By default, this value
@@ -80,11 +80,13 @@ public class DBResourceService implements ResourceService {
     public static final String CONFIG_DB_URL = "trellis.db.url";
 
     /** Configuration key used to define the size of database write batches. */
-    public static final String CONFIG_DB_BATCH_SIZE = "trellis.db.batchSize";
+    public static final String CONFIG_DB_BATCH_SIZE = "trellis.db.batch-size";
+
+    /** The configuration key used to define whether to include the LDP type in an RDF body. */
+    public static final String CONFIG_DB_LDP_TYPE = "trellis.db.ldp-type";
+
     /** The default size of a database batch write operation. */
     public static final int DEFAULT_BATCH_SIZE = 1000;
-    /** The configuration key used to define whether to include the LDP type in an RDF body. */
-    public static final String CONFIG_DB_LDP_TYPE = "trellis.db.ldp.type";
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
     private static final RDF rdf = getInstance();

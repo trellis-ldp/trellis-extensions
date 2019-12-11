@@ -37,7 +37,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
 
-@EnabledIfSystemProperty(named = "trellis.test.aws.enable", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 public class S3BinaryServiceTest {
 
     private static final RDF rdf = getInstance();
@@ -48,7 +48,8 @@ public class S3BinaryServiceTest {
     @AfterAll
     public static void tearDown() throws Exception {
         final AmazonS3 client = defaultClient();
-        final String bucket = ConfigProvider.getConfig().getValue(S3BinaryService.CONFIG_BINARY_BUCKET, String.class);
+        final String bucket = ConfigProvider.getConfig()
+            .getValue(S3BinaryService.CONFIG_AWS_BINARY_BUCKET, String.class);
         client.listObjects(bucket, "binaries/" + base).getObjectSummaries().stream()
             .map(S3ObjectSummary::getKey).forEach(key -> client.deleteObject(bucket, key));
     }

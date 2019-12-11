@@ -30,7 +30,7 @@ import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
-@EnabledIfSystemProperty(named = "trellis.test.cassandra.enable", matches = "true")
+@EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 class CassandraMementoServiceIT extends CassandraServiceIT {
 
     @Test
