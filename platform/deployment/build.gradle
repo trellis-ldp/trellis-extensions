@@ -10,12 +10,12 @@ applicationName = 'trellis-db'
 dependencies {
     implementation project(':trellis-db-app')
 
-    runtimeOnly "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
-    runtimeOnly "jakarta.activation:jakarta.activation-api:$activationApiVersion"
+    runtimeClasspath "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
+    runtimeClasspath "jakarta.activation:jakarta.activation-api:$activationApiVersion"
 
-    runtimeOnly "mysql:mysql-connector-java:$mysqlVersion"
-    runtimeOnly "org.postgresql:postgresql:$postgresVersion"
-    runtimeOnly "org.yaml:snakeyaml:$snakeyamlVersion"
+    runtimeClasspath "mysql:mysql-connector-java:$mysqlVersion"
+    runtimeClasspath "org.postgresql:postgresql:$postgresVersion"
+    runtimeClasspath "org.yaml:snakeyaml:$snakeyamlVersion"
 }
 
 ospackage {

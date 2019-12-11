@@ -39,11 +39,11 @@ dependencies {
 
     implementation project(':trellis-db')
 
-    runtimeOnly "org.postgresql:postgresql:$postgresVersion"
-    runtimeOnly "mysql:mysql-connector-java:$mysqlVersion"
-    runtimeOnly "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
-    runtimeOnly "jakarta.activation:jakarta.activation-api:$activationApiVersion"
-    runtimeOnly "org.yaml:snakeyaml:$snakeyamlVersion"
+    runtimeClasspath "org.postgresql:postgresql:$postgresVersion"
+    runtimeClasspath "mysql:mysql-connector-java:$mysqlVersion"
+    runtimeClasspath "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
+    runtimeClasspath "jakarta.activation:jakarta.activation-api:$activationApiVersion"
+    runtimeClasspath "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.h2database:h2:$h2Version"
     testImplementation "ch.qos.logback:logback-classic:$logbackVersion"
