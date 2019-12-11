@@ -73,9 +73,9 @@ dependencies {
     }
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
-    runtimeClasspath "jakarta.activation:jakarta.activation-api:$activationApiVersion"
-    runtimeClasspath "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
-    runtimeClasspath "org.yaml:snakeyaml:$snakeyamlVersion"
+    runtimeOnly "jakarta.activation:jakarta.activation-api:$activationApiVersion"
+    runtimeOnly "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
+    runtimeOnly "org.yaml:snakeyaml:$snakeyamlVersion"
 
     testImplementation "com.opentable.components:otj-pg-embedded:$otjPgVersion"
     testImplementation "io.quarkus:quarkus-junit5"

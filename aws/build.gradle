@@ -36,7 +36,7 @@ dependencies {
     testImplementation "org.trellisldp:trellis-event-jackson"
     testImplementation "org.trellisldp:trellis-constraint-rules"
 
-    testRuntimeClasspath "ch.qos.logback:logback-classic:$logbackVersion"
+    testRuntimeOnly "ch.qos.logback:logback-classic:$logbackVersion"
 }
 
 test {

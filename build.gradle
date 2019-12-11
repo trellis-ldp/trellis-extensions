@@ -59,7 +59,7 @@ allprojects { subproj ->
         testImplementation enforcedPlatform("org.junit:junit-bom:$junitVersion")
         testImplementation("org.apiguardian:apiguardian-api:${apiguardianVersion}")
         testImplementation("org.junit.jupiter:junit-jupiter-api")
-        testRuntimeClasspath("org.junit.jupiter:junit-jupiter-engine")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     }
 
     gradle.projectsEvaluated {
