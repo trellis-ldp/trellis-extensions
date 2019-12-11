@@ -123,3 +123,10 @@ rootProject.childProjects.each { n, p ->
     }
 }
 
+quarkusDev {
+    doFirst {
+        project.buildscript.repositories.gradlePluginPortal()
+        project.buildscript.dependencies.add('classpath', "io.quarkus:quarkus-gradle-plugin:$quarkusVersion")
+    }
+}
+
