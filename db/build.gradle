@@ -40,6 +40,4 @@ dependencies {
 
 test {
     systemProperty 'trellis.file.memento-path', "$buildDir/data/mementos"
-    // TODO remove this next property
-    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
 }

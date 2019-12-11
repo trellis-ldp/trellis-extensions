@@ -96,10 +96,6 @@ test {
     systemProperty "trellis.aws.memento-bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
     systemProperty "trellis.aws.binary-bucket", System.getenv("AWS_TEST_BUCKET") ?: "test.trellisldp.org"
     systemProperty "trellis.aws.topic", System.getenv("AWS_TEST_TOPIC") ?: "test-topic"
-    // TODO remove the next three properties
-    systemProperty 'trellis.file.memento.basepath', "$buildDir/data/mementos"
-    systemProperty 'trellis.file.binary.basepath', "$buildDir/data/binaries"
-    systemProperty 'trellis.http.weak.etag', 'true'
 
     if (project.hasProperty("cassandra")) {
         systemProperty "trellis.test.cassandra", project.findProperty("trellis.test.cassandra") ?: System.getenv("TEST_CASSANDRA")
