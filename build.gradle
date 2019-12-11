@@ -1,82 +1,19 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.27.0'
-    id 'com.github.hierynomus.license' version '0.15.0'
-    id 'com.github.kt3k.coveralls' version '2.8.4'
-    id 'com.github.spotbugs' version '3.0.0'
-    id 'com.gradle.build-scan' version '3.1'
-    id 'net.researchgate.release' version '2.8.1'
-    id 'org.owasp.dependencycheck' version '5.2.4'
-    id 'org.sonarqube' version '2.8'
-    id 'biz.aQute.bnd.builder' version '4.1.0' apply false
-    id 'com.palantir.docker' version '0.22.1' apply false
-    id 'nebula.ospackage' version '8.0.3' apply false
-    id 'io.quarkus' version '1.0.1.Final' apply false
+    id 'com.github.ben-manes.versions' version "$versionsVersion"
+    id 'com.github.hierynomus.license' version "$licenseVersion"
+    id 'com.github.kt3k.coveralls' version "$coverallsVersion"
+    id 'com.github.spotbugs' version "$spotbugsVersion"
+    id 'com.gradle.build-scan' version "$scanVersion"
+    id 'net.researchgate.release' version "$releaseVersion"
+    id 'org.owasp.dependencycheck' version "$owaspVersion"
+    id 'org.sonarqube' version "$sonarVersion"
+    id 'biz.aQute.bnd.builder' version "$bndVersion" apply false
+    id 'com.palantir.docker' version "$dockerVersion" apply false
+    id 'nebula.ospackage' version "$nebulaVersion" apply false
+    id 'io.quarkus' version "$quarkusVersion" apply false
 }
 
 ext {
-
-    /* Dependencies */
-    activeMqVersion = '5.15.11'
-    awsVersion = '1.11.689'
-    commonsCompressVersion = '1.19'
-    commonsIoVersion = '2.6'
-    commonsLangVersion = '3.9'
-    commonsRdfVersion = '0.5.0'
-    dropwizardVersion = '2.0.0'
-    jacksonVersion = '2.10.1'
-    jdbiVersion = '3.11.1'
-    jjwtVersion = '0.10.7'
-    kafkaVersion = '2.3.0'
-    liquibaseVersion = '3.8.2'
-    mustacheVersion = '0.9.6'
-    quarkusVersion = '1.0.1.Final'
-    slf4jVersion = '1.7.29'
-    smallryeConfigVersion = '1.5.0'
-    smallryeHealthVersion = '2.1.0'
-    snakeyamlVersion = '1.25'
-    thriftVersion = '0.13.0'
-    trellisVersion = '0.9.0-SNAPSHOT'
-
-    /* JavaEE */
-    activationApiVersion = '1.2.1'
-    annotationApiVersion = '1.3.5'
-    cdiApiVersion = '2.0.2'
-    injectApiVersion = '1.0'
-    jmsApiVersion = '2.0.3'
-    transactionApiVersion = '1.3.3'
-
-    /* Miroprofile */
-    microprofileConfigVersion = '1.3'
-    microprofileHealthVersion = '2.1'
-
-    /* Databases */
-    cassandraDriverVersion = '4.2.0'
-    mysqlVersion = '8.0.18'
-    postgresVersion = '42.2.9'
-
-    /* Testing */
-    apiguardianVersion = '1.1.0'
-    awaitilityVersion = '4.0.1'
-    commonsTextVersion = '1.8'
-    guavaVersion = '28.1-jre'
-    h2Version = '1.4.200'
-    jaxbApiVersion = '2.3.2'
-    jenaVersion = '3.13.1'
-    junitVersion = '5.5.2'
-    logbackVersion = '1.2.3'
-    mockitoVersion = '3.2.0'
-    otjPgVersion = '0.13.3'
-    weldVersion = '2.0.1.Final'
-
-    /* Tools */
-    checkstyleVersion = '8.26'
-    jacocoVersion = '0.8.5'
-    pmdVersion = '6.20.0'
-    spotbugsVersion = '3.1.12'
-
-    /* OSGi */
-    projectOsgiVersion = project.version.replaceAll("-SNAPSHOT", ".SNAPSHOT")
-
     jacocoSkipProjects = [
         'trellis-db-deployment',
         'trellis-ext-bom'
@@ -105,7 +42,7 @@ allprojects { subproj ->
         license = 'Apache 2'
     }
 
-    jacoco.toolVersion = jacocoVersion
+    jacoco.toolVersion = jacocoToolVersion
 
     group = 'org.trellisldp.ext'
 
@@ -175,7 +112,7 @@ subprojects { subproj ->
     checkstyle {
         configFile = rootProject.file('buildtools/src/main/resources/checkstyle/checkstyle.xml')
         configProperties.checkstyleConfigDir = rootProject.file('buildtools/src/main/resources/checkstyle/')
-        toolVersion = checkstyleVersion
+        toolVersion = checkstyleToolVersion
     }
 
     task javadocJar(type: Jar) {
@@ -213,7 +150,7 @@ subprojects { subproj ->
     spotbugs {
         ignoreFailures = true
         excludeFilter = rootProject.file('buildtools/src/main/resources/spotbugs/exclusions.xml')
-        toolVersion = spotbugsVersion
+        toolVersion = spotbugsToolVersion
         sourceSets = [sourceSets.main]
     }
 
@@ -384,7 +321,7 @@ subprojects { subproj ->
         ignoreFailures = true
         consoleOutput = true
         incrementalAnalysis = true
-        toolVersion = pmdVersion
+        toolVersion = pmdToolVersion
         sourceSets = [sourceSets.main]
         rulePriority = 4
         ruleSets = []
@@ -398,10 +335,6 @@ subprojects { subproj ->
     afterReleaseBuild.dependsOn docs
     afterReleaseBuild.dependsOn publish
     afterReleaseBuild.dependsOn assemble
-
-    jacoco {
-        toolVersion = jacocoVersion
-    }
 
     jacocoTestReport {
         reports {
