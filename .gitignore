@@ -1,4 +1,4 @@
 build/
 .gradle/
-app/docs
-db/docs
+*/docs/
+*/*/docs/
