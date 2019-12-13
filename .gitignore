@@ -2,3 +2,7 @@ build/
 .gradle/
 app/docs
 db/docs
+cassandra/docs
+aws/docs
+platform/quarkus/docs
+platform/dropwizard/docs

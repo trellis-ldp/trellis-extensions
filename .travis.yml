@@ -77,7 +77,7 @@ jobs:
       stage: deploy
       jdk: openjdk8
       env: JOB=sonatype
-      if: branch = master AND type = push
+      if: branch = trellis-extensions-0.9.x AND type = push
       # Only automate the publication of SNAPSHOTS
       script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew publish ; fi
 
@@ -87,7 +87,7 @@ jobs:
       jdk: openjdk8
       env: JOB=docker
       # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
+      if: (branch = trellis-extensions-0.9.x OR branch =~ /^trellis-extensions-0\.9\.\d+$/) AND type = push
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       # Note: for maintenance branches, remove the dockerPushLatest task
       script:
@@ -100,7 +100,7 @@ jobs:
       jdk: openjdk8
       env: JOB=docker
       # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
+      if: (branch = trellis-extensions-0.9.x OR branch =~ /^trellis-extensions-0\.9\.\d+$/) AND type = push
       install: ./gradlew assemble -Pcloud
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database-aws"
@@ -111,7 +111,7 @@ jobs:
       jdk: openjdk8
       env: JOB=docker
       # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
+      if: (branch = trellis-extensions-0.9.x OR branch =~ /^trellis-extensions-0\.9\.\d+$/) AND type = push
       install: ./gradlew assemble -Pcassandra
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-cassandra"
@@ -121,7 +121,7 @@ jobs:
       jdk: openjdk8
       env: JOB=aws
       # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
+      if: (branch = trellis-extensions-0.9.x OR branch =~ /^trellis-extensions-0\.9\.\d+$/) AND type = push
       script: ./gradlew apidocs
       deploy:
           provider: s3
