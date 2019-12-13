@@ -291,7 +291,6 @@ subprojects { subproj ->
             links 'https://docs.oracle.com/javaee/7/api/'
             links "https://www.trellisldp.org/docs/trellis/${trellisVersion}/apidocs/"
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
-            links 'https://www.dropwizard.io/1.3.0/dropwizard-core/apidocs/'
             links 'https://docs.datastax.com/en/drivers/java/4.0/'
             links 'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
             links 'http://jdbi.org/apidocs/'
@@ -361,7 +360,6 @@ configure(rootProject) {
             links 'https://docs.oracle.com/javaee/7/api/'
             links "https://www.trellisldp.org/docs/trellis/${trellisVersion}/apidocs/"
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
-            links 'https://www.dropwizard.io/1.3.0/dropwizard-core/apidocs/'
             links 'https://docs.datastax.com/en/drivers/java/4.0/'
             links 'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
             links 'http://jdbi.org/apidocs/'
