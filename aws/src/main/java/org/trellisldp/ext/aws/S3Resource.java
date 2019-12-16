@@ -16,7 +16,9 @@ package org.trellisldp.ext.aws;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 import static org.apache.jena.query.DatasetFactory.create;
+import static org.apache.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.jena.riot.Lang.NQUADS;
+import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -33,17 +35,21 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFParser;
+import org.apache.jena.vocabulary.RDF;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.Trellis;
 
 /**
  * An S3-based resource.
  */
 public class S3Resource implements Resource {
 
+    public static final String CONFIG_AWS_LDP_TYPE = "trellis.aws.ldp-type";
     public static final String INTERACTION_MODEL = "trellis.interactionModel";
     public static final String MODIFIED = "trellis.modified";
     public static final String CONTAINER = "trellis.container";
@@ -141,6 +147,12 @@ public class S3Resource implements Resource {
         } catch (final IOException ex) {
             dataset.close();
             throw new RuntimeTrellisException("Error parsing input from S3", ex);
+        }
+        if (getConfig().getOptionalValue(CONFIG_AWS_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE)) {
+            final Model model = createDefaultModel();
+            model.createResource(getIdentifier().getIRIString())
+                .addProperty(RDF.type, model.createResource(getInteractionModel().getIRIString()));
+            dataset.addNamedModel(Trellis.PreferServerManaged.getIRIString(), model);
         }
         return rdf.asDataset(dataset).stream().map(Quad.class::cast).onClose(dataset::close);
     }
