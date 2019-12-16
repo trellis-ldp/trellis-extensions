@@ -232,7 +232,7 @@ public class DBResource implements Resource {
             return of(rdf.createQuad(Trellis.PreferServerManaged,
                             adjustIdentifier(getIdentifier(), getInteractionModel()), type, getInteractionModel()));
         }
-        return Stream.empty();
+        return empty();
     }
 
     /**

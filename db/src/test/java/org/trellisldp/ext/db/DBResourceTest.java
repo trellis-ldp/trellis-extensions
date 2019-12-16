@@ -218,7 +218,6 @@ class DBResourceTest {
     void getFilteredServeManagedQuads() {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root, false).thenAccept(res -> {
-                final Graph acl = rdf.createGraph();
                 assertEquals(0L, res.stream(Trellis.PreferUserManaged).count());
                 assertEquals(0L, res.stream(Trellis.PreferServerManaged).count());
             }).toCompletableFuture().join());
