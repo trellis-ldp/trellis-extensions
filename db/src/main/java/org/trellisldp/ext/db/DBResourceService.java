@@ -26,7 +26,6 @@ import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
 import static org.trellisldp.ext.db.DBUtils.getObjectLang;
 import static org.trellisldp.ext.db.DBUtils.getObjectValue;
-import static org.trellisldp.ext.db.DBUtils.isLdpTypeTriple;
 import static org.trellisldp.vocabulary.Trellis.PreferAccessControl;
 import static org.trellisldp.vocabulary.Trellis.PreferAudit;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
@@ -270,24 +269,24 @@ public class DBResourceService implements ResourceService {
     }
 
     private static void updateDescription(final Handle handle, final int resourceId, final Dataset dataset,
-            final int batchSize, final IRI identifier) {
+            final int batchSize) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph ->
-                batchUpdateTriples(handle, resourceId, "description", graph, batchSize, identifier));
+                batchUpdateTriples(handle, resourceId, "description", graph, batchSize));
     }
 
     private static void updateAcl(final Handle handle, final int resourceId, final Dataset dataset,
             final int batchSize) {
         dataset.getGraph(PreferAccessControl).ifPresent(graph ->
-                batchUpdateTriples(handle, resourceId, "acl", graph, batchSize, null));
+                batchUpdateTriples(handle, resourceId, "acl", graph, batchSize));
     }
 
     private static void batchUpdateTriples(final Handle handle, final int resourceId, final String table,
-            final Graph graph, final int batchSize, final IRI identifier) {
+            final Graph graph, final int batchSize) {
         final String query
             = "INSERT INTO " + table + " (resource_id, subject, predicate, object, lang, datatype) "
             + "VALUES (?, ?, ?, ?, ?, ?)";
         try (final PreparedBatch batch = handle.prepareBatch(query)) {
-            graph.stream().sequential().filter(triple -> !isLdpTypeTriple(triple, identifier)).forEach(triple -> {
+            graph.stream().sequential().forEach(triple -> {
                 batch.bind(0, resourceId)
                      .bind(1, ((IRI) triple.getSubject()).getIRIString())
                      .bind(2, triple.getPredicate().getIRIString())
@@ -335,7 +334,7 @@ public class DBResourceService implements ResourceService {
             jdbi.useTransaction(handle -> {
                 final int resourceId = updateResource(handle, metadata, dataset, time,
                         opType == OperationType.DELETE);
-                updateDescription(handle, resourceId, dataset, batchSize, metadata.getIdentifier());
+                updateDescription(handle, resourceId, dataset, batchSize);
                 updateAcl(handle, resourceId, dataset, batchSize);
                 updateExtra(handle, resourceId, metadata.getIdentifier(), dataset);
             });

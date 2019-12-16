@@ -122,6 +122,11 @@ class DBWrappedMementoServiceTest {
     }
 
     @Test
+    void testNoArgCtor() {
+        assertDoesNotThrow(() -> new DBWrappedMementoService());
+    }
+
+    @Test
     void testMementoUtils() {
         final String dir = DBWrappedMementoService.class.getResource("/mementos").getFile();
         final MementoService svc = new DBWrappedMementoService(pg.getPostgresDatabase(),

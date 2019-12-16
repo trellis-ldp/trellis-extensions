@@ -17,7 +17,6 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
 import static org.trellisldp.api.TrellisUtils.getInstance;
-import static org.trellisldp.vocabulary.RDF.type;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -26,7 +25,6 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.commons.rdf.api.Triple;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.vocabulary.LDP;
 
@@ -65,14 +63,6 @@ final class DBUtils {
             return BinaryMetadata.builder(rdf.createIRI(location)).mimeType(format).build();
         }
         return null;
-    }
-
-    public static boolean isLdpTypeTriple(final Triple triple, final IRI identifier) {
-        if (triple.getObject() instanceof IRI) {
-            return triple.getSubject().equals(identifier) && triple.getPredicate().equals(type)
-                && ((IRI) triple.getObject()).getIRIString().startsWith(LDP.getNamespace());
-        }
-        return false;
     }
 
     static <T> Optional<T> findFirst(final Class<T> service) {

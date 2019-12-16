@@ -209,7 +209,18 @@ class DBResourceTest {
                 assertTrue(acl.contains(null, ACL.mode, ACL.Read));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Write));
                 assertTrue(acl.contains(null, ACL.mode, ACL.Control));
-                assertEquals(1L, res.stream(Trellis.PreferUserManaged).count());
+                assertEquals(0L, res.stream(Trellis.PreferUserManaged).count());
+                assertEquals(1L, res.stream(Trellis.PreferServerManaged).count());
+            }).toCompletableFuture().join());
+    }
+
+    @Test
+    void getFilteredServeManagedQuads() {
+        assertAll(() ->
+            DBResource.findResource(pg.getPostgresDatabase(), root, false).thenAccept(res -> {
+                final Graph acl = rdf.createGraph();
+                assertEquals(0L, res.stream(Trellis.PreferUserManaged).count());
+                assertEquals(0L, res.stream(Trellis.PreferServerManaged).count());
             }).toCompletableFuture().join());
     }
 
@@ -334,7 +345,8 @@ class DBResourceTest {
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
                     triple.getObject().equals(rdf.createIRI(inbox))))).toCompletableFuture().join();
         DBResource.findResource(pg.getPostgresDatabase(), identifier, true).thenAccept(res -> {
-            assertEquals(3L, res.stream(Trellis.PreferUserManaged).count());
+            assertEquals(2L, res.stream(Trellis.PreferUserManaged).count());
+            assertEquals(1L, res.stream(Trellis.PreferServerManaged).count());
             assertEquals(2L, res.getExtraLinkRelations().count());
             assertTrue(res.getExtraLinkRelations().anyMatch(rel -> rel.getKey().equals(annotations)
                         && rel.getValue().equals(OA.annotationService.getIRIString())));
@@ -391,5 +403,13 @@ class DBResourceTest {
         assertThrows(CompletionException.class, () ->
                 svc2.create(builder(identifier).interactionModel(LDP.Container).build(), dataset)
                 .toCompletableFuture().join());
+    }
+
+    @Test
+    void testAdjustIdentifier() {
+        final String identifier = TRELLIS_DATA_PREFIX + "resource";
+        assertEquals(identifier + "/", DBResource.adjustIdentifier(identifier, LDP.Container.getIRIString()));
+        assertEquals(identifier + "/", DBResource.adjustIdentifier(identifier + "/", LDP.Container.getIRIString()));
+        assertEquals(identifier, DBResource.adjustIdentifier(identifier, LDP.RDFSource.getIRIString()));
     }
 }

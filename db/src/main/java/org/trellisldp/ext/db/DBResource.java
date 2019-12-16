@@ -96,6 +96,7 @@ public class DBResource implements Resource {
         this.jdbi = jdbi;
         this.includeLdpType = includeLdpType;
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
+        graphMapper.put(Trellis.PreferServerManaged, this::fetchServerQuads);
         graphMapper.put(Trellis.PreferAudit, this::fetchAuditQuads);
         graphMapper.put(Trellis.PreferAccessControl, this::fetchAclQuads);
         graphMapper.put(LDP.PreferContainment, this::fetchContainmentQuads);
@@ -220,12 +221,18 @@ public class DBResource implements Resource {
      * Fetch a stream of user-managed quads.
      */
     private Stream<Quad> fetchUserQuads() {
-        if (includeLdpType) {
-            return concat(of(rdf.createQuad(Trellis.PreferUserManaged,
-                            adjustIdentifier(getIdentifier(), getInteractionModel()), type, getInteractionModel())),
-                    fetchQuadsFromTable("description", Trellis.PreferUserManaged));
-        }
         return fetchQuadsFromTable("description", Trellis.PreferUserManaged);
+    }
+
+    /**
+     * Fetch a stream of server-managed quads.
+     */
+    private Stream<Quad> fetchServerQuads() {
+        if (includeLdpType) {
+            return of(rdf.createQuad(Trellis.PreferServerManaged,
+                            adjustIdentifier(getIdentifier(), getInteractionModel()), type, getInteractionModel()));
+        }
+        return Stream.empty();
     }
 
     /**
@@ -363,7 +370,7 @@ public class DBResource implements Resource {
         return false;
     }
 
-    private static RDFTerm getObject(final String value, final String lang, final String datatype) {
+    static RDFTerm getObject(final String value, final String lang, final String datatype) {
         if (lang != null) {
             return rdf.createLiteral(value, lang);
         } else if (datatype != null) {
@@ -372,14 +379,14 @@ public class DBResource implements Resource {
         return rdf.createIRI(value);
     }
 
-    private static String adjustIdentifier(final String identifier, final String type) {
+    static String adjustIdentifier(final String identifier, final String type) {
         if (containerTypes.contains(rdf.createIRI(type)) && !identifier.endsWith(SLASH)) {
             return identifier + SLASH;
         }
         return identifier;
     }
 
-    private static IRI adjustIdentifier(final IRI identifier, final IRI type) {
+    static IRI adjustIdentifier(final IRI identifier, final IRI type) {
         if (containerTypes.contains(type) && !identifier.getIRIString().endsWith(SLASH)) {
             return rdf.createIRI(identifier.getIRIString() + SLASH);
         }

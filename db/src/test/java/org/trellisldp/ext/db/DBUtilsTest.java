@@ -15,14 +15,12 @@ package org.trellisldp.ext.db;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.trellisldp.vocabulary.RDF.langString;
-import static org.trellisldp.vocabulary.RDF.type;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.jupiter.api.Test;
-import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.XSD;
 
@@ -73,21 +71,6 @@ class DBUtilsTest {
         assertNotNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, "file:///path/to/resource", "text/plain"));
         assertNull(DBUtils.getBinaryMetadata(LDP.RDFSource, "file:///path/to/resource", "text/plain"));
         assertNull(DBUtils.getBinaryMetadata(LDP.NonRDFSource, null, "text/plain"));
-    }
-
-    @Test
-    void testIsLdpTypeTriple() {
-        final IRI identifier1 = rdf.createIRI("https://www.example.com/resource1");
-        final IRI identifier2 = rdf.createIRI("https://www.example.com/resource2");
-
-        assertTrue(DBUtils.isLdpTypeTriple(rdf.createTriple(identifier1, type, LDP.Container),
-                    identifier1));
-        assertFalse(DBUtils.isLdpTypeTriple(rdf.createTriple(identifier1, type, LDP.Container),
-                    identifier2));
-        assertFalse(DBUtils.isLdpTypeTriple(rdf.createTriple(identifier1, DC.relation, LDP.Container),
-                    identifier2));
-        assertFalse(DBUtils.isLdpTypeTriple(rdf.createTriple(identifier1, type, identifier2),
-                    identifier1));
     }
 
     @Test
