@@ -111,6 +111,7 @@ public class S3MementoServiceTest {
             assertFalse(r.getMemberOfRelation().isPresent());
             assertFalse(r.getInsertedContentRelation().isPresent());
             assertTrue(r.hasAcl());
+            assertEquals(1L, r.stream(Trellis.PreferServerManaged).count());
         }).toCompletableFuture().join();
 
         final Resource res2 = mock(Resource.class);
@@ -159,28 +160,34 @@ public class S3MementoServiceTest {
         when(res.getInsertedContentRelation()).thenReturn(empty());
         when(res.stream()).thenAnswer(inv -> Stream.of(quad));
 
-        final MementoService svc = new S3MementoService();
-        assertDoesNotThrow(svc.put(res).toCompletableFuture()::join);
-        svc.get(identifier, time).thenAccept(r -> {
-            assertEquals(identifier, r.getIdentifier());
-            assertEquals(LDP.NonRDFSource, r.getInteractionModel());
-            assertEquals(time, r.getModified());
-            assertTrue(r.stream().anyMatch(isEqual(quad)));
-            assertTrue(r.getBinaryMetadata().isPresent());
-            r.getBinaryMetadata().ifPresent(b -> {
-                assertEquals(binary.getIdentifier(), b.getIdentifier());
-                assertEquals(binary.getMimeType(), b.getMimeType());
-            });
-            assertFalse(r.getContainer().isPresent());
-            assertFalse(r.getMembershipResource().isPresent());
-            assertFalse(r.getMemberRelation().isPresent());
-            assertFalse(r.getMemberOfRelation().isPresent());
-            assertFalse(r.getInsertedContentRelation().isPresent());
-            assertFalse(r.hasAcl());
-        }).toCompletableFuture().join();
+        try {
+            System.setProperty(S3Resource.CONFIG_AWS_LDP_TYPE, "false");
+            final MementoService svc = new S3MementoService();
+            assertDoesNotThrow(svc.put(res).toCompletableFuture()::join);
+            svc.get(identifier, time).thenAccept(r -> {
+                assertEquals(identifier, r.getIdentifier());
+                assertEquals(LDP.NonRDFSource, r.getInteractionModel());
+                assertEquals(time, r.getModified());
+                assertTrue(r.stream().anyMatch(isEqual(quad)));
+                assertTrue(r.getBinaryMetadata().isPresent());
+                r.getBinaryMetadata().ifPresent(b -> {
+                    assertEquals(binary.getIdentifier(), b.getIdentifier());
+                    assertEquals(binary.getMimeType(), b.getMimeType());
+                });
+                assertFalse(r.getContainer().isPresent());
+                assertFalse(r.getMembershipResource().isPresent());
+                assertFalse(r.getMemberRelation().isPresent());
+                assertFalse(r.getMemberOfRelation().isPresent());
+                assertFalse(r.getInsertedContentRelation().isPresent());
+                assertFalse(r.hasAcl());
+                assertEquals(0L, r.stream(Trellis.PreferServerManaged).count());
+            }).toCompletableFuture().join();
 
-        svc.mementos(identifier).thenAccept(mementos -> assertTrue(mementos.contains(time)));
-        svc.get(identifier, time.minusSeconds(10L)).thenAccept(r -> assertEquals(MISSING_RESOURCE, r));
+            svc.mementos(identifier).thenAccept(mementos -> assertTrue(mementos.contains(time)));
+            svc.get(identifier, time.minusSeconds(10L)).thenAccept(r -> assertEquals(MISSING_RESOURCE, r));
+        } finally {
+            System.clearProperty(S3Resource.CONFIG_AWS_LDP_TYPE);
+        }
     }
 
     @Test
