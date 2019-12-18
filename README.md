@@ -35,14 +35,24 @@ QUARKUS_DATASOURCE_USERNAME=user
 QUARKUS_DATASOURCE_PASSWORD=pass
 ```
 
-By default, a database migration will run when the
-container is started. Once the database is set up,
-this step is no longer necessary and it can be
-disabled with the following environment variable:
+By default, a database migration will **not** run when the
+container is started. In order to set up the database schema,
+the initial start-up should include the following environment variable:
 
 ```sh
-QUARKUS_FLYWAY_MIGRATE_AT_START=false
+QUARKUS_FLYWAY_MIGRATE_AT_START=true
 ```
+
+Once the database is set up, this step is no longer necessary.
+
+If the migration is occurring over data that was created on an older (dropwizard-based) Trellis app,
+an additional environment variable should be set:
+
+```sh
+QUARKUS_FLYWAY_BASELINE_ON_MIGRATE=true
+```
+
+As with the `migrate-at-start` property, this is only needed for the initial start-up.
 
 ## Legacy Database container
 
