@@ -107,7 +107,6 @@ test {
             systemProperty 'trellis.test.quarkus.embedded-pgsql', 'true'
         }
     }
-
 }
 
 sonarqube {
@@ -115,8 +114,6 @@ sonarqube {
 }
 
 /* Quarkus-related settings */
-buildNative.enabled = false
-
 rootProject.childProjects.each { n, p ->
     if (installForQuarkus.contains(p.name)) {
         tasks.compileJava.dependsOn p.tasks.install
@@ -126,7 +123,7 @@ rootProject.childProjects.each { n, p ->
 quarkusDev {
     doFirst {
         project.buildscript.repositories.gradlePluginPortal()
-        project.buildscript.dependencies.add('classpath', "io.quarkus:quarkus-gradle-plugin:$quarkusVersion")
+        project.buildscript.dependencies.add('classpath', "io.quarkus:io.quarkus.gradle.plugin:$quarkusVersion")
     }
 }
 
