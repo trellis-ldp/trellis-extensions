@@ -114,6 +114,7 @@ sonarqube {
 }
 
 /* Quarkus-related settings */
+buildNative.enabled = false
 rootProject.childProjects.each { n, p ->
     if (installForQuarkus.contains(p.name)) {
         tasks.compileJava.dependsOn p.tasks.install
