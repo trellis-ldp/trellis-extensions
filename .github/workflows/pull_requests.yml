@@ -67,9 +67,10 @@ jobs:
         ports:
         - 9042:9042
         - 9160:9160
-        #volumes:
-        #- "$(pwd)"/buildtools/src/main/resources/cassandra:/init
-        #- "$(pwd)"/cassandra/src/main/resources:/app
+        volumes:
+        - ./buildtools/src/main/resources/cassandra:/init
+        - ./cassandra/src/main/resources:/app
+        options: --name cassandra
 
     steps:
     - uses: actions/checkout@v1
@@ -80,9 +81,8 @@ jobs:
 
     - name: "Java 8 (Quarkus Cassandra)"
       run: |
-          pwd
-          ls -l
-      #env: TEST_CASSANDRA=true
-      #install: ./gradlew assemble -Pcassandra
-      #script: ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
+          docker exec -it cassandra sh -c "/init/initialize.sh /app"
+          ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
+      env:
+          TEST_CASSANDRA=true
 
