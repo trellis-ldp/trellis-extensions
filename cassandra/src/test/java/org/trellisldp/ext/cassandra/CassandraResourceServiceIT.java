@@ -13,10 +13,12 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.trellisldp.api.Metadata.builder;
 
 import java.time.Instant;
+import java.util.Set;
 
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
@@ -27,6 +29,7 @@ import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.test.ResourceServiceTests;
+import org.trellisldp.vocabulary.Trellis;
 
 @EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 class CassandraResourceServiceIT extends CassandraServiceIT implements ResourceServiceTests {
@@ -38,7 +41,7 @@ class CassandraResourceServiceIT extends CassandraServiceIT implements ResourceS
         final IRI ixnModel = createIRI("http://example.com/ixnModel");
         @SuppressWarnings("resource")
         final Dataset quads = rdfFactory.createDataset();
-        final Quad quad = rdfFactory.createQuad(id, ixnModel, id, ixnModel);
+        final Quad quad = rdfFactory.createQuad(id, ixnModel, id, Trellis.PreferUserManaged);
         quads.add(quad);
 
         // build container
@@ -55,9 +58,8 @@ class CassandraResourceServiceIT extends CassandraServiceIT implements ResourceS
         assertEquals(container,
                         resource.getContainer().orElseThrow(() -> new AssertionError("Failed to find any container!")));
 
-        final Quad firstQuad = resource.stream().findFirst()
-            .orElseThrow(() -> new AssertionError("Failed to find quad!"));
-        assertEquals(quad, firstQuad);
+        final Set<Quad> allQuads = resource.stream().collect(toSet());
+        assertTrue(allQuads.contains(quad));
 
         // touch container
         final Instant modified = connection.resourceService.get(container).toCompletableFuture().join().getModified();

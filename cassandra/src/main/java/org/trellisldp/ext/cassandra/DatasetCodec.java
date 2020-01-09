@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.query.DatasetFactory;
+import org.trellisldp.vocabulary.Trellis;
 
 class DatasetCodec extends CassandraCodec<Dataset> {
 
@@ -59,7 +60,9 @@ class DatasetCodec extends CassandraCodec<Dataset> {
 
     private byte[] toNQuads(final Dataset dataset) {
         try (final ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-            writeQuads(bytes, dataset.stream().map(rdf::asJenaQuad).iterator());
+            writeQuads(bytes, dataset.stream().filter(quad ->
+                        !quad.getGraphName().filter(name -> Trellis.PreferServerManaged.equals(name)).isPresent())
+                    .map(rdf::asJenaQuad).iterator());
             return bytes.toByteArray();
         } catch (final IOException e) {
             throw new UncheckedIOException("Dataset could not be serialized!", e);

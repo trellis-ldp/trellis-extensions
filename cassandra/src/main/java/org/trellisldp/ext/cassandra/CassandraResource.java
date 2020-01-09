@@ -13,6 +13,10 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
+import static org.trellisldp.api.TrellisUtils.getInstance;
+import static org.trellisldp.vocabulary.RDF.type;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -20,11 +24,18 @@ import java.util.stream.Stream;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
+import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
+import org.trellisldp.vocabulary.Trellis;
 
 class CassandraResource implements Resource {
+
+    public static final String CONFIG_CASSANDRA_LDP_TYPE = "trellis.cassandra.ldp-type";
+    private static final boolean includeLdpType = getConfig().getOptionalValue(CONFIG_CASSANDRA_LDP_TYPE, Boolean.class)
+            .orElse(Boolean.TRUE);
+    private static final RDF rdf = getInstance();
 
     private final Metadata metadata;
     private final Dataset dataset;
@@ -74,6 +85,13 @@ class CassandraResource implements Resource {
     @Override
     @SuppressWarnings("unchecked")
     public Stream<Quad> stream() {
-        return (Stream<Quad>) dataset.stream();
+        return Stream.concat(getServerManagedQuads(), (Stream<Quad>) dataset.stream());
+    }
+
+    private Stream<Quad> getServerManagedQuads() {
+        if (includeLdpType) {
+            return Stream.of(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
+        }
+        return Stream.empty();
     }
 }
