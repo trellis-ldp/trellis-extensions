@@ -118,7 +118,7 @@ class CassandraResourceService implements ResourceService, CassandraBuildingServ
     void initializeRoot() {
         final IRI rootIri = rdf.createIRI(TRELLIS_DATA_PREFIX);
         try (final Dataset dataset = rdf.createDataset()) {
-            dataset.add(rdf.createQuad(Trellis.PreferServerManaged, rootIri, type, LDP.BasicContainer));
+            dataset.add(rdf.createQuad(Trellis.PreferServerManaged, rootIri, type, BasicContainer));
             if (get(rootIri).toCompletableFuture().get().equals(MISSING_RESOURCE)) {
                 final Metadata rootResource = builder(rootIri).interactionModel(BasicContainer).build();
                 create(rootResource, dataset).toCompletableFuture().get();
