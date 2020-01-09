@@ -1,0 +1,59 @@
+name: GitHub CI
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11]
+
+    name: Java ${{ matrix.java }} environment
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+
+    - name: Cache
+      uses: actions/cache@v1.0.3
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Build with Gradle
+      run: ./gradlew check assemble javadoc -x pmdMain -x spotbugsMain || ./gradlew check assemble javadoc -x pmdMain -x spotbugsMain
+
+  postgres:
+    runs-on: ubuntu-latest
+    name: Java 8 (postgres) environment
+
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: trellis
+        ports:
+        - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+
+    - name: "Java 8 (Quarkus Database)"
+      run: ./gradlew check -p platform/quarkus -x pmdMain -x spotbugsMain install --scan
+      env:
+        QUARKUS_EXTERNAL_PGSQL: true
+        QUARKUS_DATASOURCE_USERNAME: postgres
+        QUARKUS_DATASOURCE_PASSWORD: postgres
+

@@ -49,12 +49,6 @@ jobs:
       script: travis_retry ./gradlew check -x pmdMain -x spotbugsMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
 
-    - name: "Java 8 (Quarkus Database)"
-      stage: test
-      jdk: openjdk8
-      env: QUARKUS_EXTERNAL_PGSQL=true
-      script: ./gradlew check -p platform/quarkus -x pmdMain -x spotbugsMain install --scan
-
     - name: "Java 8 (Quarkus Cassandra)"
       stage: test
       jdk: openjdk8
