@@ -1,6 +1,13 @@
 name: GitHub CI
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
+      - trellis-[0-9]+.[0-9]+.x
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
