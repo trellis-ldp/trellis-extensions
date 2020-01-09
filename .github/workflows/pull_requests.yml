@@ -67,7 +67,7 @@ jobs:
         ports:
         - 9042:9042
         - 9160:9160
-        options: --name cassandra -v "$(pwd)"/buildtools/src/main/resources/cassandra:/init -v "$(pwd)"/cassandra/src/main/resources:/app
+        options: --name cassandra -v /home/runner/work/trellis-extensions/trellis-extensions/buildtools/src/main/resources/cassandra:/init -v /home/runner/work/trellis-extensions/trellis-extensions/cassandra/src/main/resources:/app
 
     steps:
     - uses: actions/checkout@v1
