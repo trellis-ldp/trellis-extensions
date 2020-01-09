@@ -67,10 +67,7 @@ jobs:
         ports:
         - 9042:9042
         - 9160:9160
-        volumes:
-        - ./buildtools/src/main/resources/cassandra:/init
-        - ./cassandra/src/main/resources:/app
-        options: --name cassandra
+        options: --name cassandra -v ./buildtools/src/main/resources/cassandra:/init -v ./cassandra/src/main/resources:/app
 
     steps:
     - uses: actions/checkout@v1
