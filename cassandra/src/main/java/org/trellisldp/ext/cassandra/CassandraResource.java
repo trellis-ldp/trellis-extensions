@@ -33,8 +33,8 @@ import org.trellisldp.vocabulary.Trellis;
 class CassandraResource implements Resource {
 
     public static final String CONFIG_CASSANDRA_LDP_TYPE = "trellis.cassandra.ldp-type";
-    private static final boolean includeLdpType = getConfig().getOptionalValue(CONFIG_CASSANDRA_LDP_TYPE, Boolean.class)
-            .orElse(Boolean.TRUE);
+    private static final boolean INCLUDE_LDP_TYPE = getConfig()
+        .getOptionalValue(CONFIG_CASSANDRA_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE);
     private static final RDF rdf = getInstance();
 
     private final Metadata metadata;
@@ -89,7 +89,7 @@ class CassandraResource implements Resource {
     }
 
     private Stream<Quad> getServerManagedQuads() {
-        if (includeLdpType) {
+        if (INCLUDE_LDP_TYPE) {
             return Stream.of(rdf.createQuad(Trellis.PreferServerManaged, getIdentifier(), type, getInteractionModel()));
         }
         return Stream.empty();
