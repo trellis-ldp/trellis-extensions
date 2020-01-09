@@ -61,7 +61,7 @@ class DatasetCodec extends CassandraCodec<Dataset> {
     private byte[] toNQuads(final Dataset dataset) {
         try (final ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
             writeQuads(bytes, dataset.stream().filter(quad ->
-                        !quad.getGraphName().filter(name -> Trellis.PreferServerManaged.equals(name)).isPresent())
+                        !quad.getGraphName().filter(Trellis.PreferServerManaged::equals).isPresent())
                     .map(rdf::asJenaQuad).iterator());
             return bytes.toByteArray();
         } catch (final IOException e) {

@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -126,8 +125,6 @@ class CassandraResourceService implements ResourceService, CassandraBuildingServ
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new InterruptedStartupException("Interrupted while building repository root!", e);
-        } catch (ExecutionException e) {
-            throw new RuntimeTrellisException(e);
         } catch (Exception e) {
             throw new RuntimeTrellisException(e);
         }
