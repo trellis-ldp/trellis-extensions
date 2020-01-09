@@ -79,8 +79,9 @@ jobs:
     - name: "Java 8 (Quarkus Cassandra)"
       run: |
           ls -l /home/runner/work/actions
-          docker exec cassandra sh -c "ls /workspace"
-          # /init/initialize.sh /app"
+          cp ./buildtools/src/main/resources/cassandra/initialize.sh /home/runner/work/actions/
+          cp ./cassandra/src/main/resources/trellis.cql /home/runner/work/actions/
+          docker exec cassandra sh -c "/workspace/initialize.sh /workspace"
           #./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
       env:
           TEST_CASSANDRA: true
