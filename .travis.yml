@@ -49,13 +49,6 @@ jobs:
       script: travis_retry ./gradlew check -x pmdMain -x spotbugsMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
 
-    - name: "Java 8 (Quarkus Cassandra)"
-      stage: test
-      jdk: openjdk8
-      env: TEST_CASSANDRA=true
-      install: ./gradlew assemble -Pcassandra
-      script: ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
-
     # JDK 11
     - name: "Java 11"
       stage: test
