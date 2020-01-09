@@ -29,8 +29,6 @@ branches:
 before_script:
   - psql -c 'create database trellis;' -U postgres
   - mysql -e 'CREATE DATABASE trellis;'
-  - docker run -p 9042:9042 -p 9160:9160 --name cassandra -d -v "$(pwd)"/buildtools/src/main/resources/cassandra:/init -v "$(pwd)"/cassandra/src/main/resources:/app cassandra:latest
-  - docker exec -it cassandra sh -c "/init/initialize.sh /app"
 
 env:
   - JOB=check
@@ -48,19 +46,6 @@ jobs:
       jdk: openjdk8
       script: travis_retry ./gradlew check -x pmdMain -x spotbugsMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
-
-    - name: "Java 8 (Quarkus Database)"
-      stage: test
-      jdk: openjdk8
-      env: QUARKUS_EXTERNAL_PGSQL=true
-      script: ./gradlew check -p platform/quarkus -x pmdMain -x spotbugsMain install --scan
-
-    - name: "Java 8 (Quarkus Cassandra)"
-      stage: test
-      jdk: openjdk8
-      env: TEST_CASSANDRA=true
-      install: ./gradlew assemble -Pcassandra
-      script: ./gradlew check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
 
     # JDK 11
     - name: "Java 11"
