@@ -29,6 +29,8 @@ branches:
 before_script:
   - psql -c 'create database trellis;' -U postgres
   - mysql -e 'CREATE DATABASE trellis;'
+  - docker run -p 9042:9042 -p 9160:9160 --name cassandra -d -v "$(pwd)"/buildtools/src/main/resources/cassandra:/init -v "$(pwd)"/cassandra/src/main/resources:/app cassandra:latest
+  - docker exec -it cassandra sh -c "/init/initialize.sh /app"
 
 env:
   - JOB=check
