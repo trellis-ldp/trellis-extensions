@@ -19,11 +19,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.Metadata.builder;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
+import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.vocabulary.LDP.BasicContainer;
 import static org.trellisldp.vocabulary.LDP.Container;
 import static org.trellisldp.vocabulary.LDP.NonRDFSource;
 import static org.trellisldp.vocabulary.LDP.RDFSource;
 import static org.trellisldp.vocabulary.LDP.getSuperclassOf;
+import static org.trellisldp.vocabulary.RDF.type;
 
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -43,12 +45,12 @@ import javax.inject.Inject;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
+import org.apache.commons.rdf.api.RDF;
 import org.slf4j.Logger;
 import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.api.RuntimeTrellisException;
-import org.trellisldp.api.TrellisUtils;
 import org.trellisldp.ext.cassandra.query.rdf.BasicContainment;
 import org.trellisldp.ext.cassandra.query.rdf.Delete;
 import org.trellisldp.ext.cassandra.query.rdf.Get;
@@ -57,6 +59,7 @@ import org.trellisldp.ext.cassandra.query.rdf.ImmutableRetrieve;
 import org.trellisldp.ext.cassandra.query.rdf.MutableInsert;
 import org.trellisldp.ext.cassandra.query.rdf.Touch;
 import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.Trellis;
 
 /**
  * Implements persistence into a simple Apache Cassandra schema.
@@ -66,6 +69,7 @@ import org.trellisldp.vocabulary.LDP;
 @ApplicationScoped
 class CassandraResourceService implements ResourceService, CassandraBuildingService {
 
+    private static final RDF rdf = getInstance();
     private static final Set<IRI> SUPPORTED_INTERACTION_MODELS;
 
     static {
@@ -112,16 +116,19 @@ class CassandraResourceService implements ResourceService, CassandraBuildingServ
      */
     @PostConstruct
     void initializeRoot() {
-        final IRI rootIri = TrellisUtils.getInstance().createIRI(TRELLIS_DATA_PREFIX);
-        try {
+        final IRI rootIri = rdf.createIRI(TRELLIS_DATA_PREFIX);
+        try (final Dataset dataset = rdf.createDataset()) {
+            dataset.add(rdf.createQuad(Trellis.PreferServerManaged, rootIri, type, LDP.BasicContainer));
             if (get(rootIri).toCompletableFuture().get().equals(MISSING_RESOURCE)) {
                 final Metadata rootResource = builder(rootIri).interactionModel(BasicContainer).build();
-                create(rootResource, null).toCompletableFuture().get();
+                create(rootResource, dataset).toCompletableFuture().get();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new InterruptedStartupException("Interrupted while building repository root!", e);
         } catch (ExecutionException e) {
+            throw new RuntimeTrellisException(e);
+        } catch (Exception e) {
             throw new RuntimeTrellisException(e);
         }
     }
