@@ -79,8 +79,6 @@ allprojects { subproj ->
 
     configurations.all {
         resolutionStrategy {
-            // Use a newer version of thrift (via Jena)
-            force "org.apache.thrift:libthrift:$thriftVersion"
             // Use a newer version of snakeyaml (via Jackson)
             force "org.yaml:snakeyaml:$snakeyamlVersion"
         }
