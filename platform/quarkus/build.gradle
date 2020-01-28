@@ -1,4 +1,6 @@
-apply plugin: 'io.quarkus'
+plugins {
+    id 'io.quarkus'
+}
 
 def installForQuarkus = [
     "trellis-aws",
@@ -118,13 +120,6 @@ buildNative.enabled = false
 rootProject.childProjects.each { n, p ->
     if (installForQuarkus.contains(p.name)) {
         tasks.compileJava.dependsOn p.tasks.install
-    }
-}
-
-quarkusDev {
-    doFirst {
-        project.buildscript.repositories.gradlePluginPortal()
-        project.buildscript.dependencies.add('classpath', "io.quarkus:io.quarkus.gradle.plugin:$quarkusVersion")
     }
 }
 
