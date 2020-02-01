@@ -51,21 +51,14 @@ jobs:
         QUARKUS_DATASOURCE_USERNAME: postgres
         QUARKUS_DATASOURCE_PASSWORD: postgres
 
-  test:
-    runs-on: ubuntu-latest
-    name: testing
-    steps:
-    - uses: actions/checkout@v2
-      with:
-          path: trellis-extensions
-    - name: test path
-      run: pwd
-
   security:
     runs-on: ubuntu-latest
     name: Security analysis
     steps:
     - uses: actions/checkout@v2
+      with:
+        path: trellis-extensions
+
     - name: Run Snyk to check for vulnerabilities
       uses: snyk/actions/gradle@0.1.1
       env:
