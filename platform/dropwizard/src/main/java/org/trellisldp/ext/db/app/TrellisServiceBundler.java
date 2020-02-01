@@ -136,6 +136,7 @@ public class TrellisServiceBundler implements ServiceBundler {
                 config.getAssets().getTemplate(), config.getAssets().getCss(), config.getAssets().getJs(),
                 config.getAssets().getIcon());
         return new JenaIOService(namespaceService, htmlSerializer, profileCache,
-                config.getJsonld().getContextWhitelist(), config.getJsonld().getContextDomainWhitelist());
+                config.getJsonld().getContextWhitelist(), config.getJsonld().getContextDomainWhitelist(),
+                config.getUseRelativeIris());
     }
 }
