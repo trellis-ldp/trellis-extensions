@@ -68,9 +68,9 @@ ext {
     weldVersion = "2.0.1.Final"
 
     // Tools
-    checkstyleToolVersion = "8.26"
+    checkstyleToolVersion = "8.29"
     jacocoToolVersion = "0.8.5"
-    pmdToolVersion = "6.20.0"
+    pmdToolVersion = "6.21.0"
     spotbugsToolVersion = "3.1.12"
 
     jacocoSkipProjects = [

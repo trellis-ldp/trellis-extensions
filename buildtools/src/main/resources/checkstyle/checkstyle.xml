@@ -77,7 +77,6 @@
 
     <module name="JavadocMethod">
       <property name="scope" value="public"/>
-      <property name="allowUndeclaredRTE" value="true"/>
     </module>
 
     <module name="JavadocStyle">
