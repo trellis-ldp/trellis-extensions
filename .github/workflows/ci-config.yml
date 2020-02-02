@@ -56,10 +56,14 @@ jobs:
     name: Security analysis
     steps:
     - uses: actions/checkout@v2
+      with:
+        path: trellis-extensions
+
     - name: Run Snyk to check for vulnerabilities
       uses: snyk/actions/gradle@0.1.1
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        PROJECT_FOLDER: /github/workspace/trellis-extensions
       with:
         command: monitor --all-sub-projects --org=trellisldp
 
