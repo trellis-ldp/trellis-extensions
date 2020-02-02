@@ -63,9 +63,8 @@ jobs:
       uses: snyk/actions/gradle@0.1.1
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        PROJECT_FOLDER: /github/workspace/trellis-extensions
       with:
-        command: monitor --all-sub-projects --org=trellisldp
+        command: monitor --all-sub-projects --org=trellisldp --file=trellis-extensions/build.gradle
 
   postgres:
     runs-on: ubuntu-latest
