@@ -57,10 +57,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      #with:
-        #path: trellis-extensions
-
     - name: Run Snyk to check for vulnerabilities
+      # Only run security scans for push events
+      if: github.event_name == 'push'
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         PROJECT_PATH: /project/trellis-extensions
