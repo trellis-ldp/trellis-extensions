@@ -65,7 +65,8 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         PROJECT_FOLDER: trellis-extensions
 
-      run:
+      run: |
+        docker pull snyk/snyk-cli:gradle
         docker run --name snyk --workdir /github/workspace --rm -e SNYK_TOKEN -e PROJECT_FOLDER -v "/home/runner/work/trellis-extensions":"/github/workspace" snyk/snyk-cli:gradle "monitor --all-sub-projects --org=trellisldp"
 
   postgres:
