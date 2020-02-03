@@ -54,17 +54,19 @@ jobs:
   security:
     runs-on: ubuntu-latest
     name: Security analysis
+
     steps:
     - uses: actions/checkout@v2
       with:
         path: trellis-extensions
 
     - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/gradle@0.1.1
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        command: monitor --all-sub-projects --org=trellisldp --file=trellis-extensions/build.gradle
+        PROJECT_FOLDER: trellis-extensions
+
+      run:
+        docker run --name snyk --workdir /github/workspace --rm -e SNYK_TOKEN -e PROJECT_FOLDER -v "/home/runner/work/trellis-extensions":"/github/workspace" snyk/snyk-cli:gradle "monitor --all-sub-projects --org=trellisldp"
 
   postgres:
     runs-on: ubuntu-latest
