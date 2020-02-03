@@ -65,7 +65,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         PROJECT_PATH: /project/trellis-extensions
       run:
-        docker run --name snyk -e SNYK_TOKEN -e PROJECT_PATH -v "/home/runner/work/trellis-extensions":"/project/trellis-extensions" snyk/snyk-cli:gradle-5.4 "monitor --all-sub-projects --org=trellisldp"
+        docker run --name snyk -e SNYK_TOKEN -e PROJECT_PATH -v "/home/runner/work/trellis-extensions":"/project" snyk/snyk-cli:gradle-5.4 "monitor --all-sub-projects --org=trellisldp"
 
   postgres:
     runs-on: ubuntu-latest
