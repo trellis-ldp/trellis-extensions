@@ -16,7 +16,7 @@ ext {
     // Trellis core
     trellisVersion = "0.10.0-SNAPSHOT"
 
-    //# JavaEE
+    // JavaEE
     activationApiVersion = "1.2.1"
     annotationApiVersion = "1.3.5"
     cdiApiVersion = "2.0.2"
@@ -25,11 +25,11 @@ ext {
     jmsApiVersion = "2.0.3"
     transactionApiVersion = "1.3.3"
 
-    //# Miroprofile
+    // Miroprofile
     microprofileConfigVersion = "1.3"
     microprofileHealthVersion = "2.1"
 
-    //# Dependencies
+    // Dependencies
     activeMqVersion = "5.15.11"
     awsVersion = "1.11.714"
     commonsCompressVersion = "1.19"
@@ -83,7 +83,6 @@ ext {
         'trellis-db-deployment',
         'trellis-quarkus'
     ]
-
 }
 
 allprojects { subproj ->
