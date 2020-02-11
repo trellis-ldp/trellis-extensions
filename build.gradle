@@ -26,7 +26,7 @@ ext {
     transactionApiVersion = "1.3.3"
 
     // Miroprofile
-    microprofileConfigVersion = "1.3"
+    microprofileConfigVersion = "1.4"
     microprofileHealthVersion = "2.1"
 
     // Dependencies
