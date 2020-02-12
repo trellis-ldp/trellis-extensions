@@ -45,7 +45,7 @@ jobs:
           ${{ runner.os }}-gradle-
 
     - name: Build with Gradle
-      run: ./gradlew check assemble javadoc -x pmdMain -x spotbugsMain || ./gradlew check assemble javadoc -x pmdMain -x spotbugsMain
+      run: ./gradlew check assemble javadoc -x pmdMain -x spotbugsMain
       env:
         QUARKUS_EXTERNAL_PGSQL: true
         QUARKUS_DATASOURCE_USERNAME: postgres
