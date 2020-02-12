@@ -27,7 +27,7 @@ ext {
 
     // Miroprofile
     microprofileConfigVersion = "1.4"
-    microprofileHealthVersion = "2.1"
+    microprofileHealthVersion = "2.2"
 
     // Dependencies
     activeMqVersion = "5.15.11"
