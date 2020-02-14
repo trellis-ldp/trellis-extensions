@@ -1,0 +1,9 @@
+version: 1
+update_configs:
+    - package_manager: "java:gradle"
+      directory: "/"
+      update_schedule: "daily"
+    # AWS-related dependencies are updated weekly
+    - package_manager: "java:gradle"
+      directory: "/aws"
+      update_schedule: "weekly"
