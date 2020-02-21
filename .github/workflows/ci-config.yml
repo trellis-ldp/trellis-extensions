@@ -67,7 +67,8 @@ jobs:
       # Skip this analysis if the integration isn't set up
       run: |
         if [ "$SNYK_ORG" != "" ]; then
-          docker run --name snyk -e SNYK_TOKEN -e PROJECT_PATH -v "/home/runner/work/trellis-extensions":"/project" snyk/snyk-cli:gradle-5.4 "monitor --all-sub-projects --org=$SNYK_ORG"
+          # Don't fail on snyk scans
+          docker run --name snyk -e SNYK_TOKEN -e PROJECT_PATH -v "/home/runner/work/trellis-extensions":"/project" snyk/snyk-cli:gradle-5.4 "monitor --all-sub-projects --org=$SNYK_ORG" || true
         fi
 
   postgres:
