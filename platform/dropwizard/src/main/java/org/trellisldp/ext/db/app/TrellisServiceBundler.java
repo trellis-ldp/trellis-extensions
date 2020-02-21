@@ -75,7 +75,8 @@ public class TrellisServiceBundler implements ServiceBundler {
     public TrellisServiceBundler(final AppConfiguration config, final Environment environment) {
         final Jdbi jdbi = new JdbiFactory().build(environment, config.getDataSourceFactory(), "trellis");
 
-        mementoService = new DBWrappedMementoService(jdbi, new FileMementoService(config.getMementos()));
+        mementoService = new DBWrappedMementoService(jdbi, new FileMementoService(config.getMementos(),
+                    config.getIsVersioningEnabled()));
         auditService = new DefaultAuditService();
         resourceService = new DBResourceService(jdbi);
         binaryService = new FileBinaryService(new DefaultIdentifierService(), config.getBinaries(),

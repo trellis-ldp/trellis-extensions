@@ -130,7 +130,7 @@ class DBWrappedMementoServiceTest {
     void testMementoUtils() {
         final String dir = DBWrappedMementoService.class.getResource("/mementos").getFile();
         final MementoService svc = new DBWrappedMementoService(pg.getPostgresDatabase(),
-                new FileMementoService(dir));
+                new FileMementoService(dir, true));
 
         final Instant time = now();
         final IRI identifier = rdf.createIRI("trellis:data/resource");
