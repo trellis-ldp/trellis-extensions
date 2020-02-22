@@ -2,6 +2,18 @@ plugins {
     id 'io.quarkus'
 }
 
+repositories {
+    mavenLocal() {
+        content {
+            includeGroup "org.trellisldp"
+        }
+    }
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+}
+
 def installForQuarkus = [
     "trellis-aws",
     "trellis-cassandra",

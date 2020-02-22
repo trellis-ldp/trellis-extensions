@@ -107,11 +107,10 @@ allprojects { subproj ->
     group = 'org.trellisldp.ext'
 
     repositories {
+        mavenCentral()
         maven {
             url "https://oss.sonatype.org/content/repositories/snapshots"
         }
-        mavenCentral()
-        mavenLocal()
         jcenter()
     }
 

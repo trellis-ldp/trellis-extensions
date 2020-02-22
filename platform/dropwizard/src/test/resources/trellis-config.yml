@@ -74,3 +74,4 @@ jsonld:
 
 binaryHierarchyLength: 2
 binaryHierarchyLevels: 2
+isVersioningEnabled: true
