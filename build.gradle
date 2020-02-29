@@ -356,8 +356,8 @@ subprojects { subproj ->
                 "implSpec:a:Implementation Requirements:",
                 "implNote:a:Implementation Note:"]
             links "https://docs.oracle.com/javase/8/docs/api/"
-            links 'https://docs.oracle.com/javaee/7/api/'
-            links "https://www.trellisldp.org/docs/trellis/${trellisVersion}/apidocs/"
+            links 'https://javaee.github.io/javaee-spec/javadocs/'
+            links "https://www.trellisldp.org/docs/trellis/current/apidocs/"
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
             links 'https://docs.datastax.com/en/drivers/java/4.0/'
             links 'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
@@ -429,8 +429,8 @@ configure(rootProject) {
                 "implNote:a:Implementation Note:"]
             memberLevel = JavadocMemberLevel.PUBLIC
             links "https://docs.oracle.com/javase/8/docs/api/"
-            links 'https://docs.oracle.com/javaee/7/api/'
-            links "https://www.trellisldp.org/docs/trellis/${trellisVersion}/apidocs/"
+            links 'https://javaee.github.io/javaee-spec/javadocs/'
+            links "https://www.trellisldp.org/docs/trellis/current/apidocs/"
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
             links 'https://docs.datastax.com/en/drivers/java/4.0/'
             links 'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
