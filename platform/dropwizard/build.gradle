@@ -1,4 +1,7 @@
 apply plugin: 'java-library'
+apply plugin: 'application'
+apply plugin: 'distribution'
+apply plugin: 'com.palantir.docker'
 
 description = 'Trellis Database Application'
 
@@ -56,6 +59,44 @@ dependencies {
     testImplementation "org.awaitility:awaitility:$awaitilityVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.trellisldp:trellis-test"
+}
+
+docker {
+    name "trellisldp/trellis-ext-db:${project.version}"
+    tags 'latest', 'develop'
+    dockerfile file('src/docker/Dockerfile')
+    files tasks.distTar.outputs, './src/dist/etc/config.yml','./src/docker/command.sh'
+    buildArgs([BUILD_VERSION: project.version])
+    def gitLabels = ['git.url':'https://github.com/trellis-ldp/trellis-extensions']
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        def hash = stdout.toString('UTF-8').trim()
+        if (!hash.isEmpty()) {
+            gitLabels.put('git.commit', hash)
+        }
+    } catch (all) { }
+    labels(gitLabels)
+    pull false
+    noCache false
+}
+
+signing {
+    sign distTar
+    sign distZip
+}
+
+task copyDistTask(type: Copy) {
+    from '../LICENSE'
+    from 'README.md'
+    into 'src/dist'
+}
+
+assembleDist {
+    dependsOn copyDistTask
 }
 
 test {
