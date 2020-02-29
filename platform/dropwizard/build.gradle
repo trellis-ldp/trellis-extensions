@@ -4,6 +4,8 @@ apply plugin: 'distribution'
 apply plugin: 'com.palantir.docker'
 
 description = 'Trellis Database Application'
+mainClassName = 'org.trellisldp.ext.db.app.TrellisApplication'
+applicationName = 'trellis-db'
 
 ext {
     moduleName = 'org.trellisldp.ext.db.app'
