@@ -73,13 +73,11 @@ ext {
     spotbugsToolVersion = "3.1.12"
 
     jacocoSkipProjects = [
-        'trellis-db-deployment',
         'trellis-ext-bom'
     ]
 
     omitFromMavenPublishing = [
         'trellis-db-app',
-        'trellis-db-deployment',
         'trellis-quarkus'
     ]
 }
