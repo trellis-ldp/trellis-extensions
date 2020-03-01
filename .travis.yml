@@ -65,11 +65,11 @@ jobs:
       env: JOB=docker
       # Note: adjust this for maintenance branches
       if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
+      install: ./gradlew assemble
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      # Note: for maintenance branches, remove the dockerPushLatest task
       script:
-          - if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew dockerPush dockerPushDevelop; else ./gradlew dockerPush dockerPushLatest; fi
           - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database"
+          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-ext-db"
 
     # deploy to Docker hub
     - name: "Publish to Docker hub (trellis-database-aws)"

@@ -12,7 +12,6 @@ fi
 VERSION=$(./gradlew -q getVersion)
 BRANCH=$(git branch 2>/dev/null | sed -n -e 's/^\* \(.*\)/\1/p')
 
-cd platform/quarkus
 
 TAG=latest
 # Use the develop tag for snapshots
@@ -20,32 +19,36 @@ if [[ $VERSION == *SNAPSHOT* ]]; then
     TAG=develop
 fi
 
-if [[ -f "build/trellis-quarkus-${VERSION}-runner.jar" && -d "build/lib" ]]
-then
+if [[ $IMAGE == "trellisldp/trellis-ext-db" ]]; then
+    # Dropwizard-based image
+    cd platform/dropwizard
+
     # Don't use latest/develop tags for maintenance branches
     if [[ $BRANCH == *.x ]]; then
-        docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE:$VERSION" .
+        docker build -f src/main/docker/Dockerfile -t "$IMAGE:$VERSION" .
     else
-        docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
+        docker build -f src/main/docker/Dockerfile -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
     fi
 
-    docker push "$IMAGE"
+    docker push $IMAGE
+
 else
-    echo "Build artifacts not present. Please run 'gradle assemble' first"
-    exit 1
+    cd platform/quarkus
+
+    if [[ -f "build/trellis-quarkus-${VERSION}-runner.jar" && -d "build/lib" ]]
+    then
+        # Don't use latest/develop tags for maintenance branches
+        if [[ $BRANCH == *.x ]]; then
+            docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE:$VERSION" .
+        else
+            docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
+        fi
+
+        docker push "$IMAGE"
+    else
+        echo "Build artifacts not present. Please run 'gradle assemble' first"
+        exit 1
+    fi
 fi
 
-# Dropwizard-based image
-IMAGE=trellisldp/trellis-ext-db
-cd ../dropwizard
-../../gradlew assemble
-
-# Don't use latest/develop tags for maintenance branches
-if [[ $BRANCH == *.x ]]; then
-    docker build -f src/main/docker/Dockerfile -t "$IMAGE:$VERSION" .
-else
-    docker build -f src/main/docker/Dockerfile -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
-fi
-
-docker push $IMAGE
 
