@@ -1,7 +1,9 @@
-apply plugin: 'java-library'
-apply plugin: 'application'
-apply plugin: 'distribution'
-apply plugin: 'com.palantir.docker'
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'distribution'
+    id 'com.palantir.docker'
+}
 
 description = 'Trellis Database Application'
 mainClassName = 'org.trellisldp.ext.db.app.TrellisApplication'
