@@ -30,9 +30,10 @@ if [[ $IMAGE == "trellisldp/trellis-ext-db" ]]; then
         docker build -f src/main/docker/Dockerfile -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
     fi
 
-    docker push $IMAGE
+    docker push "$IMAGE"
 
 else
+    # Quarkus-based images
     cd platform/quarkus
 
     if [[ -f "build/trellis-quarkus-${VERSION}-runner.jar" && -d "build/lib" ]]
