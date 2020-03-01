@@ -4,10 +4,9 @@
 FROM openjdk:8-jre-alpine
 LABEL maintainer="Greg Jansen <jansen@umd.edu>"
 
-ADD trellis-db-*.tar /opt
+ADD build/distributions/trellis-db-*.tar /opt
 RUN mv /opt/trellis-db-* /opt/trellis
-COPY command.sh /
-COPY config.yml /
+COPY src/main/docker/command.sh /
 RUN chmod +x /command.sh
 
 CMD ["/command.sh"]

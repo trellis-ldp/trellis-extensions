@@ -34,3 +34,18 @@ else
     echo "Build artifacts not present. Please run 'gradle assemble' first"
     exit 1
 fi
+
+# Dropwizard-based image
+IMAGE=trellisldp/trellis-ext-db
+cd ../dropwizard
+../../gradlew assemble
+
+# Don't use latest/develop tags for maintenance branches
+if [[ $BRANCH == *.x ]]; then
+    docker build -f src/main/docker/Dockerfile -t "$IMAGE:$VERSION" .
+else
+    docker build -f src/main/docker/Dockerfile -t "$IMAGE:$TAG" -t "$IMAGE:$VERSION" .
+fi
+
+docker push $IMAGE
+
