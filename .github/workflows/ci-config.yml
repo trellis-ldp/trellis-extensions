@@ -90,7 +90,7 @@ jobs:
 
     - name: Build with Gradle
       shell: bash
-      run: ./gradlew.bat --scan -x pmdMain -x spotbugsMain check
+      run: ./gradlew.bat -x pmdMain -x spotbugsMain check
 
   postgres:
     runs-on: ubuntu-latest
