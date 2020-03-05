@@ -353,7 +353,7 @@ public class DBResource implements Resource {
         final Model model = createDefaultModel();
         jdbi.withHandle(handle -> handle.select(query, data.getId(), extensions.get(graphName))
                 .map((rs, ctx) -> rs.getString("data")).findFirst())
-            .ifPresent(data -> RDFParser.fromString(data).lang(NTRIPLES).parse(model));
+            .ifPresent(triples -> RDFParser.fromString(triples).lang(NTRIPLES).parse(model));
         return rdf.asGraph(model).stream().map(triple -> rdf.createQuad(graphName, triple.getSubject(),
                     triple.getPredicate(), triple.getObject())).map(Quad.class::cast);
     }
