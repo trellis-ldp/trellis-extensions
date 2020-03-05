@@ -14,9 +14,11 @@
 package org.trellisldp.ext.db;
 
 import static java.io.File.separator;
+import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.function.Predicate.isEqual;
+import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,9 +42,11 @@ import static org.trellisldp.vocabulary.RDF.type;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletionException;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -85,6 +89,7 @@ class DBResourceTest {
     private static final IdentifierService idService = new DefaultIdentifierService();
 
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
+    private static final Map<String, IRI> extensions = singletonMap("acl", Trellis.PreferAccessControl);
 
     private static EmbeddedPostgres pg = null;
 
@@ -133,7 +138,7 @@ class DBResourceTest {
 
     @Test
     void getRoot() {
-        assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root, false)
+        assertEquals(root, DBResource.findResource(pg.getPostgresDatabase(), root, extensions, false)
                 .toCompletableFuture().join().getIdentifier(), "Check the root resource");
     }
 
@@ -146,14 +151,14 @@ class DBResourceTest {
     @Test
     void getNonExistent() {
         assertEquals(MISSING_RESOURCE, DBResource.findResource(pg.getPostgresDatabase(),
-                    rdf.createIRI(TRELLIS_DATA_PREFIX + "other"), false).toCompletableFuture().join(),
+                    rdf.createIRI(TRELLIS_DATA_PREFIX + "other"), extensions, false).toCompletableFuture().join(),
                 "Check for non-existent resource");
     }
 
     @Test
     void getMembershipQuads() {
         assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root, false).thenAccept(res ->
+            DBResource.findResource(pg.getPostgresDatabase(), root, extensions, false).thenAccept(res ->
                 assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join());
     }
 
@@ -203,7 +208,7 @@ class DBResourceTest {
     @Test
     void getAclQuads() {
         assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root, true).thenAccept(res -> {
+            DBResource.findResource(pg.getPostgresDatabase(), root, extensions, true).thenAccept(res -> {
                 final Graph acl = rdf.createGraph();
                 res.stream(Trellis.PreferAccessControl).map(Quad::asTriple).forEach(acl::add);
                 assertTrue(acl.contains(null, ACL.mode, ACL.Read));
@@ -217,10 +222,33 @@ class DBResourceTest {
     @Test
     void getFilteredServeManagedQuads() {
         assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root, false).thenAccept(res -> {
+            DBResource.findResource(pg.getPostgresDatabase(), root, extensions, false).thenAccept(res -> {
                 assertEquals(0L, res.stream(Trellis.PreferUserManaged).count());
                 assertEquals(0L, res.stream(Trellis.PreferServerManaged).count());
             }).toCompletableFuture().join());
+    }
+
+    @Test
+    void testExtensionQuads() {
+        final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "auth#acl");
+        final Dataset dataset = rdf.createDataset();
+        final IRI extGraph = rdf.createIRI("http://example.com/TestGraph");
+        final IRI relation = rdf.createIRI("http://example.com/Resource");
+        dataset.add(extGraph, identifier, DC.relation, relation);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Read);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Write);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Control);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.mode, ACL.Append);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.agentClass, FOAF.Agent);
+        dataset.add(Trellis.PreferAccessControl, identifier, ACL.accessTo,
+                rdf.createIRI(TRELLIS_DATA_PREFIX + "auth"));
+
+        assertDoesNotThrow(() -> svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
+                    dataset).toCompletableFuture().join());
+        svc.get(identifier).thenAccept(res -> assertAll("Check response triples",
+                    () -> assertEquals(6L, res.stream(Trellis.PreferAccessControl).count()),
+                    () -> assertEquals(1L, res.stream(extGraph).count())))
+            .toCompletableFuture().join();
     }
 
     @Test
@@ -343,7 +371,7 @@ class DBResourceTest {
             assertTrue(res.stream(Trellis.PreferUserManaged).anyMatch(triple ->
                     triple.getSubject().equals(identifier) && triple.getPredicate().equals(LDP.inbox) &&
                     triple.getObject().equals(rdf.createIRI(inbox))))).toCompletableFuture().join();
-        DBResource.findResource(pg.getPostgresDatabase(), identifier, true).thenAccept(res -> {
+        DBResource.findResource(pg.getPostgresDatabase(), identifier, extensions, true).thenAccept(res -> {
             assertEquals(2L, res.stream(Trellis.PreferUserManaged).count());
             assertEquals(1L, res.stream(Trellis.PreferServerManaged).count());
             assertEquals(2L, res.getExtraLinkRelations().count());
@@ -410,5 +438,44 @@ class DBResourceTest {
         assertEquals(identifier + "/", DBResource.adjustIdentifier(identifier, LDP.Container.getIRIString()));
         assertEquals(identifier + "/", DBResource.adjustIdentifier(identifier + "/", LDP.Container.getIRIString()));
         assertEquals(identifier, DBResource.adjustIdentifier(identifier, LDP.RDFSource.getIRIString()));
+    }
+
+    @Test
+    void testBuildExtensionMap() {
+        final Map<String, IRI> extensions = DBResourceService.buildExtensionMap(
+                "foo=http://example.com/Foo,bar=http://example.com/Bar");
+        assertEquals(2, extensions.size());
+        assertEquals(rdf.createIRI("http://example.com/Foo"), extensions.get("foo"));
+        assertEquals(rdf.createIRI("http://example.com/Bar"), extensions.get("bar"));
+    }
+
+    @Test
+    void testBuildExtensionMapOddities() {
+        final Map<String, IRI> extensions = DBResourceService.buildExtensionMap(
+                "foo, ,bar=http://example.com/Bar, baz = , = baz ");
+        assertEquals(1, extensions.size());
+        assertEquals(rdf.createIRI("http://example.com/Bar"), extensions.get("bar"));
+    }
+
+    @Test
+    void testBuildDefaultExtensionMap() {
+        final String prop = "trellis.http.extension-graphs";
+        final String original = getConfig().getValue(prop, String.class);
+        try {
+            System.clearProperty(prop);
+            final Map<String, IRI> graphs = DBResourceService.buildExtensionMap();
+            assertEquals(1, graphs.size());
+            assertEquals(Trellis.PreferAccessControl, graphs.get("acl"));
+        } finally {
+            System.setProperty(prop, original);
+        }
+    }
+
+    @Test
+    void testSerializationError() {
+        final Graph mockGraph = mock(Graph.class, inv -> {
+            throw new IOException("Expected");
+        });
+        assertThrows(UncheckedIOException.class, () -> DBResourceService.serializeGraph(mockGraph));
     }
 }

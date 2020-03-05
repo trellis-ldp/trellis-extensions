@@ -18,10 +18,11 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
 import static java.util.stream.Stream.of;
+import static org.apache.jena.rdf.model.ModelFactory.createDefaultModel;
+import static org.apache.jena.riot.Lang.NTRIPLES;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.Resource.SpecialResources.DELETED_RESOURCE;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
@@ -40,8 +41,10 @@ import javax.sql.DataSource;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
-import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.apache.commons.rdf.jena.JenaRDF;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.RDFParser;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
@@ -55,7 +58,7 @@ import org.trellisldp.vocabulary.Trellis;
 public class DBResource implements Resource {
 
     private static final Logger LOGGER = getLogger(DBResource.class);
-    private static final RDF rdf = getInstance();
+    private static final JenaRDF rdf = new JenaRDF();
 
     private static final String SLASH = "/";
     private static final String OBJECT = "object";
@@ -81,6 +84,7 @@ public class DBResource implements Resource {
     private final IRI identifier;
     private final Jdbi jdbi;
     private final boolean includeLdpType;
+    private final Map<IRI, String> extensions = new HashMap<>();
     private final Map<IRI, Supplier<Stream<Quad>>> graphMapper = new HashMap<>();
 
     private ResourceData data;
@@ -89,9 +93,11 @@ public class DBResource implements Resource {
      * Create a DB-based Resource.
      * @param jdbi the jdbi object
      * @param identifier the identifier
+     * @param extensions a map of extensions
      * @param includeLdpType whether to include the LDP type in the RDF body
      */
-    protected DBResource(final Jdbi jdbi, final IRI identifier, final boolean includeLdpType) {
+    protected DBResource(final Jdbi jdbi, final IRI identifier, final Map<String, IRI> extensions,
+            final boolean includeLdpType) {
         this.identifier = identifier;
         this.jdbi = jdbi;
         this.includeLdpType = includeLdpType;
@@ -101,31 +107,39 @@ public class DBResource implements Resource {
         graphMapper.put(Trellis.PreferAccessControl, this::fetchAclQuads);
         graphMapper.put(LDP.PreferContainment, this::fetchContainmentQuads);
         graphMapper.put(LDP.PreferMembership, this::fetchMembershipQuads);
-    }
+
+        extensions.forEach((k, v) -> {
+            if (!graphMapper.containsKey(v)) {
+                this.extensions.put(v, k);
+            }
+        });
+}
 
     /**
      * Try to load a Trellis resource.
      * @param ds the datasource
      * @param identifier the identifier
+     * @param extensions a map of extensions
      * @param includeLdpType whether to include the LDP type in the RDF body
      * @return a Resource, if one exists
      */
     public static CompletionStage<Resource> findResource(final DataSource ds, final IRI identifier,
-            final boolean includeLdpType) {
-        return findResource(Jdbi.create(ds), identifier, includeLdpType);
+            final Map<String, IRI> extensions, final boolean includeLdpType) {
+        return findResource(Jdbi.create(ds), identifier, extensions, includeLdpType);
     }
 
     /**
      * Try to load a Trellis resource.
      * @param jdbi the Jdbi object
      * @param identifier the identifier
+     * @param extensions a map of extensions
      * @param includeLdpType whether to include the LDP type in the RDF body
      * @return a Resource, if one exists
      */
     public static CompletionStage<Resource> findResource(final Jdbi jdbi, final IRI identifier,
-            final boolean includeLdpType) {
+            final Map<String, IRI> extensions, final boolean includeLdpType) {
         return supplyAsync(() -> {
-            final DBResource res = new DBResource(jdbi, identifier, includeLdpType);
+            final DBResource res = new DBResource(jdbi, identifier, extensions, includeLdpType);
             if (!res.fetchData()) {
                 return MISSING_RESOURCE;
             }
@@ -146,12 +160,14 @@ public class DBResource implements Resource {
 
     @Override
     public Stream<Quad> stream() {
-        return graphMapper.values().stream().flatMap(Supplier::get);
+        return concat(graphMapper.values().stream().flatMap(Supplier::get),
+                extensions.keySet().stream().flatMap(this::fetchExtensionQuads));
     }
 
     @Override
     public Stream<Quad> stream(final Collection<IRI> graphNames) {
-        return graphNames.stream().filter(graphMapper::containsKey).map(graphMapper::get).flatMap(Supplier::get);
+        return concat(graphNames.stream().filter(graphMapper::containsKey).map(graphMapper::get).flatMap(Supplier::get),
+                    graphNames.stream().filter(extensions::containsKey).flatMap(this::fetchExtensionQuads));
     }
 
     @Override
@@ -251,7 +267,7 @@ public class DBResource implements Resource {
                 .map((rs, ctx) -> rdf.createQuad(Trellis.PreferAudit, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
                         getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .list()).stream();
+                .list()).stream().map(Quad.class::cast);
     }
 
     /**
@@ -271,7 +287,7 @@ public class DBResource implements Resource {
                             rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                             rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
                             getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .list()).stream();
+                .list()).stream().map(Quad.class::cast);
     }
 
     /**
@@ -292,7 +308,7 @@ public class DBResource implements Resource {
                         adjustIdentifier(getIdentifier(), getInteractionModel()),
                         rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))))
-                .list()).stream();
+                .list()).stream().map(Quad.class::cast);
     }
 
     /**
@@ -312,7 +328,7 @@ public class DBResource implements Resource {
                         rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
                         rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
                         rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
-                .list()).stream();
+                .list()).stream().map(Quad.class::cast);
     }
 
     /**
@@ -327,9 +343,19 @@ public class DBResource implements Resource {
                             adjustIdentifier(getIdentifier(), getInteractionModel()),
                             LDP.contains,
                             rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
-                    .list()).stream();
+                    .list()).stream().map(Quad.class::cast);
         }
         return empty();
+    }
+
+    private Stream<Quad> fetchExtensionQuads(final IRI graphName) {
+        final String query = "SELECT data FROM extension WHERE resource_id = ? AND key = ?";
+        final Model model = createDefaultModel();
+        jdbi.withHandle(handle -> handle.select(query, data.getId(), extensions.get(graphName))
+                .map((rs, ctx) -> rs.getString("data")).findFirst())
+            .ifPresent(triples -> RDFParser.fromString(triples).lang(NTRIPLES).parse(model));
+        return rdf.asGraph(model).stream().map(triple -> rdf.createQuad(graphName, triple.getSubject(),
+                    triple.getPredicate(), triple.getObject())).map(Quad.class::cast);
     }
 
     private Stream<Quad> fetchQuadsFromTable(final String tableName, final IRI graphName) {
@@ -339,7 +365,7 @@ public class DBResource implements Resource {
                 .map((rs, ctx) -> rdf.createQuad(graphName, rdf.createIRI(rs.getString(SUBJECT)),
                         rdf.createIRI(rs.getString(PREDICATE)),
                         getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .list()).stream();
+                .list()).stream().map(Quad.class::cast);
     }
 
     /**

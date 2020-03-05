@@ -14,6 +14,7 @@
 package org.trellisldp.ext.db;
 
 import static java.time.Instant.now;
+import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
@@ -28,6 +29,7 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.Map;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.trellisldp.api.Resource;
 import org.trellisldp.vocabulary.LDP;
+import org.trellisldp.vocabulary.Trellis;
 
 /**
  * ResourceService tests.
@@ -46,10 +49,12 @@ class ResourceDataTest {
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
     private static final EmbeddedPostgres pg = DBTestUtils.setupDatabase("build");
 
+    private final Map<String, IRI> extensions = singletonMap("acl", Trellis.PreferAccessControl);
+
     @Test
     void testTimestampOnRootIsRecent() {
         final Instant time = now().minusSeconds(1L);
-        final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root, false)
+        final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root, extensions, false)
             .toCompletableFuture().join();
         assertEquals(root, res.getIdentifier());
         assertTrue(res.getModified().isAfter(time));
