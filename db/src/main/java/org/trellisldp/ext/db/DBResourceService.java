@@ -15,14 +15,17 @@ package org.trellisldp.ext.db;
 
 import static java.time.Instant.now;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.jena.riot.Lang.NTRIPLES;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.ext.db.DBUtils.getObjectDatatype;
 import static org.trellisldp.ext.db.DBUtils.getObjectLang;
 import static org.trellisldp.ext.db.DBUtils.getObjectValue;
@@ -30,9 +33,13 @@ import static org.trellisldp.vocabulary.Trellis.PreferAccessControl;
 import static org.trellisldp.vocabulary.Trellis.PreferAudit;
 import static org.trellisldp.vocabulary.Trellis.PreferUserManaged;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
@@ -45,8 +52,9 @@ import javax.sql.DataSource;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
-import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.Triple;
+import org.apache.commons.rdf.jena.JenaRDF;
+import org.apache.jena.riot.RDFDataMgr;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
@@ -76,6 +84,9 @@ import org.trellisldp.vocabulary.OA;
 @ApplicationScoped
 public class DBResourceService implements ResourceService {
 
+    /** Copied from trellis-http in order to avoid an explicit dependency. */
+    private static final String CONFIG_HTTP_EXTENSION_GRAPHS = "trellis.http.extension-graphs";
+
     /** Configuration key used to define a database connection url. */
     public static final String CONFIG_DB_URL = "trellis.db.url";
 
@@ -89,11 +100,13 @@ public class DBResourceService implements ResourceService {
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
     private static final Logger LOGGER = getLogger(DBResourceService.class);
-    private static final RDF rdf = getInstance();
+    private static final JenaRDF rdf = new JenaRDF();
+    private static final String ACL_EXT = "acl";
 
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
     private final boolean includeLdpType;
+    private final Map<String, IRI> extensions;
     private final Set<IRI> supportedIxnModels;
     private final int batchSize;
 
@@ -143,6 +156,7 @@ public class DBResourceService implements ResourceService {
         this.includeLdpType = includeLdpType;
         this.supportedIxnModels = unmodifiableSet(new HashSet<>(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource,
                 LDP.Container, LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer)));
+        this.extensions = buildExtensionMap();
         LOGGER.info("Using database persistence with TrellisLDP");
     }
 
@@ -181,7 +195,7 @@ public class DBResourceService implements ResourceService {
 
     @Override
     public CompletionStage<Resource> get(final IRI identifier) {
-        return DBResource.findResource(jdbi, identifier, includeLdpType);
+        return DBResource.findResource(jdbi, identifier, extensions, includeLdpType);
     }
 
     @Override
@@ -303,6 +317,15 @@ public class DBResourceService implements ResourceService {
         }
     }
 
+    private static void updateExtension(final Handle handle, final int resourceId, final String key,
+            final Graph graph) {
+        final String query = "INSERT INTO extension (resource_id, key, data) VALUES (?, ?, ?)";
+        final String serialized = serializeGraph(graph);
+        try (final Update update = handle.createUpdate(query).bind(0, resourceId).bind(1, key).bind(2, serialized)) {
+            update.execute();
+        }
+    }
+
     private static void updateExtra(final Handle handle, final int resourceId, final IRI identifier,
             final Dataset dataset) {
         dataset.getGraph(PreferUserManaged).ifPresent(graph -> {
@@ -337,6 +360,9 @@ public class DBResourceService implements ResourceService {
                 updateDescription(handle, resourceId, dataset, batchSize);
                 updateAcl(handle, resourceId, dataset, batchSize);
                 updateExtra(handle, resourceId, metadata.getIdentifier(), dataset);
+                extensions.forEach((ext, graph) ->
+                        dataset.getGraph(graph).filter(g -> !"acl".equals(ext)).ifPresent(g ->
+                            updateExtension(handle, resourceId, ext, g)));
             });
         } catch (final Exception ex) {
             throw new RuntimeTrellisException("Could not update data for " + metadata.getIdentifier(), ex);
@@ -345,5 +371,40 @@ public class DBResourceService implements ResourceService {
 
     private enum OperationType {
         DELETE, CREATE, REPLACE
+    }
+
+    /*
+     * Build a map suitable for extension graphs from a config string.
+     * @param extensions the config value
+     * @return the formatted map
+     */
+    static Map<String, IRI> buildExtensionMap(final String extensions) {
+        return stream(extensions.split(",")).map(item -> item.split("=")).filter(kv -> kv.length == 2)
+            .filter(kv -> !kv[0].trim().isEmpty() && !kv[1].trim().isEmpty())
+            .collect(toMap(kv -> kv[0].trim(), kv -> rdf.createIRI(kv[1].trim())));
+    }
+
+    /**
+     * Build an extension map from configuration.
+     * @return the formatted map
+     */
+    static Map<String, IRI> buildExtensionMap() {
+        return getConfig().getOptionalValue(CONFIG_HTTP_EXTENSION_GRAPHS, String.class)
+            .map(DBResourceService::buildExtensionMap).orElseGet(() ->
+                    singletonMap(ACL_EXT, PreferAccessControl));
+    }
+
+    /**
+     * Serialize a graph into a string of N-Triples.
+     * @param graph the RDF graph
+     * @return the serialized form
+     */
+    static String serializeGraph(final Graph graph) {
+        try (final StringWriter writer = new StringWriter()) {
+            RDFDataMgr.write(writer, rdf.asJenaGraph(graph), NTRIPLES);
+            return writer.toString();
+        } catch (final IOException ex) {
+            throw new UncheckedIOException("Error writing extension data", ex);
+        }
     }
 }

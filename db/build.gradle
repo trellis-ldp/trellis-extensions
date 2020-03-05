@@ -17,13 +17,17 @@ dependencies {
     api "jakarta.inject:jakarta.inject-api:$injectApiVersion"
     api "org.apache.commons:commons-lang3:$commonsLangVersion"
     api "org.apache.commons:commons-rdf-api:$commonsRdfVersion"
+    api("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
+        exclude group: 'org.apache.jena', module: 'jena-osgi'
+        exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
+    }
+    api("org.apache.jena:jena-arq:$jenaVersion")
     api "org.eclipse.microprofile.health:microprofile-health-api:$microprofileHealthVersion"
     api "org.jdbi:jdbi3-core:$jdbiVersion"
     api "org.trellisldp:trellis-api"
 
     implementation "org.eclipse.microprofile.config:microprofile-config-api:$microprofileConfigVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
-
     implementation "org.trellisldp:trellis-vocabulary"
 
     testImplementation "com.google.guava:guava:$guavaVersion"
@@ -43,4 +47,5 @@ dependencies {
 
 test {
     systemProperty 'trellis.file.memento-path', "$buildDir/data/mementos"
+    systemProperty 'trellis.http.extension-graphs', "acl=http://www.trellisldp.org/ns/trellis#PreferAccessControl,test=http://example.com/TestGraph"
 }

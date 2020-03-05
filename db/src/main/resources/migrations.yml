@@ -482,4 +482,54 @@ databaseChangeLog:
                         type: BIGINT
                         remarks: The timestamp for each memento
                 unique: true
+    - changeSet:
+        id: 4
+        author: acoburn
+        changes:
+            - createTable:
+                tableName: extension
+                remarks: This table stores any extension metadata for each relevant resource.
+                columns:
+                    - column:
+                        name: resource_id
+                        type: BIGINT
+                        remarks: This value points to the relevant item in the resource table.
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: key
+                        type: VARCHAR(255)
+                        remarks: The extension key for the metadata.
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: data
+                        type: TEXT
+                        remarks: The contents of the metadata resource.
+                        constraints:
+                            nullable: false
+            - createIndex:
+                indexName: idx_extension
+                tableName: extension
+                columns:
+                    - column:
+                        name: resource_id
+                        type: BIGINT
+                        remarks: >
+                            This column connects a metadata resource to its parent resource,
+                            and it needs to be indexed for fast lookups.
+                    - column:
+                        name: key
+                        type: VARCHAR(255)
+                        remarks: The extension key for the metadata
+                unique: true
+            - addForeignKeyConstraint:
+                baseColumnNames: resource_id
+                baseTableName: extension
+                constraintName: fk_resource_extension
+                onDelete: CASCADE
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: resource
+                referencesUniqueColumn: true
 
