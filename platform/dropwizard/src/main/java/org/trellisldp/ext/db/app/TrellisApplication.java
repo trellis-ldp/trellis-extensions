@@ -13,6 +13,8 @@
  */
 package org.trellisldp.ext.db.app;
 
+import static org.trellisldp.app.AppUtils.printBanner;
+
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
@@ -62,5 +64,6 @@ public class TrellisApplication extends AbstractTrellisApplication<AppConfigurat
     protected void initialize(final AppConfiguration config, final Environment environment) {
         super.initialize(config, environment);
         this.serviceBundler = new TrellisServiceBundler(config, environment);
+        printBanner("Trellis Database Application", "org/trellisldp/app/banner.txt");
     }
 }

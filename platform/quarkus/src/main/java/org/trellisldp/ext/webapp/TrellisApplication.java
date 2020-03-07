@@ -31,6 +31,6 @@ public class TrellisApplication extends Application {
 
     @PostConstruct
     void init() throws IOException {
-        printBanner("Trellis Database Application", "banner.txt");
+        printBanner("Trellis Database Application", "org/trellisldp/app/banner.txt");
     }
 }
