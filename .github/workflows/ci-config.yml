@@ -10,7 +10,15 @@ on:
       - master
 
 jobs:
+  validation:
+    name: "Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gradle/wrapper-validation-action@v1
+
   build:
+    needs: [validation]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,6 +60,7 @@ jobs:
         QUARKUS_DATASOURCE_PASSWORD: postgres
 
   security:
+    needs: [validation]
     runs-on: ubuntu-latest
     name: Security analysis
 
@@ -72,6 +81,7 @@ jobs:
         fi
 
   windows:
+    needs: [validation]
     runs-on: windows-latest
     name: Java 8 Windows environment
     steps:
@@ -93,6 +103,7 @@ jobs:
       run: ./gradlew.bat -x pmdMain -x spotbugsMain check
 
   postgres:
+    needs: [validation]
     runs-on: ubuntu-latest
     name: Java 8 (postgres) environment
 
@@ -122,6 +133,7 @@ jobs:
         QUARKUS_DATASOURCE_PASSWORD: postgres
 
   cassandra:
+    needs: [validation]
     runs-on: ubuntu-latest
     name: Java 8 (cassandra) environment
 
