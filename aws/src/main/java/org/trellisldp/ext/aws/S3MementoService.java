@@ -16,10 +16,12 @@ package org.trellisldp.ext.aws;
 import static com.amazonaws.services.s3.AmazonS3ClientBuilder.defaultClient;
 import static java.io.File.createTempFile;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Collections.unmodifiableSortedSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.of;
 import static org.apache.jena.riot.Lang.NQUADS;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
@@ -40,8 +42,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CompletionStage;
@@ -60,6 +63,7 @@ import org.slf4j.Logger;
 import org.trellisldp.api.MementoService;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
 /**
@@ -72,6 +76,7 @@ public class S3MementoService implements MementoService {
     public static final String CONFIG_AWS_MEMENTO_BUCKET = "trellis.aws.memento-bucket";
     public static final String CONFIG_AWS_MEMENTO_PATH_PREFIX = "trellis.aws.memento-path-prefix";
 
+    private static final Set<IRI> IGNORE = buildIgnoreGraphs();
     private static final JenaRDF rdf = new JenaRDF();
 
     private final AmazonS3 client;
@@ -132,9 +137,9 @@ public class S3MementoService implements MementoService {
                         final Stream<? extends Quad> quads = resource.stream()) {
                     quads.forEachOrdered(dataset::add);
 
-                    if (dataset.contains(Optional.of(Trellis.PreferAccessControl), null, null, null)) {
-                        metadata.put(S3Resource.HAS_ACL, "true");
-                    }
+                    metadata.put(S3Resource.METADATA_GRAPHS, dataset.getGraphNames().filter(IRI.class::isInstance)
+                            .map(IRI.class::cast).filter(graph -> !IGNORE.contains(graph)).map(IRI::getIRIString)
+                            .collect(joining(",")));
                     RDFDataMgr.write(output, dataset.asJenaDatasetGraph(), NQUADS);
                 }
                 final ObjectMetadata md = new ObjectMetadata();
@@ -200,5 +205,14 @@ public class S3MementoService implements MementoService {
 
     private String getKey(final IRI identifier, final Instant time) {
         return getKey(identifier) + Long.toString(time.truncatedTo(SECONDS).getEpochSecond());
+    }
+
+    static Set<IRI> buildIgnoreGraphs() {
+        final Set<IRI> graphs = new HashSet<>();
+        graphs.add(Trellis.PreferUserManaged);
+        graphs.add(Trellis.PreferServerManaged);
+        graphs.add(LDP.PreferContainment);
+        graphs.add(LDP.PreferMembership);
+        return unmodifiableSet(graphs);
     }
 }

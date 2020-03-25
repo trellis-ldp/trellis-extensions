@@ -15,6 +15,8 @@ package org.trellisldp.ext.db;
 
 import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
 import static java.util.stream.Stream.of;
@@ -216,8 +218,20 @@ public class DBResource implements Resource {
     }
 
     @Override
-    public boolean hasAcl() {
-        return data.hasAcl();
+    public boolean hasMetadata(final IRI graphName) {
+        if (Trellis.PreferAccessControl.equals(graphName)) {
+            return data.hasAcl();
+        }
+        return getMetadataGraphNames().contains(graphName);
+    }
+
+    @Override
+    public Set<IRI> getMetadataGraphNames() {
+        final Set<IRI> graphs = new HashSet<>(fetchExtensionGraphNames());
+        if (data.hasAcl()) {
+            graphs.add(Trellis.PreferAccessControl);
+        }
+        return unmodifiableSet(graphs);
     }
 
     @Override
@@ -346,6 +360,15 @@ public class DBResource implements Resource {
                     .list()).stream().map(Quad.class::cast);
         }
         return empty();
+    }
+
+    private Set<IRI> fetchExtensionGraphNames() {
+        final String query = "SELECT key FROM extension WHERE resource_id = ?";
+        final Map<String, IRI> rev = extensions.entrySet().stream()
+            .collect(toMap(Map.Entry::getValue, Map.Entry::getKey));
+        return jdbi.withHandle(handle -> handle.select(query, data.getId())
+                .map((rs, ctx) -> rs.getString("key")).list())
+            .stream().filter(rev::containsKey).map(rev::get).collect(toSet());
     }
 
     private Stream<Quad> fetchExtensionQuads(final IRI graphName) {

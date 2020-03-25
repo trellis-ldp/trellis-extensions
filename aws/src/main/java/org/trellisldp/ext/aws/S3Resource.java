@@ -13,8 +13,11 @@
  */
 package org.trellisldp.ext.aws;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.query.DatasetFactory.create;
 import static org.apache.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.jena.riot.Lang.NQUADS;
@@ -28,7 +31,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.rdf.api.IRI;
@@ -60,6 +65,7 @@ public class S3Resource implements Resource {
     public static final String INSERTED_CONTENT_RELATION = "trellis.insertedContentRelation";
     public static final String BINARY_LOCATION = "trellis.binaryLocation";
     public static final String BINARY_TYPE = "trellis.binaryMimeType";
+    public static final String METADATA_GRAPHS = "trellis.metadataGraphs";
 
     private static final JenaRDF rdf = new JenaRDF();
 
@@ -127,8 +133,15 @@ public class S3Resource implements Resource {
     }
 
     @Override
-    public boolean hasAcl() {
-        return ofNullable(metadata.getUserMetaDataOf(HAS_ACL)).isPresent();
+    public Set<IRI> getMetadataGraphNames() {
+        if (ofNullable(metadata.getUserMetaDataOf(HAS_ACL)).isPresent()) {
+            return singleton(Trellis.PreferAccessControl);
+        }
+        final String graphs = metadata.getUserMetaDataOf(METADATA_GRAPHS);
+        if (graphs != null) {
+            return Arrays.stream(graphs.split(",")).map(rdf::createIRI).collect(toSet());
+        }
+        return emptySet();
     }
 
     @Override
