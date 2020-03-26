@@ -363,16 +363,16 @@ public class DBResource implements Resource {
     }
 
     private Set<IRI> fetchExtensionGraphNames() {
-        final String query = "SELECT key FROM extension WHERE resource_id = ?";
+        final String query = "SELECT ext FROM extension WHERE resource_id = ?";
         final Map<String, IRI> rev = extensions.entrySet().stream()
             .collect(toMap(Map.Entry::getValue, Map.Entry::getKey));
         return jdbi.withHandle(handle -> handle.select(query, data.getId())
-                .map((rs, ctx) -> rs.getString("key")).list())
+                .map((rs, ctx) -> rs.getString("ext")).list())
             .stream().filter(rev::containsKey).map(rev::get).collect(toSet());
     }
 
     private Stream<Quad> fetchExtensionQuads(final IRI graphName) {
-        final String query = "SELECT data FROM extension WHERE resource_id = ? AND key = ?";
+        final String query = "SELECT data FROM extension WHERE resource_id = ? AND ext = ?";
         final Model model = createDefaultModel();
         jdbi.withHandle(handle -> handle.select(query, data.getId(), extensions.get(graphName))
                 .map((rs, ctx) -> rs.getString("data")).findFirst())

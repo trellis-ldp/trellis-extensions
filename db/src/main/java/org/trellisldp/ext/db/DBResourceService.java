@@ -317,11 +317,11 @@ public class DBResourceService implements ResourceService {
         }
     }
 
-    private static void updateExtension(final Handle handle, final int resourceId, final String key,
+    private static void updateExtension(final Handle handle, final int resourceId, final String ext,
             final Graph graph) {
-        final String query = "INSERT INTO extension (resource_id, key, data) VALUES (?, ?, ?)";
+        final String query = "INSERT INTO extension (resource_id, ext, data) VALUES (?, ?, ?)";
         final String serialized = serializeGraph(graph);
-        try (final Update update = handle.createUpdate(query).bind(0, resourceId).bind(1, key).bind(2, serialized)) {
+        try (final Update update = handle.createUpdate(query).bind(0, resourceId).bind(1, ext).bind(2, serialized)) {
             update.execute();
         }
     }
