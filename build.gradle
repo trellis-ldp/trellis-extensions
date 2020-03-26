@@ -11,7 +11,7 @@ plugins {
 ext {
 
     // Trellis core
-    trellisVersion = "0.10.3"
+    trellisVersion = "0.11.0-SNAPSHOT"
 
     // JavaEE
     activationApiVersion = "1.2.2"
@@ -100,6 +100,11 @@ allprojects { subproj ->
     group = 'org.trellisldp.ext'
 
     repositories {
+        mavenLocal() {
+            content {
+                includeGroup "org.trellisldp.ext"
+            }
+        }
         mavenCentral()
         maven {
             url "https://oss.sonatype.org/content/repositories/snapshots"

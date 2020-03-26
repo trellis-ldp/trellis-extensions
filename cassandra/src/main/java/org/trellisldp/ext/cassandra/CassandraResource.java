@@ -19,6 +19,7 @@ import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.rdf.api.Dataset;
@@ -68,8 +69,8 @@ class CassandraResource implements Resource {
     }
 
     @Override
-    public boolean hasAcl() {
-        return metadata.getHasAcl();
+    public Set<IRI> getMetadataGraphNames() {
+        return metadata.getMetadataGraphNames();
     }
 
     @Override

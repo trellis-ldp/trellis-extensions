@@ -13,11 +13,14 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static java.util.function.Predicate.isEqual;
+import static java.util.stream.Collectors.toSet;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.time.Instant;
+import java.util.Set;
 
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
@@ -25,6 +28,7 @@ import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Metadata;
 import org.trellisldp.api.Resource;
+import org.trellisldp.vocabulary.Trellis;
 
 interface CassandraBuildingService {
 
@@ -39,8 +43,6 @@ interface CassandraBuildingService {
         log.debug("Found interactionModel = {} for resource {}", ixnModel, id);
         final IRI container = metadata.get("container", IRI.class);
         log.debug("Found container = {} for resource {}", container, id);
-        final boolean hasAcl = metadata.getBoolean("hasAcl");
-        log.debug("Found hasAcl = {} for resource {}", hasAcl, id);
 
         final IRI binaryId = metadata.get("binaryIdentifier", IRI.class);
         log.debug("Found binaryIdentifier = {} for resource {}", binaryId, id);
@@ -55,8 +57,12 @@ interface CassandraBuildingService {
         final BinaryMetadata binary = binaryId != null ?
             BinaryMetadata.builder(binaryId).mimeType(mimeType).build() : null;
 
+        final Set<IRI> graphs = dataset.getGraphNames().filter(IRI.class::isInstance).map(IRI.class::cast)
+            .filter(isEqual(Trellis.PreferUserManaged).or(isEqual(Trellis.PreferServerManaged)).negate())
+            .collect(toSet());
+
         final Metadata meta = Metadata.builder(id).container(container).interactionModel(ixnModel)
-            .hasAcl(hasAcl).binary(binary).build();
+            .metadataGraphNames(graphs).binary(binary).build();
 
         return new CassandraResource(meta, modified, dataset);
     }

@@ -110,7 +110,7 @@ public class S3MementoServiceTest {
             assertFalse(r.getMemberRelation().isPresent());
             assertFalse(r.getMemberOfRelation().isPresent());
             assertFalse(r.getInsertedContentRelation().isPresent());
-            assertTrue(r.hasAcl());
+            assertTrue(r.getMetadataGraphNames().contains(Trellis.PreferAccessControl));
             assertEquals(1L, r.stream(Trellis.PreferServerManaged).count());
         }).toCompletableFuture().join();
 
@@ -179,7 +179,7 @@ public class S3MementoServiceTest {
                 assertFalse(r.getMemberRelation().isPresent());
                 assertFalse(r.getMemberOfRelation().isPresent());
                 assertFalse(r.getInsertedContentRelation().isPresent());
-                assertFalse(r.hasAcl());
+                assertFalse(r.getMetadataGraphNames().contains(Trellis.PreferAccessControl));
                 assertEquals(0L, r.stream(Trellis.PreferServerManaged).count());
             }).toCompletableFuture().join();
 
@@ -222,7 +222,8 @@ public class S3MementoServiceTest {
             assertEquals(of(LDP.member), r.getMemberRelation());
             assertEquals(of(DC.isPartOf), r.getMemberOfRelation());
             assertEquals(of(LDP.MemberSubject), r.getInsertedContentRelation());
-            assertTrue(r.hasAcl());
+            assertTrue(r.getMetadataGraphNames().contains(Trellis.PreferAccessControl));
+            assertFalse(r.getMetadataGraphNames().contains(Trellis.PreferAudit));
         }).toCompletableFuture().join();
 
         svc.mementos(identifier).thenAccept(mementos -> assertTrue(mementos.contains(time)));
