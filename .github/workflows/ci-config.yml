@@ -53,7 +53,7 @@ jobs:
           ${{ runner.os }}-gradle-
 
     - name: Build with Gradle
-      run: ./gradlew check assemble javadoc -x pmdMain -x spotbugsMain
+      run: ./gradlew check assemble javadoc -x pmdMain
       env:
         QUARKUS_EXTERNAL_PGSQL: true
         QUARKUS_DATASOURCE_USERNAME: postgres
@@ -100,7 +100,7 @@ jobs:
 
     - name: Build with Gradle
       shell: bash
-      run: ./gradlew.bat -x pmdMain -x spotbugsMain check
+      run: ./gradlew.bat -x pmdMain check
 
   postgres:
     needs: [validation]
@@ -126,7 +126,7 @@ jobs:
         java-version: 8
 
     - name: "Java 8 (Quarkus Database)"
-      run: ./gradlew check -p platform/quarkus -x pmdMain -x spotbugsMain install --scan
+      run: ./gradlew check -p platform/quarkus -x pmdMain install --scan
       env:
         QUARKUS_EXTERNAL_PGSQL: true
         QUARKUS_DATASOURCE_USERNAME: postgres
@@ -155,7 +155,7 @@ jobs:
     - name: "Java 8 (Quarkus Cassandra)"
       run: |
           docker exec cassandra sh -c "/workspace/trellis-extensions/trellis-extensions/buildtools/src/main/resources/cassandra/initialize.sh /workspace/trellis-extensions/trellis-extensions/cassandra/src/main/resources"
-          ./gradlew check -x :trellis-db:check -x :trellis-db-app:check -x pmdMain -x spotbugsMain install -Pcassandra --scan
+          ./gradlew check -x :trellis-db:check -x :trellis-db-app:check -x pmdMain install -Pcassandra --scan
       env:
           TEST_CASSANDRA: true
 

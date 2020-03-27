@@ -532,4 +532,14 @@ databaseChangeLog:
                 referencedColumnNames: id
                 referencedTableName: resource
                 referencesUniqueColumn: true
+    - changeSet:
+        id: 5
+        author: acoburn
+        changes:
+            - renameColumn:
+                tableName: extension
+                oldColumnName: key
+                newColumnName: ext
+                columnDataType: VARCHAR(255)
+                remarks: Rename this to a non-reserved name.
 
