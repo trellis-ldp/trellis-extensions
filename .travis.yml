@@ -46,6 +46,10 @@ jobs:
     - name: "Java 8"
       stage: test
       jdk: openjdk8
+      env:
+        - QUARKUS_DATASOURCE_USERNAME=postgres
+        - QUARKUS_DATASOURCE_PASSWORD=postgres
+        - QUARKUS_EXTERNAL_PGSQL=true
       script: travis_retry ./gradlew check -x pmdMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
 
