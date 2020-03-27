@@ -29,14 +29,11 @@ class PgsqlApplicationTest extends AbstractApplicationTests {
 
     @BeforeAll
     static void setUp() throws Exception {
-        System.setProperty("quarkus.datasource.username", "postgres");
-        System.clearProperty("quarkus.datasource.password");
         System.setProperty("quarkus.datasource.url", "jdbc:postgresql://localhost/trellis");
     }
 
     @AfterAll
     static void tearDown() throws Exception {
         System.clearProperty("quarkus.datasource.url");
-        System.clearProperty("quarkus.datasource.username");
     }
 }
