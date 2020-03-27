@@ -15,9 +15,9 @@ package org.trellisldp.ext.cassandra.query.binary;
 
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.io.InputStream;
+import java.util.concurrent.CompletionStage;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -61,11 +61,9 @@ public class ReadRange extends BinaryReadQuery {
      *
      * @see BinaryReadQuery#retrieve(IRI, BoundStatement)
      */
-    public InputStream execute(final IRI id, final int first, final int last) {
-        final BoundStatement bound = preparedStatement().bind()
-                        .set("identifier", id, IRI.class)
-                        .setInt("start", first)
-                        .setInt("end", last);
-        return retrieve(id, bound);
+    public CompletionStage<InputStream> execute(final IRI id, final int first, final int last) {
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class)
+                .setInt("start", first).setInt("end", last))
+            .thenApply(bound -> retrieve(id, bound));
     }
 }

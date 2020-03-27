@@ -15,6 +15,7 @@ package org.trellisldp.ext.cassandra;
 
 import static java.util.Arrays.copyOf;
 import static java.util.Arrays.copyOfRange;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -62,7 +63,7 @@ class CassandraBinaryTest {
 
     @Test
     void someContent() {
-        when(mockRead.execute(any())).thenReturn(mockInputStream);
+        when(mockRead.execute(any())).thenReturn(completedFuture(mockInputStream));
         final CassandraBinary testCassandraBinary = new CassandraBinary(testId, mockRead, mockReadRange, testChunkSize);
         final InputStream result = testCassandraBinary.getContent();
         assertSame(mockInputStream, result, "Got wrong InputStream!");
@@ -72,7 +73,7 @@ class CassandraBinaryTest {
     void aBitOfContent() throws IOException {
         final byte[] bytes = new byte[] { 1, 2, 3, 4, 5, 6, -1 };
         final InputStream testInputStream = new ByteArrayInputStream(bytes);
-        when(mockReadRange.execute(any(), anyInt(), anyInt())).thenReturn(testInputStream);
+        when(mockReadRange.execute(any(), anyInt(), anyInt())).thenReturn(completedFuture(testInputStream));
         final CassandraBinary testCassandraBinary = new CassandraBinary(testId, mockRead, mockReadRange, testChunkSize);
         final InputStream content = testCassandraBinary.getContent(0, 10);
         final byte[] result = new byte[3];
