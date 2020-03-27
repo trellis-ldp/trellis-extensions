@@ -17,8 +17,6 @@ import static org.junit.jupiter.api.condition.OS.WINDOWS;
 
 import io.quarkus.test.junit.QuarkusTest;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -26,17 +24,4 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 @EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 @QuarkusTest
 class CassandraMementoBinaryTest extends AbstractMementoBinaryTests {
-    @Test
-    @Disabled
-    @Override
-    public void testMementoContent() {
-        // ignoring for now because the implementation is slightly different
-    }
-
-    @Test
-    @Disabled
-    @Override
-    public void testMementoDateTimeHeader() {
-        // ignoring for now because the implementation is slightly different
-    }
 }
