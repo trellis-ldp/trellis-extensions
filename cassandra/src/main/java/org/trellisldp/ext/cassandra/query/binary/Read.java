@@ -18,6 +18,7 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.BoundStatement;
 
 import java.io.InputStream;
+import java.util.concurrent.CompletionStage;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -58,8 +59,8 @@ public class Read extends BinaryReadQuery {
      *
      * @see BinaryReadQuery#retrieve(IRI, BoundStatement)
      */
-    public InputStream execute(final IRI id) {
-        final BoundStatement bound = preparedStatement().bind().set("identifier", id, IRI.class);
-        return retrieve(id, bound);
+    public CompletionStage<InputStream> execute(final IRI id) {
+        return preparedStatementAsync().thenApply(stmt -> stmt.bind().set("identifier", id, IRI.class))
+            .thenApply(bound -> retrieve(id, bound));
     }
 }

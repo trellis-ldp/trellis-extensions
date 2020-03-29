@@ -13,15 +13,38 @@
  */
 package org.trellisldp.ext.webapp;
 
+import static javax.ws.rs.client.ClientBuilder.newBuilder;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
 
+import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
+
+import java.net.URL;
+
+import javax.ws.rs.client.Client;
 
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.trellisldp.test.AbstractApplicationLdpTests;
 
 @DisabledOnOs(WINDOWS)
 @EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 @QuarkusTest
-class CassandraMementoBinaryTest extends AbstractMementoBinaryTests {
+class CassandraLdpTest extends AbstractApplicationLdpTests {
+
+    private static final Client client = newBuilder().build();
+
+    @TestHTTPResource
+    URL url;
+
+    @Override
+    public Client getClient() {
+        return client;
+    }
+
+    @Override
+    public String getBaseURL() {
+        return url.toString();
+    }
+
 }

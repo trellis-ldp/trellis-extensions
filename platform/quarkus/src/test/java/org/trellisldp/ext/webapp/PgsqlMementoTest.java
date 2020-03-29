@@ -14,33 +14,30 @@
 package org.trellisldp.ext.webapp;
 
 import static javax.ws.rs.client.ClientBuilder.newBuilder;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
 
 import io.quarkus.test.common.http.TestHTTPResource;
+import io.quarkus.test.junit.QuarkusTest;
 
 import java.net.URL;
 
 import javax.ws.rs.client.Client;
 
-import org.trellisldp.test.LdpBinaryTests;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.trellisldp.test.AbstractApplicationMementoTests;
 
-abstract class AbstractLdpBinaryTests implements LdpBinaryTests {
+@DisabledOnOs(WINDOWS)
+@EnabledIfSystemProperty(named = "trellis.test.quarkus.external-pgsql", matches = "true")
+@QuarkusTest
+class PgsqlMementoTest extends AbstractApplicationMementoTests {
 
     private static final Client client = newBuilder().build();
 
     @TestHTTPResource
     URL url;
-
-    private String resource;
-
-    @Override
-    public void setResourceLocation(final String location) {
-        resource = location;
-    }
-
-    @Override
-    public String getResourceLocation() {
-        return resource;
-    }
 
     @Override
     public Client getClient() {
@@ -50,5 +47,14 @@ abstract class AbstractLdpBinaryTests implements LdpBinaryTests {
     @Override
     public String getBaseURL() {
         return url.toString();
+    }
+    @BeforeAll
+    static void setUp() throws Exception {
+        System.setProperty("quarkus.datasource.url", "jdbc:postgresql://localhost/trellis");
+    }
+
+    @AfterAll
+    static void tearDown() throws Exception {
+        System.clearProperty("quarkus.datasource.url");
     }
 }

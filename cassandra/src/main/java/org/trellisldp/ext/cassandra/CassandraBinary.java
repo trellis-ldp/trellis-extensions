@@ -58,7 +58,7 @@ public class CassandraBinary implements Binary {
 
     @Override
     public InputStream getContent() {
-        return read.execute(id);
+        return read.execute(id).toCompletableFuture().join();
     }
 
     @Override
@@ -67,7 +67,7 @@ public class CassandraBinary implements Binary {
         final int lastChunk = to / chunkLength;
         final int chunkStreamStart = from % chunkLength;
         final int rangeSize = to - from + 1; // +1 because range is inclusive
-        final InputStream retrieve = readRange.execute(id, firstChunk, lastChunk);
+        final InputStream retrieve = readRange.execute(id, firstChunk, lastChunk).toCompletableFuture().join();
         // skip to fulfill lower end of range
         try {
             final long skipped = retrieve.skip(chunkStreamStart);

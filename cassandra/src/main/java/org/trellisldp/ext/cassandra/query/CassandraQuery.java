@@ -42,6 +42,8 @@ public class CassandraQuery {
     protected final ConsistencyLevel consistency;
     protected final String queryString;
 
+    protected CompletionStage<PreparedStatement> preparedStmtAsync;
+
     /**
      * Worker threads that read and write from and to Cassandra. Reading and writing are thereby uncoupled from threads
      * calling into this class.
@@ -67,24 +69,19 @@ public class CassandraQuery {
      */
     public CassandraQuery(final CqlSession session, final String queryString, final ConsistencyLevel consistency) {
         this.session = session;
-        this.queryString = queryString;
         this.consistency = consistency;
-    }
-
-    /**
-     * @return the {@link PreparedStatement} that underlies this query
-     */
-    protected PreparedStatement preparedStatement() {
-        LOGGER.debug("Preparing statement {}", queryString);
-        return session.prepare(queryString);
+        this.queryString = queryString;
+        if (session != null) {
+            LOGGER.debug("Preparing async statement {}", queryString);
+            this.preparedStmtAsync = session.prepareAsync(queryString);
+        }
     }
 
     /**
      * @return the {@link PreparedStatement} that underlies this query
      */
     protected CompletionStage<PreparedStatement> preparedStatementAsync() {
-        LOGGER.debug("Preparing async statement {}", queryString);
-        return session.prepareAsync(queryString);
+        return preparedStmtAsync;
     }
 
     /**
