@@ -51,7 +51,7 @@ interface CassandraBuildingService {
 
         final Instant modified = metadata.get("modified", Instant.class);
         log.debug("Found modified = {} for resource {}", modified, id);
-        final Dataset dataset = metadata.get("quads", Dataset.class);
+        final Dataset dataset = CassandraIOUtils.parse(metadata.getString("quads"));
         log.debug("Found dataset = {} for resource {}", dataset, id);
 
         final BinaryMetadata binary = binaryId != null ?

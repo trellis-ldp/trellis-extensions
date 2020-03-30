@@ -16,7 +16,6 @@ package org.trellisldp.ext.cassandra;
 import static java.lang.Integer.parseInt;
 import static java.net.InetSocketAddress.createUnresolved;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.ext.cassandra.DatasetCodec.DATASET_CODEC;
 import static org.trellisldp.ext.cassandra.IRICodec.IRI_CODEC;
 import static org.trellisldp.ext.cassandra.InputStreamCodec.INPUTSTREAM_CODEC;
 
@@ -40,8 +39,7 @@ public class CassandraContext {
 
     private static final Logger LOGGER = getLogger(CassandraContext.class);
     private static final String ONE = "ONE";
-    private static final TypeCodec<?>[] STANDARD_CODECS = new TypeCodec<?>[] { INPUTSTREAM_CODEC, IRI_CODEC,
-            DATASET_CODEC };
+    private static final TypeCodec<?>[] STANDARD_CODECS = new TypeCodec<?>[] { INPUTSTREAM_CODEC, IRI_CODEC };
 
     private CqlSession session;
 

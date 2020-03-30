@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.slf4j.Logger;
+import org.trellisldp.ext.cassandra.CassandraIOUtils;
 import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 
 /**
@@ -66,7 +67,7 @@ public class ImmutableInsert extends ResourceQuery {
      */
     public CompletionStage<Void> execute(final IRI id, final Dataset data, final Instant time) {
         return preparedStatementAsync().thenApply(stmt ->
-                stmt.bind(id, data, time).setConsistencyLevel(consistency))
+                stmt.bind(id, CassandraIOUtils.serialize(data), time).setConsistencyLevel(consistency))
             .thenCompose(session::executeAsync)
             .thenAccept(r -> LOGGER.debug("Executed CQL write: {}", queryString));
     }

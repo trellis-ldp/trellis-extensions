@@ -382,7 +382,7 @@ subprojects { subproj ->
     test {
         useJUnitPlatform()
         retry {
-            maxRetries = 3
+            maxRetries = (project.findProperty("trellis.test.retry") ?: "3").toInteger()
             maxFailures = 20
         }
     }

@@ -17,7 +17,6 @@ import static com.datastax.oss.driver.api.core.CqlSession.builder;
 import static com.datastax.oss.driver.api.core.DefaultConsistencyLevel.ONE;
 import static java.net.InetSocketAddress.createUnresolved;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.ext.cassandra.DatasetCodec.DATASET_CODEC;
 import static org.trellisldp.ext.cassandra.IRICodec.IRI_CODEC;
 import static org.trellisldp.ext.cassandra.InputStreamCodec.INPUTSTREAM_CODEC;
 
@@ -80,7 +79,7 @@ class CassandraConnection implements AfterAllCallback, BeforeAllCallback {
         final InetSocketAddress socketAddress = createUnresolved(contactAddress, contactPort);
         this.session = builder()
                         .withLocalDatacenter("datacenter1")
-                        .addTypeCodecs(INPUTSTREAM_CODEC, IRI_CODEC, DATASET_CODEC)
+                        .addTypeCodecs(INPUTSTREAM_CODEC, IRI_CODEC)
                         .withKeyspace("trellis")
                         .addContactPoint(socketAddress).build();
         this.resourceService = new CassandraResourceService(new Delete(session, ONE),
