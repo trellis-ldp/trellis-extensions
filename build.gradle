@@ -31,7 +31,7 @@ ext {
     awsVersion = "1.11.745"
     commonsCompressVersion = "1.20"
     commonsIoVersion = "2.6"
-    commonsLangVersion = "3.9"
+    commonsLangVersion = "3.10"
     commonsRdfVersion = "0.5.0"
     dropwizardVersion = "2.0.5"
     jacksonVersion = "2.10.1"
