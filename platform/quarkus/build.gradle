@@ -21,8 +21,8 @@ def installForQuarkus = [
 ]
 
 dependencies {
-    implementation enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion")
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
+    implementation platform("io.quarkus:quarkus-bom:$quarkusVersion")
 
     implementation 'io.quarkus:quarkus-jsonb'
     implementation 'io.quarkus:quarkus-resteasy'
@@ -58,6 +58,7 @@ dependencies {
         implementation "org.trellisldp:trellis-reactive"
     } else {
         // Database dependencies
+        implementation "com.h2database:h2:$h2Version"
         implementation 'io.quarkus:quarkus-agroal'
         implementation 'io.quarkus:quarkus-flyway'
         implementation 'io.quarkus:quarkus-jdbc-h2'
