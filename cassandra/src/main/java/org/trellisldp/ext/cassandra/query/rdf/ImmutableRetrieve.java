@@ -27,6 +27,7 @@ import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.trellisldp.ext.cassandra.AsyncResultSetUtils;
+import org.trellisldp.ext.cassandra.CassandraIOUtils;
 import org.trellisldp.ext.cassandra.MutableReadConsistency;
 
 /**
@@ -64,10 +65,10 @@ public class ImmutableRetrieve extends ResourceQuery {
             .thenCompose(session::executeAsync)
             .thenApply(AsyncResultSetUtils::stream)
             .thenApply(row -> row.map(this::getDataset))
-            .thenApply(r -> r.flatMap(Dataset::stream));
+            .thenApply(r -> r.map(CassandraIOUtils::parse).flatMap(Dataset::stream));
     }
 
-    private Dataset getDataset(final Row r) {
-        return r.get("quads", Dataset.class);
+    private String getDataset(final Row r) {
+        return r.getString("quads");
     }
 }

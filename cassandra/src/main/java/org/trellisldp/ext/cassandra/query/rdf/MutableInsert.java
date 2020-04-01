@@ -29,6 +29,7 @@ import org.apache.commons.rdf.api.Dataset;
 import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Metadata;
+import org.trellisldp.ext.cassandra.CassandraIOUtils;
 import org.trellisldp.ext.cassandra.MutableWriteConsistency;
 
 /**
@@ -73,7 +74,7 @@ public class MutableInsert extends ResourceQuery {
         return preparedStatementAsync().thenApply(stmt ->
                 stmt.bind(metadata.getInteractionModel(),
                     metadata.getBinary().flatMap(BinaryMetadata::getMimeType).orElse(null),
-                    metadata.getContainer().orElse(null), data, modified,
+                    metadata.getContainer().orElse(null), CassandraIOUtils.serialize(data), modified,
                     metadata.getBinary().map(BinaryMetadata::getIdentifier).orElse(null),
                     creation, metadata.getIdentifier()).setConsistencyLevel(consistency))
             .thenCompose(session::executeAsync)
