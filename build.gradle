@@ -48,7 +48,7 @@ ext {
     // Databases
     cassandraDriverVersion = "4.3.1"
     mysqlVersion = "8.0.19"
-    postgresVersion = "42.2.11"
+    postgresVersion = "42.2.12"
 
     // Testing
     apiguardianVersion = "1.1.0"
