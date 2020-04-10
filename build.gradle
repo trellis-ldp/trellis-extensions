@@ -28,7 +28,7 @@ ext {
 
     // Dependencies
     activeMqVersion = "5.15.12"
-    awsVersion = "1.11.745"
+    awsVersion = "1.11.762"
     commonsCompressVersion = "1.20"
     commonsIoVersion = "2.6"
     commonsLangVersion = "3.10"
@@ -57,7 +57,7 @@ ext {
     guavaVersion = "28.2-jre"
     h2Version = "1.4.200"
     jenaVersion = "3.14.0"
-    junitVersion = "5.6.1"
+    junitVersion = "5.6.2"
     logbackVersion = "1.2.3"
     mockitoVersion = "3.3.3"
     otjPgVersion = "0.13.3"
