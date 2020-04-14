@@ -54,7 +54,7 @@ ext {
     apiguardianVersion = "1.1.0"
     awaitilityVersion = "4.0.2"
     commonsTextVersion = "1.8"
-    guavaVersion = "28.2-jre"
+    guavaVersion = "29.0-jre"
     h2Version = "1.4.200"
     jenaVersion = "3.14.0"
     junitVersion = "5.6.2"
