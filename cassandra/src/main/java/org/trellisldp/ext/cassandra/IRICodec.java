@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
-import org.trellisldp.api.TrellisUtils;
+import org.trellisldp.api.RDFFactory;
 
 /**
  * (De)serializes Commons RDF {@link IRI}s (out of)into Cassandra fields.
@@ -44,7 +44,7 @@ class IRICodec extends CassandraCodec<IRI> {
 
     protected static final int CACHE_MAXIMUM_SIZE = 10 ^ 6;
 
-    protected static final RDF rdf = TrellisUtils.getInstance();
+    protected static final RDF rdf = RDFFactory.getInstance();
 
     @Override
     public DataType getCqlType() {

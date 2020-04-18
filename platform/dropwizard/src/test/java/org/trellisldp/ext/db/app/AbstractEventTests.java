@@ -16,7 +16,6 @@ package org.trellisldp.ext.db.app;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.rdf.api.RDFSyntax.JSONLD;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.test.TestUtils.readEntityAsGraph;
 
 import java.io.ByteArrayInputStream;
@@ -38,12 +37,13 @@ import org.apache.commons.rdf.api.RDF;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.test.AbstractApplicationEventTests;
 
 abstract class AbstractEventTests extends AbstractApplicationEventTests implements MessageListener {
 
     private static final Logger LOGGER = getLogger(AbstractEventTests.class);
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     private final Set<Graph> messages = new CopyOnWriteArraySet<>();
 

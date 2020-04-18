@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
@@ -35,6 +34,7 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
@@ -45,7 +45,7 @@ import org.trellisldp.vocabulary.Trellis;
 @DisabledOnOs(WINDOWS)
 class ResourceDataTest {
 
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
     private static final EmbeddedPostgres pg = DBTestUtils.setupDatabase("build");
 

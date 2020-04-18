@@ -16,7 +16,6 @@ package org.trellisldp.ext.db;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.ServiceLoader.load;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -26,6 +25,7 @@ import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.vocabulary.LDP;
 
 /**
@@ -33,7 +33,7 @@ import org.trellisldp.vocabulary.LDP;
  */
 final class DBUtils {
 
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     public static String getObjectValue(final RDFTerm term) {
         if (term instanceof IRI) {

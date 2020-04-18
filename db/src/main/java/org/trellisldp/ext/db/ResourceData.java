@@ -14,7 +14,6 @@
 package org.trellisldp.ext.db;
 
 import static java.util.Optional.ofNullable;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,6 +24,7 @@ import java.util.Optional;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.vocabulary.LDP;
 
 /**
@@ -32,7 +32,7 @@ import org.trellisldp.vocabulary.LDP;
  */
 class ResourceData {
 
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     private int id;
     private long modified;

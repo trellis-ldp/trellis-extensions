@@ -11,7 +11,7 @@ plugins {
 ext {
 
     // Trellis core
-    trellisVersion = "0.11.0"
+    trellisVersion = "0.11.1"
 
     // JavaEE
     activationApiVersion = "1.2.2"
@@ -381,6 +381,10 @@ subprojects { subproj ->
 
     test {
         useJUnitPlatform()
+        testLogging {
+            events "failed"
+            exceptionFormat "short"
+        }
         retry {
             maxRetries = (project.findProperty("trellis.test.retry") ?: "3").toInteger()
             maxFailures = 20

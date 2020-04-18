@@ -36,7 +36,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.api.Metadata.builder;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
@@ -62,6 +61,7 @@ import org.slf4j.Logger;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
 import org.trellisldp.vocabulary.ACL;
@@ -84,7 +84,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 class DBResourceTest {
 
     private static final Logger LOGGER = getLogger(DBResourceTest.class);
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     private static final IdentifierService idService = new DefaultIdentifierService();
 
