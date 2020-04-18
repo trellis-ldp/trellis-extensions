@@ -31,7 +31,7 @@ import javax.inject.Inject;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
-import org.trellisldp.api.TrellisUtils;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.ext.cassandra.AsyncResultSetUtils;
 import org.trellisldp.ext.cassandra.MutableReadConsistency;
 import org.trellisldp.vocabulary.LDP;
@@ -42,7 +42,7 @@ import org.trellisldp.vocabulary.LDP;
 @ApplicationScoped
 public class BasicContainment extends ResourceQuery {
 
-    private static final RDF rdfFactory = TrellisUtils.getInstance();
+    private static final RDF rdfFactory = RDFFactory.getInstance();
     private static final Set<IRI> containerTypes;
 
     static {

@@ -21,7 +21,6 @@ import static java.util.Optional.of;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import java.time.Instant;
 
@@ -34,6 +33,7 @@ import org.mockito.Mock;
 import org.trellisldp.api.Event;
 import org.trellisldp.api.EventSerializationService;
 import org.trellisldp.api.EventService;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.event.jackson.DefaultEventSerializationService;
 import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.LDP;
@@ -41,7 +41,7 @@ import org.trellisldp.vocabulary.LDP;
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 public class SNSEventServiceTest {
 
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI identifier = rdf.createIRI("trellis:event/123456");
     private static final IRI object = rdf.createIRI("http://example.com/resource");
     private static final IRI agent = rdf.createIRI("http://example.com/agent");

@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.condition.OS.WINDOWS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 
@@ -43,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.slf4j.Logger;
 import org.trellisldp.api.MementoService;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.file.FileMementoService;
 import org.trellisldp.vocabulary.DC;
@@ -58,7 +58,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 @DisabledOnOs(WINDOWS)
 class DBWrappedMementoServiceTest {
     private static final Logger LOGGER = getLogger(DBWrappedMementoService.class);
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI root = rdf.createIRI("trellis:data/");
     private static EmbeddedPostgres pg = null;
 

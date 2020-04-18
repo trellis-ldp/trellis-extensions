@@ -17,7 +17,6 @@ import static com.amazonaws.services.s3.AmazonS3ClientBuilder.defaultClient;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -36,11 +35,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
+import org.trellisldp.api.RDFFactory;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 public class S3BinaryServiceTest {
 
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
     private static final int length = 10;
     private static final String base = new RandomStringGenerator.Builder().withinRange('a', 'z')
         .build().generate(length);

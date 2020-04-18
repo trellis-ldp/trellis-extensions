@@ -14,7 +14,6 @@
 package org.trellisldp.ext.cassandra;
 
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 import static org.trellisldp.vocabulary.RDF.type;
 
 import java.time.Instant;
@@ -28,6 +27,7 @@ import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.Metadata;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.vocabulary.Trellis;
 
@@ -36,7 +36,7 @@ class CassandraResource implements Resource {
     public static final String CONFIG_CASSANDRA_LDP_TYPE = "trellis.cassandra.ldp-type";
     private static final boolean INCLUDE_LDP_TYPE = getConfig()
         .getOptionalValue(CONFIG_CASSANDRA_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE);
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     private final Metadata metadata;
     private final Dataset dataset;

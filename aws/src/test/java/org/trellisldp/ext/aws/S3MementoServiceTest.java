@@ -28,7 +28,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.trellisldp.api.Resource.SpecialResources.MISSING_RESOURCE;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
-import static org.trellisldp.api.TrellisUtils.getInstance;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -54,6 +53,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.MementoService;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.vocabulary.ACL;
@@ -64,7 +64,7 @@ import org.trellisldp.vocabulary.Trellis;
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 public class S3MementoServiceTest {
 
-    private static final RDF rdf = getInstance();
+    private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
     private static final int length = 10;
     private static final String base = new RandomStringGenerator.Builder().withinRange('a', 'z')
