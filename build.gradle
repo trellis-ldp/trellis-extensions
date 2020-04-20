@@ -28,7 +28,7 @@ ext {
 
     // Dependencies
     activeMqVersion = "5.15.12"
-    awsVersion = "1.11.763"
+    awsVersion = "1.11.764"
     commonsCompressVersion = "1.20"
     commonsIoVersion = "2.6"
     commonsLangVersion = "3.10"
