@@ -23,6 +23,7 @@ def installForQuarkus = [
 dependencies {
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
     implementation platform("io.quarkus:quarkus-bom:$quarkusVersion")
+    implementation platform("io.netty:netty-bom:$nettyVersion")
 
     implementation 'io.quarkus:quarkus-jsonb'
     implementation 'io.quarkus:quarkus-resteasy'
