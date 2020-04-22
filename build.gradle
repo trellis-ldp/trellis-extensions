@@ -35,7 +35,7 @@ ext {
     commonsRdfVersion = "0.5.0"
     dropwizardVersion = "2.0.8"
     jacksonVersion = "2.10.1"
-    jdbiVersion = "3.12.2"
+    jdbiVersion = "3.13.0"
     kafkaVersion = "2.5.0"
     liquibaseVersion = "3.8.9"
     mustacheVersion = "0.9.6"
