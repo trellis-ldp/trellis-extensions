@@ -1,6 +1,0 @@
-resource_id,subject,predicate,object
-0,trellis:data/#auth,http://www.w3.org/ns/auth/acl#mode,http://www.w3.org/ns/auth/acl#Read
-0,trellis:data/#auth,http://www.w3.org/ns/auth/acl#mode,http://www.w3.org/ns/auth/acl#Write
-0,trellis:data/#auth,http://www.w3.org/ns/auth/acl#mode,http://www.w3.org/ns/auth/acl#Control
-0,trellis:data/#auth,http://www.w3.org/ns/auth/acl#agentClass,http://xmlns.com/foaf/0.1/Agent
-0,trellis:data/#auth,http://www.w3.org/ns/auth/acl#accessTo,trellis:data/
