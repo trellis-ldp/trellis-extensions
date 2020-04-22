@@ -86,6 +86,8 @@ public class DBResource implements Resource {
     private final IRI identifier;
     private final Jdbi jdbi;
     private final boolean includeLdpType;
+    private final boolean supportDirectContainment;
+    private final boolean supportIndirectContainment;
     private final Map<IRI, String> extensions = new HashMap<>();
     private final Map<IRI, Supplier<Stream<Quad>>> graphMapper = new HashMap<>();
 
@@ -99,10 +101,13 @@ public class DBResource implements Resource {
      * @param includeLdpType whether to include the LDP type in the RDF body
      */
     protected DBResource(final Jdbi jdbi, final IRI identifier, final Map<String, IRI> extensions,
-            final boolean includeLdpType) {
+            final boolean includeLdpType, final boolean supportDirectContainment,
+            final boolean supportIndirectContainment) {
         this.identifier = identifier;
         this.jdbi = jdbi;
         this.includeLdpType = includeLdpType;
+        this.supportDirectContainment = supportDirectContainment;
+        this.supportIndirectContainment = supportIndirectContainment;
         graphMapper.put(Trellis.PreferUserManaged, this::fetchUserQuads);
         graphMapper.put(Trellis.PreferServerManaged, this::fetchServerQuads);
         graphMapper.put(Trellis.PreferAudit, this::fetchAuditQuads);
@@ -140,8 +145,25 @@ public class DBResource implements Resource {
      */
     public static CompletionStage<Resource> findResource(final Jdbi jdbi, final IRI identifier,
             final Map<String, IRI> extensions, final boolean includeLdpType) {
+        return findResource(jdbi, identifier, extensions, includeLdpType, true, true);
+    }
+
+    /**
+     * Try to load a Trellis resource.
+     * @param jdbi the Jdbi object
+     * @param identifier the identifier
+     * @param extensions a map of extensions
+     * @param includeLdpType whether to include the LDP type in the RDF body
+     * @param supportDirectContainment whether to support direct containment
+     * @param supportIndirectContainment whether to support indirect containment
+     * @return a Resource, if one exists
+     */
+    public static CompletionStage<Resource> findResource(final Jdbi jdbi, final IRI identifier,
+            final Map<String, IRI> extensions, final boolean includeLdpType, final boolean supportDirectContainment,
+            final boolean supportIndirectContainment) {
         return supplyAsync(() -> {
-            final DBResource res = new DBResource(jdbi, identifier, extensions, includeLdpType);
+            final DBResource res = new DBResource(jdbi, identifier, extensions, includeLdpType,
+                    supportDirectContainment, supportIndirectContainment);
             if (!res.fetchData()) {
                 return MISSING_RESOURCE;
             }
@@ -289,19 +311,23 @@ public class DBResource implements Resource {
      * ldp:insertedContentRelation value.
      */
     private Stream<Quad> fetchIndirectMemberQuads() {
-        final String query
-            = "SELECT r2.ldp_membership_resource, r2.ldp_has_member_relation, d.object, d.lang, d.datatype "
-            + "FROM resource AS r INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
-            + "INNER JOIN description AS d ON r.id = d.resource_id AND d.predicate = r2.ldp_inserted_content_relation "
-            + "WHERE r2.ldp_member = ? AND r2.interaction_model = ? AND r2.ldp_has_member_relation IS NOT NULL";
+        if (supportIndirectContainment) {
+            final String query
+                = "SELECT r2.ldp_membership_resource, r2.ldp_has_member_relation, d.object, d.lang, d.datatype "
+                + "FROM resource AS r INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
+                + "INNER JOIN description AS d ON r.id = d.resource_id "
+                + "   AND d.predicate = r2.ldp_inserted_content_relation "
+                + "WHERE r2.ldp_member = ? AND r2.interaction_model = ? AND r2.ldp_has_member_relation IS NOT NULL";
 
-        return jdbi.withHandle(handle -> handle.select(query,
-                    getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
-                .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
-                            rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
-                            rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
-                            getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
-                .list()).stream().map(Quad.class::cast);
+            return jdbi.withHandle(handle -> handle.select(query,
+                        getIdentifier().getIRIString(), LDP.IndirectContainer.getIRIString())
+                    .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
+                                rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
+                                rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
+                                getObject(rs.getString(OBJECT), rs.getString(LANG), rs.getString(DATATYPE))))
+                    .list()).stream().map(Quad.class::cast);
+        }
+        return Stream.empty();
     }
 
     /**
@@ -310,19 +336,22 @@ public class DBResource implements Resource {
      * is equal to ldp:MemberSubject.
      */
     private Stream<Quad> fetchDirectMemberQuadsInverse() {
-        final String query
-            = "SELECT r2.ldp_is_member_of_relation, r2.ldp_membership_resource "
-            + "FROM resource AS r INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
-            + "WHERE r.subject = ? AND r2.ldp_inserted_content_relation = ? "
-            + "AND r2.ldp_is_member_of_relation IS NOT NULL";
+        if (supportDirectContainment) {
+            final String query
+                = "SELECT r2.ldp_is_member_of_relation, r2.ldp_membership_resource "
+                + "FROM resource AS r INNER JOIN resource AS r2 ON r.is_part_of = r2.subject "
+                + "WHERE r.subject = ? AND r2.ldp_inserted_content_relation = ? "
+                + "AND r2.ldp_is_member_of_relation IS NOT NULL";
 
-        return jdbi.withHandle(handle -> handle.select(query,
-                    getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
-                .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
-                        adjustIdentifier(getIdentifier(), getInteractionModel()),
-                        rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
-                        rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))))
-                .list()).stream().map(Quad.class::cast);
+            return jdbi.withHandle(handle -> handle.select(query,
+                        getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
+                    .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
+                            adjustIdentifier(getIdentifier(), getInteractionModel()),
+                            rdf.createIRI(rs.getString(IS_MEMBER_OF_RELATION)),
+                            rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE))))
+                    .list()).stream().map(Quad.class::cast);
+        }
+        return Stream.empty();
     }
 
     /**
@@ -330,19 +359,22 @@ public class DBResource implements Resource {
      * and direct containment.
      */
     private Stream<Quad> fetchDirectMemberQuads() {
-        final String query
-            = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject, r2.interaction_model "
-            + "FROM resource AS r INNER JOIN resource AS r2 ON r.subject = r2.is_part_of "
-            + "WHERE r.ldp_member = ? AND r.ldp_inserted_content_relation = ? "
-            + "AND r.ldp_has_member_relation IS NOT NULL";
+        if (supportDirectContainment) {
+            final String query
+                = "SELECT r.ldp_membership_resource, r.ldp_has_member_relation, r2.subject, r2.interaction_model "
+                + "FROM resource AS r INNER JOIN resource AS r2 ON r.subject = r2.is_part_of "
+                + "WHERE r.ldp_member = ? AND r.ldp_inserted_content_relation = ? "
+                + "AND r.ldp_has_member_relation IS NOT NULL";
 
-        return jdbi.withHandle(handle -> handle.select(query,
-                    getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
-                .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
-                        rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
-                        rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
-                        rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
-                .list()).stream().map(Quad.class::cast);
+            return jdbi.withHandle(handle -> handle.select(query,
+                        getIdentifier().getIRIString(), LDP.MemberSubject.getIRIString())
+                    .map((rs, ctx) -> rdf.createQuad(LDP.PreferMembership,
+                            rdf.createIRI(rs.getString(MEMBERSHIP_RESOURCE)),
+                            rdf.createIRI(rs.getString(HAS_MEMBER_RELATION)),
+                            rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
+                    .list()).stream().map(Quad.class::cast);
+        }
+        return Stream.empty();
     }
 
     /**
