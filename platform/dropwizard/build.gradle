@@ -22,7 +22,7 @@ dependencies {
     implementation "io.dropwizard:dropwizard-metrics:$dropwizardVersion"
     implementation "io.dropwizard:dropwizard-migrations:$dropwizardVersion"
     implementation "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
-    implementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
+    implementation "io.smallrye.config:smallrye-config:$smallryeConfigVersion"
     implementation "org.apache.activemq:activemq-client:$activeMqVersion"
     implementation "org.apache.kafka:kafka-clients:$kafkaVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"

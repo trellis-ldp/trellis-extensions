@@ -31,7 +31,7 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.trellisldp:trellis-vocabulary"
 
-    testImplementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
+    testImplementation "io.smallrye.config:smallrye-config:$smallryeConfigVersion"
     testImplementation "io.smallrye:smallrye-health:$smallryeHealthVersion"
     testImplementation "org.awaitility:awaitility:$awaitilityVersion"
     testImplementation "org.jboss.weld:weld-junit5:$weldVersion"

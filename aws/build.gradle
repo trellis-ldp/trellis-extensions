@@ -33,7 +33,7 @@ dependencies {
     implementation "org.trellisldp:trellis-vocabulary"
 
     testImplementation "org.apache.commons:commons-text:$commonsTextVersion"
-    testImplementation "io.smallrye:smallrye-config:$smallryeConfigVersion"
+    testImplementation "io.smallrye.config:smallrye-config:$smallryeConfigVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 
     testImplementation "org.trellisldp:trellis-event-jackson"
