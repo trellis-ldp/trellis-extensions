@@ -50,7 +50,7 @@ COMMENT ON COLUMN public.resource.ldp_is_member_of_relation IS 'If this resource
 COMMENT ON COLUMN public.resource.ldp_inserted_content_relation IS 'If this resource is a LDP-DC or LDP-IC, this column holds the ldp:insertedContentRelation value.';
 
 INSERT INTO public.resource (id, subject, interaction_model, modified, deleted, acl) VALUES
-(0,'trellis:data/','http://www.w3.org/ns/ldp#BasicContainer',0,'f','t');
+(0,'trellis:data/','http://www.w3.org/ns/ldp#BasicContainer',0,'f','f');
 
 CREATE INDEX idx_resource_ldp ON public.resource (ldp_member);
 CREATE INDEX idx_resource_parent ON public.resource (is_part_of);
@@ -81,13 +81,6 @@ COMMENT ON COLUMN public.acl.predicate IS 'The RDF predicate for the triple.';
 COMMENT ON COLUMN public.acl.object IS 'The RDF object for the triple.';
 COMMENT ON COLUMN public.acl.lang IS 'If the object is a string literal, this holds the language tag, if relevant.';
 COMMENT ON COLUMN public.acl.datatype IS 'If the object is a literal, this holds the datatype IRI of that literal value.';
-
-INSERT INTO public.acl (resource_id, subject, predicate, object) VALUES
-(0,'trellis:data/#auth','http://www.w3.org/ns/auth/acl#mode','http://www.w3.org/ns/auth/acl#Read'),
-(0,'trellis:data/#auth','http://www.w3.org/ns/auth/acl#mode','http://www.w3.org/ns/auth/acl#Write'),
-(0,'trellis:data/#auth','http://www.w3.org/ns/auth/acl#mode','http://www.w3.org/ns/auth/acl#Control'),
-(0,'trellis:data/#auth','http://www.w3.org/ns/auth/acl#agentClass','http://xmlns.com/foaf/0.1/Agent'),
-(0,'trellis:data/#auth','http://www.w3.org/ns/auth/acl#accessTo','trellis:data/');
 
 CREATE INDEX idx_acl ON public.acl (resource_id);
 

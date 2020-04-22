@@ -392,22 +392,6 @@ databaseChangeLog:
                         name: acl
                         type: BOOLEAN
                 file: org/trellisldp/ext/db/initial_resource${csv}.csv
-            - loadData:
-                tableName: acl
-                columns:
-                    - column:
-                        name: resource_id
-                        type: NUMERIC
-                    - column:
-                        name: subject
-                        type: STRING
-                    - column:
-                        name: predicate
-                        type: STRING
-                    - column:
-                        name: object
-                        type: STRING
-                file: org/trellisldp/ext/db/initial_acl${csv}.csv
     - changeSet:
         id: 2
         author: acoburn

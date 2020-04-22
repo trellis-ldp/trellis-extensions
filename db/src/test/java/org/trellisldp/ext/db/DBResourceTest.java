@@ -51,7 +51,6 @@ import java.util.concurrent.CompletionException;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
-import org.apache.commons.rdf.api.Quad;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.text.RandomStringGenerator;
 import org.jdbi.v3.core.Jdbi;
@@ -209,11 +208,7 @@ class DBResourceTest {
     void getAclQuads() {
         assertAll(() ->
             DBResource.findResource(pg.getPostgresDatabase(), root, extensions, true).thenAccept(res -> {
-                final Graph acl = rdf.createGraph();
-                res.stream(Trellis.PreferAccessControl).map(Quad::asTriple).forEach(acl::add);
-                assertTrue(acl.contains(null, ACL.mode, ACL.Read));
-                assertTrue(acl.contains(null, ACL.mode, ACL.Write));
-                assertTrue(acl.contains(null, ACL.mode, ACL.Control));
+                assertEquals(0L, res.stream(Trellis.PreferAccessControl).count());
                 assertEquals(0L, res.stream(Trellis.PreferUserManaged).count());
                 assertEquals(1L, res.stream(Trellis.PreferServerManaged).count());
             }).toCompletableFuture().join());
