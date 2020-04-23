@@ -67,7 +67,7 @@ ext {
     // Tools
     checkstyleToolVersion = "8.29"
     jacocoToolVersion = "0.8.5"
-    pmdToolVersion = "6.21.0"
+    pmdToolVersion = "6.22.0"
 
     jacocoSkipProjects = [
         'trellis-ext-bom'
