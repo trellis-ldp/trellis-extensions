@@ -17,9 +17,6 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
-import static java.util.stream.Stream.empty;
-import static java.util.stream.Stream.of;
 import static org.apache.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.jena.riot.Lang.NTRIPLES;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -184,14 +181,15 @@ public class DBResource implements Resource {
 
     @Override
     public Stream<Quad> stream() {
-        return concat(graphMapper.values().stream().flatMap(Supplier::get),
+        return Stream.concat(graphMapper.values().stream().flatMap(Supplier::get),
                 extensions.keySet().stream().flatMap(this::fetchExtensionQuads));
     }
 
     @Override
     public Stream<Quad> stream(final Collection<IRI> graphNames) {
-        return concat(graphNames.stream().filter(graphMapper::containsKey).map(graphMapper::get).flatMap(Supplier::get),
-                    graphNames.stream().filter(extensions::containsKey).flatMap(this::fetchExtensionQuads));
+        return Stream.concat(graphNames.stream().filter(graphMapper::containsKey).map(graphMapper::get)
+                    .flatMap(Supplier::get),
+                graphNames.stream().filter(extensions::containsKey).flatMap(this::fetchExtensionQuads));
     }
 
     @Override
@@ -265,8 +263,8 @@ public class DBResource implements Resource {
      * Combine the various membership-related quad streams.
      */
     private Stream<Quad> fetchMembershipQuads() {
-        return concat(fetchIndirectMemberQuads(),
-                concat(fetchDirectMemberQuads(), fetchDirectMemberQuadsInverse()));
+        return Stream.concat(fetchIndirectMemberQuads(),
+                Stream.concat(fetchDirectMemberQuads(), fetchDirectMemberQuadsInverse()));
     }
 
     /**
@@ -281,10 +279,10 @@ public class DBResource implements Resource {
      */
     private Stream<Quad> fetchServerQuads() {
         if (includeLdpType) {
-            return of(rdf.createQuad(Trellis.PreferServerManaged,
+            return Stream.of(rdf.createQuad(Trellis.PreferServerManaged,
                             adjustIdentifier(getIdentifier(), getInteractionModel()), type, getInteractionModel()));
         }
-        return empty();
+        return Stream.empty();
     }
 
     /**
@@ -391,7 +389,7 @@ public class DBResource implements Resource {
                             rdf.createIRI(adjustIdentifier(rs.getString(SUBJECT), rs.getString(IXN_MODEL)))))
                     .list()).stream().map(Quad.class::cast);
         }
-        return empty();
+        return Stream.empty();
     }
 
     private Set<IRI> fetchExtensionGraphNames() {
