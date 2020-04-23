@@ -96,6 +96,12 @@ public class DBResourceService implements ResourceService {
     /** The configuration key used to define whether to include the LDP type in an RDF body. */
     public static final String CONFIG_DB_LDP_TYPE = "trellis.db.ldp-type";
 
+    /** The configuration key used to define whether indirect containers are supported. */
+    public static final String CONFIG_DB_DIRECT_CONTAINMENT = "trellis.db.direct-containment";
+
+    /** The configuration key used to define whether direct containers are supported. */
+    public static final String CONFIG_DB_INDIRECT_CONTAINMENT = "trellis.db.indirect-containment";
+
     /** The default size of a database batch write operation. */
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
@@ -106,6 +112,8 @@ public class DBResourceService implements ResourceService {
     private final Supplier<String> supplier;
     private final Jdbi jdbi;
     private final boolean includeLdpType;
+    private final boolean supportDirectContainment;
+    private final boolean supportIndirectContainment;
     private final Map<String, IRI> extensions;
     private final Set<IRI> supportedIxnModels;
     private final int batchSize;
@@ -137,6 +145,8 @@ public class DBResourceService implements ResourceService {
     public DBResourceService(final Jdbi jdbi) {
         this(jdbi, getConfig().getOptionalValue(CONFIG_DB_BATCH_SIZE, Integer.class).orElse(DEFAULT_BATCH_SIZE),
                 getConfig().getOptionalValue(CONFIG_DB_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE),
+                getConfig().getOptionalValue(CONFIG_DB_DIRECT_CONTAINMENT, Boolean.class).orElse(Boolean.TRUE),
+                getConfig().getOptionalValue(CONFIG_DB_INDIRECT_CONTAINMENT, Boolean.class).orElse(Boolean.TRUE),
                 of(load(IdentifierService.class)).map(ServiceLoader::iterator).filter(Iterator::hasNext)
                     .map(Iterator::next).orElseGet(DefaultIdentifierService::new));
     }
@@ -150,14 +160,38 @@ public class DBResourceService implements ResourceService {
      */
     public DBResourceService(final Jdbi jdbi, final int batchSize, final boolean includeLdpType,
             final IdentifierService identifierService) {
+        this(jdbi, batchSize, includeLdpType, true, true, identifierService);
+    }
+
+    /**
+     * Create a Database-backed resource service.
+     * @param jdbi the jdbi object
+     * @param batchSize the batch size
+     * @param includeLdpType whether to include the LDP type in the RDF body
+     * @param supportDirectContainment whether to support direct containment
+     * @param supportIndirectContainment whether to support indirect containment
+     * @param identifierService an ID supplier service
+     */
+    public DBResourceService(final Jdbi jdbi, final int batchSize, final boolean includeLdpType,
+            final boolean supportDirectContainment, final boolean supportIndirectContainment,
+            final IdentifierService identifierService) {
         this.jdbi = requireNonNull(jdbi, "Jdbi may not be null!");
         this.supplier = requireNonNull(identifierService, "IdentifierService may not be null!").getSupplier();
         this.batchSize = batchSize;
         this.includeLdpType = includeLdpType;
-        this.supportedIxnModels = unmodifiableSet(new HashSet<>(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource,
-                LDP.Container, LDP.BasicContainer, LDP.DirectContainer, LDP.IndirectContainer)));
         this.extensions = buildExtensionMap();
+        this.supportDirectContainment = supportDirectContainment;
+        this.supportIndirectContainment = supportIndirectContainment;
         LOGGER.info("Using database persistence with TrellisLDP");
+        final Set<IRI> ixnModels = new HashSet<>(asList(LDP.Resource, LDP.RDFSource, LDP.NonRDFSource, LDP.Container,
+                    LDP.BasicContainer));
+        if (supportDirectContainment) {
+            ixnModels.add(LDP.DirectContainer);
+        }
+        if (supportIndirectContainment) {
+            ixnModels.add(LDP.IndirectContainer);
+        }
+        this.supportedIxnModels = unmodifiableSet(ixnModels);
     }
 
     @Override
@@ -195,7 +229,8 @@ public class DBResourceService implements ResourceService {
 
     @Override
     public CompletionStage<Resource> get(final IRI identifier) {
-        return DBResource.findResource(jdbi, identifier, extensions, includeLdpType);
+        return DBResource.findResource(jdbi, identifier, extensions, includeLdpType,
+                supportDirectContainment, supportIndirectContainment);
     }
 
     @Override

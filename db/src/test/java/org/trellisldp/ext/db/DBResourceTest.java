@@ -14,6 +14,7 @@
 package org.trellisldp.ext.db;
 
 import static java.io.File.separator;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
 import static java.util.concurrent.CompletableFuture.allOf;
@@ -131,6 +132,23 @@ class DBResourceTest {
     }
 
     @Test
+    void testDisableExtendedContainers() {
+        try {
+            System.setProperty(DBResourceService.CONFIG_DB_DIRECT_CONTAINMENT, "false");
+            System.setProperty(DBResourceService.CONFIG_DB_INDIRECT_CONTAINMENT, "false");
+            assertTrue(svc.supportedInteractionModels().contains(LDP.IndirectContainer));
+            assertTrue(svc.supportedInteractionModels().contains(LDP.DirectContainer));
+            final ResourceService svc2 = new DBResourceService(pg.getPostgresDatabase());
+            assertFalse(svc2.supportedInteractionModels().contains(LDP.IndirectContainer));
+            assertFalse(svc2.supportedInteractionModels().contains(LDP.DirectContainer));
+
+        } finally {
+            System.clearProperty(DBResourceService.CONFIG_DB_DIRECT_CONTAINMENT);
+            System.clearProperty(DBResourceService.CONFIG_DB_INDIRECT_CONTAINMENT);
+        }
+    }
+
+    @Test
     void testNoargResourceServiceNoConfig() {
         assertDoesNotThrow(() -> new DBResourceService());
     }
@@ -155,10 +173,22 @@ class DBResourceTest {
     }
 
     @Test
+    void testMetadata() {
+        final Resource res = DBResource.findResource(pg.getPostgresDatabase(), root, extensions, false)
+            .toCompletableFuture().join();
+        assertFalse(res.hasMetadata(Trellis.PreferAccessControl));
+        assertFalse(res.hasMetadata(rdf.createIRI("http://example.com/Extension")));
+    }
+
+    @Test
     void getMembershipQuads() {
-        assertAll(() ->
-            DBResource.findResource(pg.getPostgresDatabase(), root, extensions, false).thenAccept(res ->
-                assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join());
+        assertAll(
+            () -> DBResource.findResource(Jdbi.create(pg.getPostgresDatabase()), root, extensions, false, true, true)
+                .thenAccept(res ->
+                    assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join(),
+            () -> DBResource.findResource(Jdbi.create(pg.getPostgresDatabase()), root, extensions, false, false, false)
+                .thenAccept(res ->
+                    assertEquals(0L, res.stream(LDP.PreferMembership).count())).toCompletableFuture().join());
     }
 
     @Test
@@ -258,10 +288,14 @@ class DBResourceTest {
         dataset.add(Trellis.PreferAccessControl, identifier, ACL.accessTo,
                 rdf.createIRI(TRELLIS_DATA_PREFIX + "auth"));
 
-        assertDoesNotThrow(() -> svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root).build(),
-                    dataset).toCompletableFuture().join());
-        svc.get(identifier).thenAccept(res -> assertEquals(6L, res.stream(Trellis.PreferAccessControl).count()))
-            .toCompletableFuture().join();
+        assertDoesNotThrow(() -> svc.create(builder(identifier).interactionModel(LDP.RDFSource).container(root)
+                    .metadataGraphNames(singleton(Trellis.PreferAccessControl)).build(), dataset)
+                .toCompletableFuture().join());
+        svc.get(identifier).thenAccept(res -> {
+            assertTrue(res.hasMetadata(Trellis.PreferAccessControl));
+            assertTrue(res.getMetadataGraphNames().contains(Trellis.PreferAccessControl));
+            assertEquals(6L, res.stream(Trellis.PreferAccessControl).count());
+        }).toCompletableFuture().join();
     }
 
     @Test
