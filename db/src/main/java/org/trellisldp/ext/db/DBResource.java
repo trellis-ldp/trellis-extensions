@@ -96,6 +96,8 @@ public class DBResource implements Resource {
      * @param identifier the identifier
      * @param extensions a map of extensions
      * @param includeLdpType whether to include the LDP type in the RDF body
+     * @param supportDirectContainment whether to support direct containment
+     * @param supportIndirectContainment whether to support indirect containment
      */
     protected DBResource(final Jdbi jdbi, final IRI identifier, final Map<String, IRI> extensions,
             final boolean includeLdpType, final boolean supportDirectContainment,
