@@ -66,7 +66,7 @@ final class TestUtils {
     public static DropwizardTestSupport<AppConfiguration> buildMysqlApp(final String dbUrl, final String dbUser,
             final String dbPassword, final ConfigOverride... overrides) {
         final List<ConfigOverride> confs = defaultConfigs(overrides);
-        confs.addAll(asList(config("database.driverClass", "com.mysql.cj.jdbc.Driver"),
+        confs.addAll(asList(config("database.driverClass", "org.mariadb.jdbc.Driver"),
                      config("database.url", dbUrl), config("database.user", dbUser),
                      config("database.password", dbPassword)));
         return buildGenericApp(confs);
