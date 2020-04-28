@@ -47,7 +47,7 @@ dependencies {
 
     runtimeOnly "jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion"
     runtimeOnly "jakarta.activation:jakarta.activation-api:$activationApiVersion"
-    runtimeOnly "mysql:mysql-connector-java:$mysqlVersion"
+    runtimeOnly "org.mariadb.jdbc:mariadb-java-client:$mariadbVersion"
     runtimeOnly "org.postgresql:postgresql:$postgresVersion"
     runtimeOnly "org.yaml:snakeyaml:$snakeyamlVersion"
 

@@ -36,7 +36,7 @@ logging:
 # Database configuration
 database:
   # The name of your JDBC driver
-  # driverClass: com.mysql.cj.jdbc.Driver
+  # driverClass: org.mariadb.jdbc.Driver
   driverClass: ${TRELLIS_DB_DRIVER:-org.postgresql.Driver}
 
   # The database username
