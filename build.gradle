@@ -33,7 +33,7 @@ ext {
     commonsIoVersion = "2.6"
     commonsLangVersion = "3.10"
     commonsRdfVersion = "0.5.0"
-    dropwizardVersion = "2.0.8"
+    dropwizardVersion = "2.0.9"
     jacksonVersion = "2.10.1"
     jdbiVersion = "3.13.0"
     kafkaVersion = "2.5.0"
