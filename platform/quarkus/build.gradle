@@ -2,24 +2,6 @@ plugins {
     id 'io.quarkus'
 }
 
-repositories {
-    mavenLocal() {
-        content {
-            includeGroup "org.trellisldp.ext"
-        }
-    }
-    mavenCentral()
-    maven {
-        url "https://oss.sonatype.org/content/repositories/snapshots"
-    }
-}
-
-def installForQuarkus = [
-    "trellis-aws",
-    "trellis-cassandra",
-    "trellis-db"
-]
-
 dependencies {
     implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
     implementation platform("io.quarkus:quarkus-bom:$quarkusVersion")
@@ -55,8 +37,8 @@ dependencies {
     if (project.hasProperty("cassandra")) {
         // Cassandra dependencies
         implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
-        implementation "org.trellisldp.ext:trellis-cassandra:${project.version}"
         implementation "org.trellisldp:trellis-reactive"
+        implementation project(":trellis-cassandra")
     } else {
         // Database dependencies
         implementation "com.h2database:h2:$h2Version"
@@ -64,10 +46,10 @@ dependencies {
         implementation 'io.quarkus:quarkus-flyway'
         implementation 'io.quarkus:quarkus-jdbc-h2'
         implementation 'io.quarkus:quarkus-jdbc-postgresql'
-        implementation "org.trellisldp.ext:trellis-db:${project.version}"
+        implementation project(':trellis-db')
 
         if (project.hasProperty("cloud")) {
-            implementation "org.trellisldp.ext:trellis-aws:${project.version}"
+            implementation project(":trellis-aws")
         } else {
             implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
             implementation "org.trellisldp:trellis-file"
@@ -128,15 +110,4 @@ sonarqube {
 
 /* Quarkus-related settings */
 buildNative.enabled = false
-rootProject.childProjects.each { n, p ->
-    if (installForQuarkus.contains(p.name)) {
-        tasks.compileJava.dependsOn p.tasks.install
-    }
-}
-
-// This subproject is not part of the release and its dependencies should not
-// be considered during the release process.
-release {
-    ignoredSnapshotDependencies = installForQuarkus.collect { "org.trellisldp.ext:" + it }
-}
 
