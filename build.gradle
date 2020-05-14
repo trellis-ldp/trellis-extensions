@@ -47,7 +47,7 @@ ext {
     snakeyamlVersion = "1.26"
 
     // Databases
-    cassandraDriverVersion = "4.3.1"
+    cassandraDriverVersion = "4.6.1"
     mariadbVersion = "2.6.0"
     postgresVersion = "42.2.12"
 
