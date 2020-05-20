@@ -57,7 +57,7 @@ ext {
     commonsTextVersion = "1.8"
     guavaVersion = "29.0-jre"
     h2Version = "1.4.200"
-    jenaVersion = "3.14.0"
+    jenaVersion = "3.15.0"
     junitVersion = "5.6.2"
     logbackVersion = "1.2.3"
     mockitoVersion = "3.3.3"
