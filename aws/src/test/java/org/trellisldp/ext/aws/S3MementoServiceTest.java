@@ -64,7 +64,7 @@ import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
-public class S3MementoServiceTest {
+class S3MementoServiceTest {
 
     private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI root = rdf.createIRI(TRELLIS_DATA_PREFIX);
@@ -73,7 +73,7 @@ public class S3MementoServiceTest {
         .build().generate(length);
 
     @AfterAll
-    public static void tearDown() throws Exception {
+    static void tearDown() throws Exception {
         final AmazonS3 client = defaultClient();
         final String bucket = ConfigProvider.getConfig()
             .getValue(S3MementoService.CONFIG_AWS_MEMENTO_BUCKET, String.class);
@@ -82,7 +82,7 @@ public class S3MementoServiceTest {
     }
 
     @Test
-    public void testMementoRDFSource() {
+    void testMementoRDFSource() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "mementos/" + base + "/resource");
         final Resource res = mock(Resource.class);
         final Instant time = now();
@@ -144,7 +144,7 @@ public class S3MementoServiceTest {
     }
 
     @Test
-    public void testMementoNonRDFSource() {
+    void testMementoNonRDFSource() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "mementos/" + base + "/binary");
         final BinaryMetadata binary = BinaryMetadata.builder(rdf.createIRI("s3://bucket/binary")).mimeType("text/plain")
             .build();
@@ -193,7 +193,7 @@ public class S3MementoServiceTest {
     }
 
     @Test
-    public void testMementoIndirectContainer() {
+    void testMementoIndirectContainer() {
         final IRI identifier = rdf.createIRI(TRELLIS_DATA_PREFIX + "mementos/" + base + "/container");
         final IRI member = rdf.createIRI(TRELLIS_DATA_PREFIX + "mementos/" + base + "/resource");
         final Resource res = mock(Resource.class);
@@ -232,7 +232,7 @@ public class S3MementoServiceTest {
     }
 
     @Test
-    public void testMementoError() {
+    void testMementoError() {
         final Resource res = mock(Resource.class);
         when(res.getInteractionModel()).thenAnswer(inv -> {
             throw new IOException("Expected");
@@ -243,7 +243,7 @@ public class S3MementoServiceTest {
     }
 
     @Test
-    public void testTruncated() {
+    void testTruncated() {
         final AmazonS3 mockClient = mock(AmazonS3.class);
         final ListObjectsV2Result mockResult = mock(ListObjectsV2Result.class);
         final S3ObjectSummary obj1 = new S3ObjectSummary();
@@ -264,7 +264,7 @@ public class S3MementoServiceTest {
     }
 
     @Test
-    public void testResourceError() {
+    void testResourceError() {
         final AmazonS3 mockClient = mock(AmazonS3.class);
         final ObjectMetadata mockMetadata = mock(ObjectMetadata.class);
         final GetObjectRequest mockRequest = mock(GetObjectRequest.class);

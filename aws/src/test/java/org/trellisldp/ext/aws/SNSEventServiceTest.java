@@ -41,7 +41,7 @@ import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.LDP;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
-public class SNSEventServiceTest {
+class SNSEventServiceTest {
 
     private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI identifier = rdf.createIRI("trellis:event/123456");
@@ -54,7 +54,7 @@ public class SNSEventServiceTest {
     private Event mockEvent;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         initMocks(this);
         when(mockEvent.getIdentifier()).thenReturn(identifier);
         when(mockEvent.getAgents()).thenReturn(singleton(agent));
@@ -67,14 +67,14 @@ public class SNSEventServiceTest {
 
     @Test
     @EnabledIfSystemProperty(named = "trellis.aws.topic", matches = "arn:aws:sns:.*")
-    public void testEvent() {
+    void testEvent() {
         final EventService svc = new SNSEventService(serializer);
         svc.emit(mockEvent);
         verify(mockEvent).getIdentifier();
     }
 
     @Test
-    public void testEventError() {
+    void testEventError() {
         final EventService svc = new SNSEventService(serializer, defaultClient(),
                 "arn:aws:sns:us-east-1:12345678:NonExistent");
         svc.emit(mockEvent);
