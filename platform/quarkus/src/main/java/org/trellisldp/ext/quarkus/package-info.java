@@ -16,4 +16,4 @@
 /**
  * A MicroProfile-based Trellis application.
  */
-package org.trellisldp.ext.webapp;
+package org.trellisldp.ext.quarkus;
