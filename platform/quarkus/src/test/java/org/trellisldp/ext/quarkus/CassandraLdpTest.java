@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trellisldp.ext.webapp;
+package org.trellisldp.ext.quarkus;
 
 import static javax.ws.rs.client.ClientBuilder.newBuilder;
 import static org.junit.jupiter.api.condition.OS.WINDOWS;
