@@ -16,16 +16,12 @@ plugins {
 rootProject.name = 'trellis-extensions'
 include ':trellis-aws'
 include ':trellis-cassandra'
-include ':trellis-db'
-include ':trellis-db-app'
 include ':trellis-ext-bom'
 include ':trellis-quarkus'
 
 project(':trellis-aws').projectDir = new File(rootDir, "aws")
 project(':trellis-cassandra').projectDir = new File(rootDir, "cassandra")
-project(':trellis-db').projectDir = new File(rootDir, "db")
 
-project(':trellis-db-app').projectDir = new File(rootDir, "platform/dropwizard")
 project(':trellis-quarkus').projectDir = new File(rootDir, "platform/quarkus")
 
 project(':trellis-ext-bom').projectDir = new File(rootDir, "platform/bom")
