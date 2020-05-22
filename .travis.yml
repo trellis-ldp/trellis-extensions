@@ -12,8 +12,6 @@ stages:
   - deploy
 
 services:
-  - postgresql
-  - mysql
   - docker
 
 branches:
@@ -27,8 +25,6 @@ branches:
     - /^branch-.+/
 
 before_script:
-  - psql -c 'create database trellis;' -U postgres
-  - mysql -e 'CREATE DATABASE trellis;'
   - docker run -p 9042:9042 -p 9160:9160 --name cassandra -d -v "$(pwd)"/buildtools/src/main/resources/cassandra:/init -v "$(pwd)"/cassandra/src/main/resources:/app cassandra:latest
   - docker exec -it cassandra sh -c "/init/initialize.sh /app"
 
@@ -46,10 +42,6 @@ jobs:
     - name: "Java 8"
       stage: test
       jdk: openjdk8
-      env:
-        - QUARKUS_DATASOURCE_USERNAME=postgres
-        - QUARKUS_DATASOURCE_PASSWORD=postgres
-        - QUARKUS_EXTERNAL_PGSQL=true
       script: travis_retry ./gradlew check -x pmdMain install jacocoRootReport --continue --scan
       after_success: ./gradlew coveralls sonarqube
 
@@ -63,37 +55,13 @@ jobs:
       script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew publish ; fi
 
     # deploy to Docker hub
-    - name: "Publish to Docker hub (trellis-database)"
-      stage: deploy
-      jdk: openjdk8
-      env: JOB=docker
-      # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
-      install: ./gradlew assemble
-      before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      script:
-          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database"
-          - ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-ext-db"
-
-    # deploy to Docker hub
-    - name: "Publish to Docker hub (trellis-database-aws)"
-      stage: deploy
-      jdk: openjdk8
-      env: JOB=docker
-      # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
-      install: ./gradlew assemble -Pcloud
-      before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-database-aws"
-
-    # deploy to Docker hub
     - name: "Publish to Docker hub (trellis-cassandra)"
       stage: deploy
       jdk: openjdk8
       env: JOB=docker
       # Note: adjust this for maintenance branches
       if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
-      install: ./gradlew assemble -Pcassandra
+      install: ./gradlew assemble
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-cassandra"
 

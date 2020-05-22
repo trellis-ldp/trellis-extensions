@@ -4,8 +4,6 @@ dependencies {
 
     implementation project(':trellis-aws')
     implementation project(':trellis-cassandra')
-    implementation project(':trellis-db')
-    implementation project(':trellis-db-app')
 }
 
 publishing {

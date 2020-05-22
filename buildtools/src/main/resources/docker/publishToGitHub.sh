@@ -8,18 +8,8 @@ VERSION=$(./gradlew -q getVersion)
 if [[ $VERSION != *SNAPSHOT* ]]; then
     cd platform/quarkus
 
-    # Database
-    ../../gradlew clean assemble
-    docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE_BASE/trellis-database:$VERSION" .
-    docker push "$IMAGE_BASE/trellis-database:$VERSION"
-
-    # Cloud
-    ../../gradlew clean assemble -Pcloud
-    docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE_BASE/trellis-database-aws:$VERSION" .
-    docker push "$IMAGE_BASE/trellis-database-aws:$VERSION"
-
     # Cassandra
-    ../../gradlew clean assemble -Pcassandra
+    ../../gradlew clean assemble
     docker build -f src/main/docker/Dockerfile.jvm -t "$IMAGE_BASE/trellis-cassandra:$VERSION" .
     docker push "$IMAGE_BASE/trellis-cassandra:$VERSION"
 fi

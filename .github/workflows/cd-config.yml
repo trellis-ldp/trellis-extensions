@@ -14,17 +14,6 @@ jobs:
 
     name: Java ${{ matrix.java }} environment
 
-    services:
-      postgres:
-        image: postgres:10.8
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: trellis
-        ports:
-        - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
     - uses: actions/checkout@v2.1.0
     - name: Set up JDK ${{ matrix.java }}
@@ -34,10 +23,6 @@ jobs:
 
     - name: Build with Gradle
       run: ./gradlew check assemble javadoc -x pmdMain
-      env:
-        QUARKUS_EXTERNAL_PGSQL: true
-        QUARKUS_DATASOURCE_USERNAME: postgres
-        QUARKUS_DATASOURCE_PASSWORD: postgres
 
   docker:
     needs: [build]
