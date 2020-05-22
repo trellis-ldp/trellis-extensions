@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
+import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.RuntimeTrellisException;
 
 @EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
@@ -86,8 +87,8 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
         }
         connection.binaryService.purgeContent(id).toCompletableFuture().join();
 
-        final Throwable cause = assertThrows(NullPointerException.class, () ->
-                unwrapAsyncException(connection.binaryService.get(id)));
+        final CompletionStage<Binary> future = connection.binaryService.get(id);
+        final Throwable cause = assertThrows(NullPointerException.class, () -> unwrapAsyncException(future));
         assertTrue(cause.getMessage().contains(id.getIRIString()));
     }
 
@@ -136,8 +137,9 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
         try (FileInputStream testData = new FileInputStream("src/test/resources/test.jpg")) {
             final Map<String, List<String>> hints = singletonMap(CASSANDRA_CHUNK_HEADER_NAME,
                             Arrays.asList(chunkSize, chunkSize + 1000));
-            final Throwable ex = assertThrows(RuntimeTrellisException.class, () ->
-                unwrapAsyncException(connection.binaryService.setContent(builder(id).hints(hints).build(), testData)));
+            final BinaryMetadata metadata = builder(id).hints(hints).build();
+            final Throwable ex = assertThrows(RuntimeTrellisException.class, () -> connection.binaryService
+                .setContent(metadata, testData));
             assertTrue(ex.getMessage().contains(CASSANDRA_CHUNK_HEADER_NAME));
         }
     }

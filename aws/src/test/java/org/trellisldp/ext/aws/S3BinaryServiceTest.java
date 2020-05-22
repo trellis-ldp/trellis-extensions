@@ -40,7 +40,7 @@ import org.trellisldp.api.BinaryService;
 import org.trellisldp.api.RDFFactory;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
-public class S3BinaryServiceTest {
+class S3BinaryServiceTest {
 
     private static final RDF rdf = RDFFactory.getInstance();
     private static final int length = 10;
@@ -48,7 +48,7 @@ public class S3BinaryServiceTest {
         .build().generate(length);
 
     @AfterAll
-    public static void tearDown() throws Exception {
+    static void tearDown() throws Exception {
         final AmazonS3 client = defaultClient();
         final String bucket = ConfigProvider.getConfig()
             .getValue(S3BinaryService.CONFIG_AWS_BINARY_BUCKET, String.class);
@@ -57,7 +57,7 @@ public class S3BinaryServiceTest {
     }
 
     @Test
-    public void testBinary() {
+    void testBinary() {
         final IRI identifier = rdf.createIRI("s3://binaries/" + base + "/resource");
         final BinaryService svc = new S3BinaryService();
         final InputStream input = getClass().getResourceAsStream("/file.txt");
@@ -85,13 +85,13 @@ public class S3BinaryServiceTest {
     }
 
     @Test
-    public void testIdentifier() {
+    void testIdentifier() {
         final BinaryService svc = new S3BinaryService();
         assertTrue(svc.generateIdentifier().startsWith("s3://"));
     }
 
     @Test
-    public void testInvalidIdentifier() {
+    void testInvalidIdentifier() {
         final IRI identifier = rdf.createIRI("file://binaries/" + base + "/resource");
         final BinaryService svc = new S3BinaryService();
         assertDoesNotThrow(svc.get(identifier).handle((v, err) -> {
@@ -101,7 +101,7 @@ public class S3BinaryServiceTest {
     }
 
     @Test
-    public void testErrors() {
+    void testErrors() {
         final InputStream throwingMockInputStream = mock(InputStream.class, inv -> {
                 throw new IOException("Expected error");
         });
