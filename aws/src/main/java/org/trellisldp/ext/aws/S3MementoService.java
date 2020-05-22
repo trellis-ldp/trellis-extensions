@@ -25,6 +25,7 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.of;
+import static org.apache.jena.commonsrdf.JenaCommonsRDF.toJena;
 import static org.apache.jena.riot.Lang.NQUADS;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -55,14 +56,15 @@ import java.util.stream.Stream;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
 
+import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
-import org.apache.commons.rdf.jena.JenaDataset;
-import org.apache.commons.rdf.jena.JenaRDF;
+import org.apache.commons.rdf.api.RDF;
 import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.trellisldp.api.MementoService;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.vocabulary.LDP;
@@ -79,7 +81,7 @@ public class S3MementoService implements MementoService {
     public static final String CONFIG_AWS_MEMENTO_PATH_PREFIX = "trellis.aws.memento-path-prefix";
 
     private static final Set<IRI> IGNORE = buildIgnoreGraphs();
-    private static final JenaRDF rdf = new JenaRDF();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     private final AmazonS3 client;
     private final String bucketName;
@@ -134,7 +136,7 @@ public class S3MementoService implements MementoService {
                 resource.getInsertedContentRelation().map(IRI::getIRIString)
                     .ifPresent(m -> metadata.put(S3Resource.INSERTED_CONTENT_RELATION, m));
 
-                try (final JenaDataset dataset = rdf.createDataset();
+                try (final Dataset dataset = rdf.createDataset();
                         final OutputStream output = Files.newOutputStream(file.toPath());
                         final Stream<? extends Quad> quads = resource.stream()) {
                     quads.forEachOrdered(dataset::add);
@@ -142,7 +144,7 @@ public class S3MementoService implements MementoService {
                     metadata.put(S3Resource.METADATA_GRAPHS, dataset.getGraphNames().filter(IRI.class::isInstance)
                             .map(IRI.class::cast).filter(graph -> !IGNORE.contains(graph)).map(IRI::getIRIString)
                             .collect(joining(",")));
-                    RDFDataMgr.write(output, dataset.asJenaDatasetGraph(), NQUADS);
+                    RDFDataMgr.write(output, toJena(dataset), NQUADS);
                 }
                 final ObjectMetadata md = new ObjectMetadata();
                 md.setContentType("application/n-quads");

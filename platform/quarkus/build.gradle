@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    implementation enforcedPlatform("org.trellisldp:trellis-bom:$trellisVersion")
-    implementation platform("io.quarkus:quarkus-bom:$quarkusVersion")
+    implementation platform("org.trellisldp:trellis-bom:$trellisVersion")
     implementation platform("io.netty:netty-bom:$nettyVersion")
+    implementation platform("io.quarkus:quarkus-bom:$quarkusVersion")
 
     implementation 'io.quarkus:quarkus-jsonb'
     implementation 'io.quarkus:quarkus-resteasy'
@@ -20,16 +20,16 @@ dependencies {
     implementation "org.trellisldp:trellis-cdi"
 
     // Trellis authN/authZ
-    implementation "org.trellisldp:trellis-auth-jwt"
+    implementation "org.trellisldp:trellis-jwt"
     implementation "org.trellisldp:trellis-webac"
 
     // Trellis components
     implementation "org.trellisldp:trellis-audit"
     implementation "org.trellisldp:trellis-cache"
-    implementation "org.trellisldp:trellis-constraint-rules"
+    implementation "org.trellisldp:trellis-constraint"
     implementation "org.trellisldp:trellis-event-jsonb"
-    implementation "org.trellisldp:trellis-io-jena"
-    implementation "org.trellisldp:trellis-namespaces"
+    implementation "org.trellisldp:trellis-jena"
+    implementation "org.trellisldp:trellis-namespace"
     implementation "org.trellisldp:trellis-rdfa"
     implementation "org.trellisldp:trellis-vocabulary"
 
@@ -61,11 +61,7 @@ dependencies {
     implementation "com.github.spullara.mustache.java:compiler:$mustacheVersion"
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "org.apache.jena:jena-arq:$jenaVersion"
-    implementation("org.apache.commons:commons-rdf-jena:$commonsRdfVersion") {
-        exclude group: "org.apache.commons", module: "commons-rdf-simple"
-        exclude group: 'org.apache.jena', module: 'jena-osgi'
-        exclude group: 'org.apache.servicemix.bundles', module: 'org.apache.servicemix.bundles.xerces'
-    }
+    implementation "org.apache.jena:jena-commonsrdf:$jenaVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     runtimeOnly "jakarta.activation:jakarta.activation-api:$activationApiVersion"

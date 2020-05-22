@@ -20,9 +20,11 @@ import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.jena.commonsrdf.JenaCommonsRDF.fromJena;
 import static org.apache.jena.query.DatasetFactory.create;
 import static org.apache.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.jena.riot.Lang.NQUADS;
+import static org.apache.jena.vocabulary.RDF.type;
 import static org.eclipse.microprofile.config.ConfigProvider.getConfig;
 import static org.trellisldp.api.TrellisUtils.TRELLIS_DATA_PREFIX;
 
@@ -40,12 +42,12 @@ import java.util.stream.Stream;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Quad;
-import org.apache.commons.rdf.jena.JenaRDF;
+import org.apache.commons.rdf.api.RDF;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.vocabulary.RDF;
 import org.trellisldp.api.BinaryMetadata;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.RuntimeTrellisException;
 import org.trellisldp.vocabulary.LDP;
@@ -69,7 +71,7 @@ public class S3Resource implements Resource {
     public static final String BINARY_TYPE = "trellis.binaryMimeType";
     public static final String METADATA_GRAPHS = "trellis.metadataGraphs";
 
-    private static final JenaRDF rdf = new JenaRDF();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     private final AmazonS3 client;
     private final ObjectMetadata metadata;
@@ -166,9 +168,9 @@ public class S3Resource implements Resource {
         if (getConfig().getOptionalValue(CONFIG_AWS_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE)) {
             final Model model = createDefaultModel();
             model.createResource(getIdentifier().getIRIString())
-                .addProperty(RDF.type, model.createResource(getInteractionModel().getIRIString()));
+                .addProperty(type, model.createResource(getInteractionModel().getIRIString()));
             dataset.addNamedModel(Trellis.PreferServerManaged.getIRIString(), model);
         }
-        return rdf.asDataset(dataset).stream().map(Quad.class::cast).onClose(dataset::close);
+        return fromJena(dataset.asDatasetGraph()).stream().map(Quad.class::cast).onClose(dataset::close);
     }
 }

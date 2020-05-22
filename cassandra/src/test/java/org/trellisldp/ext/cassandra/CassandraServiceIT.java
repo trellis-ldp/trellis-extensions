@@ -22,12 +22,12 @@ import java.time.Duration;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
-import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.trellisldp.api.RDFFactory;
 
 class CassandraServiceIT {
 
-    protected RDF rdfFactory = new SimpleRDF();
+    protected RDF rdfFactory = RDFFactory.getInstance();
 
     @RegisterExtension
     protected static CassandraConnection connection = new CassandraConnection();

@@ -24,12 +24,12 @@ import java.nio.ByteBuffer;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
-import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.jupiter.api.Test;
+import org.trellisldp.api.RDFFactory;
 
 class IRICodecTest {
 
-    RDF rdf = new SimpleRDF();
+    RDF rdf = RDFFactory.getInstance();
 
     @Test
     void badParse() {

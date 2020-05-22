@@ -48,7 +48,7 @@ import org.trellisldp.file.FileMementoService;
 import org.trellisldp.http.core.DefaultTimemapGenerator;
 import org.trellisldp.http.core.ServiceBundler;
 import org.trellisldp.http.core.TimemapGenerator;
-import org.trellisldp.io.JenaIOService;
+import org.trellisldp.jena.JenaIOService;
 import org.trellisldp.rdfa.DefaultRdfaWriterService;
 
 /**

@@ -21,8 +21,8 @@ import static org.trellisldp.vocabulary.RDF.langString;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDF;
-import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.jupiter.api.Test;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.XSD;
 
@@ -31,7 +31,7 @@ import org.trellisldp.vocabulary.XSD;
  */
 class DBUtilsTest {
 
-    private static final RDF rdf = new SimpleRDF();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     @Test
     void testGetObjectValue() {
