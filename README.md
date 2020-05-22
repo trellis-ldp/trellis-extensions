@@ -6,7 +6,7 @@ The `trellis-extensions` projects implement additional persistence layers and se
 [![Build Status](https://travis-ci.com/trellis-ldp/trellis-extensions.svg?branch=master)](https://travis-ci.com/trellis-ldp/trellis-extensions)
 [![Coverage Status](https://coveralls.io/repos/github/trellis-ldp/trellis-extensions/badge.svg?branch=master)](https://coveralls.io/github/trellis-ldp/trellis-extensions?branch=master)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/trellis-ldp/trellis-extensions.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/trellis-ldp/trellis-extensions/alerts/)
-![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-db.svg)
+![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-aws.svg)
 
 ## Cloud-based storage
 
