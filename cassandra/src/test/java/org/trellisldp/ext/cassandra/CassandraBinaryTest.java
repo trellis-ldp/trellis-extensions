@@ -29,11 +29,11 @@ import java.io.InputStream;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
-import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.ext.cassandra.query.binary.Read;
 import org.trellisldp.ext.cassandra.query.binary.ReadRange;
 
@@ -41,7 +41,7 @@ import org.trellisldp.ext.cassandra.query.binary.ReadRange;
 @SuppressWarnings("resource")
 class CassandraBinaryTest {
 
-    private final RDF factory = new SimpleRDF();
+    private final RDF factory = RDFFactory.getInstance();
 
     private int testChunkSize = 10;
 

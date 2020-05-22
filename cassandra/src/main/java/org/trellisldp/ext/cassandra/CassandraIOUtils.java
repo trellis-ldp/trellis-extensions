@@ -22,16 +22,18 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import org.apache.commons.rdf.api.Dataset;
-import org.apache.commons.rdf.jena.JenaRDF;
+import org.apache.commons.rdf.api.RDF;
+import org.apache.jena.commonsrdf.JenaCommonsRDF;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
+import org.trellisldp.api.RDFFactory;
 import org.trellisldp.vocabulary.Trellis;
 
 
 public final class CassandraIOUtils {
 
-    private static final JenaRDF rdf = new JenaRDF();
+    private static final RDF rdf = RDFFactory.getInstance();
 
     /**
      * Serialize a dataset into an nquads string.
@@ -61,7 +63,7 @@ public final class CassandraIOUtils {
         try (final ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
             RDFDataMgr.writeQuads(bytes, dataset.stream().filter(quad ->
                         !quad.getGraphName().filter(Trellis.PreferServerManaged::equals).isPresent())
-                    .map(rdf::asJenaQuad).iterator());
+                    .map(JenaCommonsRDF::toJena).iterator());
             return bytes.toString("UTF-8");
         } catch (final IOException e) {
             throw new UncheckedIOException("Dataset could not be serialized!", e);
@@ -71,7 +73,7 @@ public final class CassandraIOUtils {
     static Dataset fromNQuads(final String data) {
         final org.apache.jena.query.Dataset dataset = DatasetFactory.create();
         RDFParser.fromString(data).lang(NQUADS).parse(dataset);
-        return rdf.asDataset(dataset);
+        return JenaCommonsRDF.fromJena(dataset.asDatasetGraph());
     }
 
     private CassandraIOUtils() {
