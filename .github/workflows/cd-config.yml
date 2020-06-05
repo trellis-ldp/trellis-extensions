@@ -6,8 +6,16 @@ on:
       - trellis-extensions-[0-9]+.[0-9]+.[0-9]+
 
 jobs:
+  validation:
+    name: Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: gradle/wrapper-validation-action@v1.0.3
+
   build:
     runs-on: ubuntu-latest
+    needs: [validation]
     strategy:
       matrix:
         java: [8, 11]
