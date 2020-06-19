@@ -40,7 +40,7 @@ ext {
     liquibaseVersion = "3.9.0"
     mustacheVersion = "0.9.6"
     nettyVersion = "4.1.50.Final"
-    quarkusVersion = "1.5.1.Final"
+    quarkusVersion = "1.5.2.Final"
     slf4jVersion = "1.7.30"
     smallryeConfigVersion = "1.8.1"
     smallryeHealthVersion = "2.2.1"
