@@ -27,17 +27,14 @@ ext {
     microprofileHealthVersion = "2.2"
 
     // Dependencies
-    activeMqVersion = "5.15.12"
-    awsVersion = "1.11.763"
+    awsVersion = "1.11.813"
     commonsCompressVersion = "1.20"
     commonsIoVersion = "2.7"
     commonsLangVersion = "3.10"
     commonsRdfVersion = "0.5.0"
-    dropwizardVersion = "2.0.9"
+    guavaVersion = "29.0-jre"
     jacksonVersion = "2.10.1"
-    jdbiVersion = "3.13.0"
-    kafkaVersion = "2.5.0"
-    liquibaseVersion = "3.9.0"
+    jenaVersion = "3.15.0"
     mustacheVersion = "0.9.6"
     nettyVersion = "4.1.50.Final"
     quarkusVersion = "1.5.2.Final"
@@ -48,26 +45,20 @@ ext {
 
     // Databases
     cassandraDriverVersion = "4.7.2"
-    mariadbVersion = "2.6.0"
-    postgresVersion = "42.2.12"
 
     // Testing
     apiguardianVersion = "1.1.0"
     awaitilityVersion = "4.0.3"
     commonsTextVersion = "1.8"
-    guavaVersion = "29.0-jre"
-    h2Version = "1.4.200"
-    jenaVersion = "3.15.0"
     junitVersion = "5.6.2"
     logbackVersion = "1.2.3"
     mockitoVersion = "3.3.3"
-    otjPgVersion = "0.13.3"
     weldVersion = "2.0.1.Final"
 
     // Tools
-    checkstyleToolVersion = "8.32"
+    checkstyleToolVersion = "8.34"
     jacocoToolVersion = "0.8.5"
-    pmdToolVersion = "6.22.0"
+    pmdToolVersion = "6.24.0"
 
     jacocoSkipProjects = [
         'trellis-ext-bom'
