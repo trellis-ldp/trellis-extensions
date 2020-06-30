@@ -66,7 +66,7 @@ import org.slf4j.Logger;
 import org.trellisldp.api.MementoService;
 import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
@@ -154,7 +154,7 @@ public class S3MementoService implements MementoService {
                 client.putObject(req.withMetadata(md));
                 Files.delete(file.toPath());
             } catch (final Exception ex) {
-                throw new RuntimeTrellisException("Error deleting locally buffered file", ex);
+                throw new TrellisRuntimeException("Error deleting locally buffered file", ex);
             }
         });
     }

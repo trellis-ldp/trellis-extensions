@@ -15,12 +15,12 @@
  */
 package org.trellisldp.ext.cassandra;
 
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 
 /**
  * Thrown to indicate that application initialization was interrupted.
  */
-public class InterruptedStartupException extends RuntimeTrellisException {
+public class InterruptedStartupException extends TrellisRuntimeException {
 
     private static final long serialVersionUID = 1L;
 

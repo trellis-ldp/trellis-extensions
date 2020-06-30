@@ -44,7 +44,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.Logger;
 import org.trellisldp.api.Binary;
 import org.trellisldp.api.BinaryMetadata;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 
 @EnabledIfSystemProperty(named = "trellis.test.cassandra", matches = "true")
 class CassandraBinaryServiceIT extends CassandraServiceIT {
@@ -138,7 +138,7 @@ class CassandraBinaryServiceIT extends CassandraServiceIT {
             final Map<String, List<String>> hints = singletonMap(CASSANDRA_CHUNK_HEADER_NAME,
                             Arrays.asList(chunkSize, chunkSize + 1000));
             final BinaryMetadata metadata = builder(id).hints(hints).build();
-            final Throwable ex = assertThrows(RuntimeTrellisException.class, () -> connection.binaryService
+            final Throwable ex = assertThrows(TrellisRuntimeException.class, () -> connection.binaryService
                 .setContent(metadata, testData));
             assertTrue(ex.getMessage().contains(CASSANDRA_CHUNK_HEADER_NAME));
         }

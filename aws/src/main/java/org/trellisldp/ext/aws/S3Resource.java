@@ -49,7 +49,7 @@ import org.apache.jena.riot.RDFParser;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 import org.trellisldp.vocabulary.LDP;
 import org.trellisldp.vocabulary.Trellis;
 
@@ -163,7 +163,7 @@ public class S3Resource implements Resource {
             RDFParser.source(input).lang(NQUADS).parse(dataset);
         } catch (final IOException ex) {
             dataset.close();
-            throw new RuntimeTrellisException("Error parsing input from S3", ex);
+            throw new TrellisRuntimeException("Error parsing input from S3", ex);
         }
         if (getConfig().getOptionalValue(CONFIG_AWS_LDP_TYPE, Boolean.class).orElse(Boolean.TRUE)) {
             final Model model = createDefaultModel();

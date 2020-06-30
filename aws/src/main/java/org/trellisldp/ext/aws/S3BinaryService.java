@@ -47,7 +47,7 @@ import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
 import org.trellisldp.api.DefaultIdentifierService;
 import org.trellisldp.api.IdentifierService;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 
 /**
  * An S3-based binary service.
@@ -141,6 +141,6 @@ public class S3BinaryService implements BinaryService {
         if (id.startsWith(PREFIX)) {
             return pathPrefix + id.substring(PREFIX.length());
         }
-        throw new RuntimeTrellisException("Invalid identifier: " + identifier);
+        throw new TrellisRuntimeException("Invalid identifier: " + identifier);
     }
 }
