@@ -122,7 +122,7 @@ public class CassandraBinaryService implements BinaryService {
             final List<String> headers = meta.getHints().get(CASSANDRA_CHUNK_HEADER_NAME);
             if (headers == null) chunkSize = defaultChunkLength;
             else if (headers.size() > 1)
-                throw new RuntimeTrellisException("Too many " + CASSANDRA_CHUNK_HEADER_NAME + " headers!");
+                throw new TrellisRuntimeException("Too many " + CASSANDRA_CHUNK_HEADER_NAME + " headers!");
             else chunkSize = Integer.parseInt(headers.get(0));
         }
         return setChunk(meta, stream, new AtomicInteger(), chunkSize)

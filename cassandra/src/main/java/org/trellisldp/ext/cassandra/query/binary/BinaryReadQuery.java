@@ -28,7 +28,7 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 import org.trellisldp.ext.cassandra.LazyChunkInputStream;
 
 /**
@@ -66,7 +66,7 @@ public abstract class BinaryReadQuery extends BinaryQuery {
                                         .set("identifier", id, IRI.class))
                     .<InputStream>map(s -> new LazyChunkInputStream(session, s))
                     .reduce(SequenceInputStream::new) // chunks now in one large stream
-                    .orElseThrow(() -> new RuntimeTrellisException("Binary not found under IRI: " + id.getIRIString()));
+                    .orElseThrow(() -> new TrellisRuntimeException("Binary not found under IRI: " + id.getIRIString()));
     }
     //@formatter:on
 

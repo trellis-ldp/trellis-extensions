@@ -57,7 +57,7 @@ import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.MementoService;
 import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 import org.trellisldp.vocabulary.ACL;
 import org.trellisldp.vocabulary.DC;
 import org.trellisldp.vocabulary.LDP;
@@ -276,6 +276,6 @@ class S3MementoServiceTest {
         });
 
         final Resource testResource = new S3Resource(mockMetadata, mockClient, mockRequest, "");
-        assertThrows(RuntimeTrellisException.class, testResource::stream);
+        assertThrows(TrellisRuntimeException.class, testResource::stream);
     }
 }

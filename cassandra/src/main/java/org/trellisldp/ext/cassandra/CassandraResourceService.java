@@ -51,7 +51,7 @@ import org.trellisldp.api.Metadata;
 import org.trellisldp.api.RDFFactory;
 import org.trellisldp.api.Resource;
 import org.trellisldp.api.ResourceService;
-import org.trellisldp.api.RuntimeTrellisException;
+import org.trellisldp.api.TrellisRuntimeException;
 import org.trellisldp.ext.cassandra.query.rdf.BasicContainment;
 import org.trellisldp.ext.cassandra.query.rdf.Delete;
 import org.trellisldp.ext.cassandra.query.rdf.Get;
@@ -128,7 +128,7 @@ class CassandraResourceService implements ResourceService, CassandraBuildingServ
             Thread.currentThread().interrupt();
             throw new InterruptedStartupException("Interrupted while building repository root!", e);
         } catch (Exception e) {
-            throw new RuntimeTrellisException(e);
+            throw new TrellisRuntimeException(e);
         }
     }
 
