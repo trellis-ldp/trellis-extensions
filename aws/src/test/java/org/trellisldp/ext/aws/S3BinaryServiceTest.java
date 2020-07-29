@@ -38,6 +38,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.trellisldp.api.BinaryMetadata;
 import org.trellisldp.api.BinaryService;
 import org.trellisldp.api.RDFFactory;
+import org.trellisldp.api.TrellisUtils;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 class S3BinaryServiceTest {
@@ -86,8 +87,9 @@ class S3BinaryServiceTest {
 
     @Test
     void testIdentifier() {
+        final IRI identifier = TrellisUtils.buildTrellisIdentifier("/resource");
         final BinaryService svc = new S3BinaryService();
-        assertTrue(svc.generateIdentifier().startsWith("s3://"));
+        assertTrue(svc.generateIdentifier(identifier).startsWith("s3://"));
     }
 
     @Test
@@ -106,7 +108,7 @@ class S3BinaryServiceTest {
                 throw new IOException("Expected error");
         });
         final BinaryService svc = new S3BinaryService();
-        final IRI identifier = rdf.createIRI(svc.generateIdentifier());
+        final IRI identifier = rdf.createIRI(svc.generateIdentifier(TrellisUtils.buildTrellisIdentifier("/resource")));
         assertThrows(CompletionException.class,
                 svc.setContent(BinaryMetadata.builder(identifier).build(),
                     throwingMockInputStream).toCompletableFuture()::join);
