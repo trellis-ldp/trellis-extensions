@@ -31,6 +31,7 @@ dependencies {
     testImplementation "org.apache.commons:commons-text:$commonsTextVersion"
     testImplementation "io.smallrye.config:smallrye-config:$smallryeConfigVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
 
     testImplementation "org.trellisldp:trellis-event-jackson"
     testImplementation "org.trellisldp:trellis-constraint"

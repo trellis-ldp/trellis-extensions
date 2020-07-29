@@ -22,16 +22,16 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Instant;
 
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.trellisldp.api.Event;
 import org.trellisldp.api.EventSerializationService;
 import org.trellisldp.api.EventService;
@@ -41,6 +41,7 @@ import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.LDP;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
+@ExtendWith(MockitoExtension.class)
 class SNSEventServiceTest {
 
     private static final RDF rdf = RDFFactory.getInstance();
@@ -53,9 +54,9 @@ class SNSEventServiceTest {
     @Mock
     private Event mockEvent;
 
-    @BeforeEach
-    void setUp() {
-        initMocks(this);
+    @Test
+    @EnabledIfSystemProperty(named = "trellis.aws.topic", matches = "arn:aws:sns:.*")
+    void testEvent() {
         when(mockEvent.getIdentifier()).thenReturn(identifier);
         when(mockEvent.getAgents()).thenReturn(singleton(agent));
         when(mockEvent.getObject()).thenReturn(of(object));
@@ -63,11 +64,7 @@ class SNSEventServiceTest {
         when(mockEvent.getObjectTypes()).thenReturn(singleton(LDP.RDFSource));
         when(mockEvent.getCreated()).thenReturn(time);
         when(mockEvent.getInbox()).thenReturn(empty());
-    }
 
-    @Test
-    @EnabledIfSystemProperty(named = "trellis.aws.topic", matches = "arn:aws:sns:.*")
-    void testEvent() {
         final EventService svc = new SNSEventService(serializer);
         svc.emit(mockEvent);
         verify(mockEvent).getIdentifier();
@@ -75,6 +72,14 @@ class SNSEventServiceTest {
 
     @Test
     void testEventError() {
+        when(mockEvent.getIdentifier()).thenReturn(identifier);
+        when(mockEvent.getAgents()).thenReturn(singleton(agent));
+        when(mockEvent.getObject()).thenReturn(of(object));
+        when(mockEvent.getTypes()).thenReturn(singleton(AS.Create));
+        when(mockEvent.getObjectTypes()).thenReturn(singleton(LDP.RDFSource));
+        when(mockEvent.getCreated()).thenReturn(time);
+        when(mockEvent.getInbox()).thenReturn(empty());
+
         final EventService svc = new SNSEventService(serializer, defaultClient(),
                 "arn:aws:sns:us-east-1:12345678:NonExistent");
         svc.emit(mockEvent);
