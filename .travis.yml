@@ -16,7 +16,7 @@ services:
 
 branches:
   only:
-    - master
+    - main
     # release tags
     - /^trellis-extensions-\d+\.\d+\.\d+$/
     # maintenance branches
@@ -50,7 +50,7 @@ jobs:
       stage: deploy
       jdk: openjdk8
       env: JOB=sonatype
-      if: branch = master AND type = push
+      if: branch = main AND type = push
       # Only automate the publication of SNAPSHOTS
       script: if [[ $(./gradlew -q getVersion) == *SNAPSHOT* ]]; then ./gradlew publish ; fi
 
@@ -60,7 +60,7 @@ jobs:
       jdk: openjdk8
       env: JOB=docker
       # Note: adjust this for maintenance branches
-      if: (branch = master OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
+      if: (branch = main OR branch =~ /^trellis-extensions-\d+\.\d+\.\d+$/) AND type = push
       install: ./gradlew assemble
       before_script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       script: ./buildtools/src/main/resources/docker/publishToDockerHub.sh "trellisldp/trellis-cassandra"
