@@ -115,7 +115,7 @@ allprojects { subproj ->
         tagTemplate = '$name-$version'
         git {
             /* Note: for maintenance branches, set this value to the appropriate branch name. */
-            requireBranch = 'master'
+            requireBranch = 'main'
             signTag = true
         }
     }
