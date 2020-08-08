@@ -80,6 +80,12 @@ jobs:
         TEST_CASSANDRA: true
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+        AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
+        AWS_TEST_BUCKET: ${{ secrets.AWS_TEST_BUCKET }}
+        AWS_TEST_TOPIC: ${{ secrets.AWS_TEST_TOPIC }}
 
   security:
     needs: [validation]
