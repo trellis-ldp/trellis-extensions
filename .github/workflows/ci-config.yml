@@ -75,12 +75,11 @@ jobs:
     - name: Build with Gradle
       run: |
           docker exec cassandra sh -c "/workspace/trellis-extensions/trellis-extensions/buildtools/src/main/resources/cassandra/initialize.sh /workspace/trellis-extensions/trellis-extensions/cassandra/src/main/resources"
-          ./gradlew check assemble -x pmdMain jacocoRootReport coveralls sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=trellis-ldp
+          ./gradlew check assemble -x pmdMain jacocoRootReport sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=trellis-ldp
       env:
         TEST_CASSANDRA: true
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
   security:
     needs: [validation]
