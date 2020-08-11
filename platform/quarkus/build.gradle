@@ -59,6 +59,7 @@ test {
     systemProperty 'com.arjuna.ats.arjuna.objectstore.objectStoreDir', "$buildDir/data/ObjectStore"
     systemProperty 'trellis.http.weak-etag', 'true'
     systemProperty "trellis.test.cassandra", project.findProperty("trellis.test.cassandra") ?: System.getenv("TEST_CASSANDRA")
+    systemProperty "mp.jwt.verify.publickey.location", "https://www.trellisldp.org/tests/jwks.json"
 }
 
 sonarqube {
