@@ -5,7 +5,6 @@ pluginManagement {
     }
     plugins {
         id 'biz.aQute.bnd.builder' version "4.1.0"
-        id 'io.quarkus' version "1.7.0.Final"
     }
 }
 
