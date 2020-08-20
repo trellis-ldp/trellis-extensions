@@ -114,3 +114,11 @@ jobs:
       env:
           TEST_CASSANDRA: true
 
+    - name: Upload artifacts for debugging
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+          name: Build reports
+          path: "./**/build/reports/"
+
+
