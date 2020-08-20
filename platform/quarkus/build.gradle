@@ -18,6 +18,7 @@ dependencies {
     // Trellis Application
     implementation "org.trellisldp:trellis-app"
     implementation "org.trellisldp:trellis-cdi"
+    implementation "org.trellisldp:trellis-http"
 
     // Trellis authN/authZ
     implementation "org.trellisldp:trellis-jwt"
