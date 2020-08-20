@@ -11,7 +11,7 @@ plugins {
 ext {
 
     // Trellis core
-    trellisVersion = "0.14.1"
+    trellisVersion = "0.14.2"
 
     // JavaEE
     activationApiVersion = "1.2.2"
