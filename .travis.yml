@@ -39,9 +39,9 @@ jobs:
 
   include:
     # JDK 8
-    - name: "Java 8"
+    - name: "Java 11"
       stage: test
-      jdk: openjdk8
+      jdk: openjdk11
       script: travis_retry ./gradlew check -x pmdMain install jacocoRootReport
       after_success: ./gradlew coveralls
 
