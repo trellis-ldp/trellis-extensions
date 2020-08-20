@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - trellis-[0-9]+.[0-9]+.x
+      - trellis-extensions-[0-9]+.[0-9]+.x
   pull_request:
     branches:
       - main
