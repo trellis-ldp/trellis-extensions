@@ -17,12 +17,18 @@ package org.trellisldp.ext.quarkus;
 
 import static org.trellisldp.app.AppUtils.printBanner;
 
+import io.quarkus.arc.DefaultBean;
+
 import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
+
+import org.trellisldp.common.DefaultTimemapGenerator;
+import org.trellisldp.common.TimemapGenerator;
 
 /**
  * Web Application wrapper.
@@ -31,8 +37,16 @@ import javax.ws.rs.core.Application;
 @ApplicationScoped
 public class TrellisApplication extends Application {
 
+    private TimemapGenerator timemapGenerator = new DefaultTimemapGenerator();
+
     @PostConstruct
     void init() throws IOException {
         printBanner("Trellis Database Application", "org/trellisldp/app/banner.txt");
+    }
+
+    @Produces
+    @DefaultBean
+    TimemapGenerator getTimemapGenerator() {
+        return timemapGenerator;
     }
 }
