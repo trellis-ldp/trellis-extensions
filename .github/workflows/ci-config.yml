@@ -44,6 +44,50 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew check assemble javadoc -x pmdMain
 
+  coveralls:
+    needs: [validation]
+    runs-on: ubuntu-latest
+    name: Coveralls analysis
+
+    services:
+      cassandra:
+        image: cassandra:3.11
+        ports:
+        - 9042:9042
+        - 9160:9160
+        options: --name cassandra -v /home/runner/work:/workspace
+
+    steps:
+    - uses: actions/checkout@v2.1.0
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1.3.0
+      with:
+        java-version: 11
+
+    - name: Cache
+      uses: actions/cache@v1.1.2
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Initialize cassandra
+      run: docker exec cassandra sh -c "/workspace/trellis-extensions/trellis-extensions/buildtools/src/main/resources/cassandra/initialize.sh /workspace/trellis-extensions/trellis-extensions/cassandra/src/main/resources"
+
+    - name: Build with Gradle
+      run: ./gradlew check assemble -x pmdMain jacocoRootReport coveralls
+      env:
+        TEST_CASSANDRA: true
+        TEST_AWS: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+        AWS_TEST_BUCKET: ${{ secrets.AWS_TEST_BUCKET }}
+        AWS_TEST_TOPIC: ${{ secrets.AWS_TEST_TOPIC }}
+
   sonar:
     needs: [validation]
     runs-on: ubuntu-latest
