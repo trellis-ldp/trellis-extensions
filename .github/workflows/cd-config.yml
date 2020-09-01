@@ -18,7 +18,7 @@ jobs:
     needs: [validation]
     strategy:
       matrix:
-        java: [8, 11]
+        java: [11]
 
     name: Java ${{ matrix.java }} environment
 
@@ -39,10 +39,10 @@ jobs:
     name: Deploy docker container
     steps:
     - uses: actions/checkout@v2.1.0
-    - name: Set up JDK 8
+    - name: Set up JDK 11
       uses: actions/setup-java@v1.3.0
       with:
-        java-version: 8
+        java-version: 11
 
     - name: Publish Docker Container
       run: |
