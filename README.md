@@ -4,7 +4,7 @@ Trellis is a scalable platform for building [linked data](https://www.w3.org/TR/
 The `trellis-extensions` projects implement additional persistence layers and service components.
 
 [![Build Status](https://travis-ci.com/trellis-ldp/trellis-extensions.svg?branch=main)](https://travis-ci.com/trellis-ldp/trellis-extensions)
-[![Coverage Status](https://coveralls.io/repos/github/trellis-ldp/trellis-extensions/badge.svg?branch=main)](https://coveralls.io/github/trellis-ldp/trellis-extensions?branch=main)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.trellisldp%3Atrellis-extensions&metric=coverage)](https://sonarcloud.io/dashboard?id=org.trellisldp%3Atrellis-extensions)
 ![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-aws.svg)
 
 ## Cloud-based storage
