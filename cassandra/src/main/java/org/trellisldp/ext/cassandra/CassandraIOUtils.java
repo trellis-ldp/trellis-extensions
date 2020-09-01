@@ -15,6 +15,7 @@
  */
 package org.trellisldp.ext.cassandra;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.jena.riot.Lang.NQUADS;
 
 import java.io.ByteArrayOutputStream;
@@ -64,7 +65,7 @@ public final class CassandraIOUtils {
             RDFDataMgr.writeQuads(bytes, dataset.stream().filter(quad ->
                         !quad.getGraphName().filter(Trellis.PreferServerManaged::equals).isPresent())
                     .map(JenaCommonsRDF::toJena).iterator());
-            return bytes.toString("UTF-8");
+            return bytes.toString(UTF_8);
         } catch (final IOException e) {
             throw new UncheckedIOException("Dataset could not be serialized!", e);
         }
