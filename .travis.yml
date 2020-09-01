@@ -43,7 +43,7 @@ jobs:
       stage: test
       jdk: openjdk11
       script: travis_retry ./gradlew check -x pmdMain install jacocoRootReport
-      after_success: ./gradlew coveralls
+      after_success: ./gradlew coveralls -Djdk.tls.client.protocols="TLSv1.2"
 
     # deploy JDK 11 builds to Sonatype
     - name: "Publish to Sonatype"
