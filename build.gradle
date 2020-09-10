@@ -28,7 +28,7 @@ ext {
     // Dependencies
     awsVersion = "1.11.822"
     commonsCompressVersion = "1.20"
-    commonsIoVersion = "2.7"
+    commonsIoVersion = "2.8.0"
     commonsLangVersion = "3.10"
     commonsRdfVersion = "0.5.0"
     guavaVersion = "29.0-jre"
