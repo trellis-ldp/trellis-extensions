@@ -10,7 +10,7 @@ plugins {
 ext {
 
     // Trellis core
-    trellisVersion = "0.15.0"
+    trellisVersion = "0.16.0"
 
     // JavaEE
     activationApiVersion = "1.2.2"
@@ -56,7 +56,7 @@ ext {
 
     // Tools
     checkstyleToolVersion = "8.34"
-    jacocoToolVersion = "0.8.5"
+    jacocoToolVersion = "0.8.6"
     pmdToolVersion = "6.24.0"
 
     jacocoSkipProjects = [
