@@ -310,36 +310,19 @@ subprojects { subproj ->
         }
     })
 
-    task docs(type: Javadoc) {
-        outputs.upToDateWhen { false }
-        source sourceSets.main.allJava
-        classpath = files(sourceSets.main.compileClasspath)
-        destinationDir = new File(projectDir, "docs/${version}")
+    javadoc {
+        failOnError = false
+        options.addBooleanOption('html5', true)
         options {
             tags = ["apiNote:a:API Note:",
-                "implSpec:a:Implementation Requirements:",
-                "implNote:a:Implementation Note:"]
-            links "https://docs.oracle.com/javase/8/docs/api/"
-            links 'https://javaee.github.io/javaee-spec/javadocs/'
+                    "implSpec:a:Implementation Requirements:",
+                    "implNote:a:Implementation Note:"]
+            links "https://docs.oracle.com/en/java/javase/11/docs/api/"
+            links 'https://jakarta.ee/specifications/platform/8/apidocs/'
             links "https://www.trellisldp.org/docs/trellis/current/apidocs/"
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
             links 'https://docs.datastax.com/en/drivers/java/4.0/'
             links 'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
-            links 'http://jdbi.org/apidocs/'
-        }
-
-        if (JavaVersion.current().isJava9Compatible()) {
-            options.addBooleanOption('html5', true)
-        }
-    }
-
-    javadoc {
-        options.tags = ["apiNote:a:API Note:",
-                "implSpec:a:Implementation Requirements:",
-                "implNote:a:Implementation Note:"]
-
-        if (JavaVersion.current().isJava9Compatible()) {
-            options.addBooleanOption('html5', true)
         }
     }
 
@@ -371,7 +354,6 @@ subprojects { subproj ->
         }
     }
 
-    afterReleaseBuild.dependsOn docs
     afterReleaseBuild.dependsOn publish
     afterReleaseBuild.dependsOn assemble
 
@@ -385,24 +367,25 @@ subprojects { subproj ->
 
 configure(rootProject) {
 
-    task apidocs(type: Javadoc, dependsOn: getTasksByName('docs', true)) {
+    task apidocs(type: Javadoc) {
+        failOnError false
         outputs.upToDateWhen { false }
         destinationDir = new File(projectDir, "docs/apidocs/${project.version}")
         title = "Trellis Linked Data Server Documentation"
         exclude '**/impl/*'
         exclude '**/*Tests.java'
+        exclude '**/module-info.java'
         options {
             tags = ["apiNote:a:API Note:",
                 "implSpec:a:Implementation Requirements:",
                 "implNote:a:Implementation Note:"]
             memberLevel = JavadocMemberLevel.PUBLIC
-            links "https://docs.oracle.com/javase/8/docs/api/"
-            links 'https://javaee.github.io/javaee-spec/javadocs/'
+            links "https://docs.oracle.com/en/java/javase/11/docs/api/"
+            links 'https://jakarta.ee/specifications/platform/8/apidocs/'
             links "https://www.trellisldp.org/docs/trellis/current/apidocs/"
             links 'https://commons.apache.org/proper/commons-rdf/apidocs/'
             links 'https://docs.datastax.com/en/drivers/java/4.0/'
             links 'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
-            links 'http://jdbi.org/apidocs/'
         }
 
         if (JavaVersion.current().isJava9Compatible()) {
