@@ -38,7 +38,7 @@ ext {
     nettyVersion = "4.1.51.Final"
     quarkusVersion = "1.9.0.Final"
     slf4jVersion = "1.7.30"
-    smallryeConfigVersion = "1.9.1"
+    smallryeConfigVersion = "1.9.2"
     smallryeHealthVersion = "2.2.5"
     snakeyamlVersion = "1.27"
 
