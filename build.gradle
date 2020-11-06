@@ -26,7 +26,7 @@ ext {
     microprofileHealthVersion = "2.2"
 
     // Dependencies
-    awsVersion = "1.11.822"
+    awsVersion = "1.11.895"
     commonsCompressVersion = "1.20"
     commonsIoVersion = "2.8.0"
     commonsLangVersion = "3.10"
