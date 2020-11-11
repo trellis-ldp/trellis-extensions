@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     implementation platform("org.trellisldp:trellis-bom:$trellisVersion")
-    implementation platform("io.netty:netty-bom:$nettyVersion")
     implementation platform("io.quarkus:quarkus-bom:$quarkusVersion")
 
     implementation 'io.quarkus:quarkus-jsonb'
