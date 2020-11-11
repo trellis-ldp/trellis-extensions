@@ -11,7 +11,6 @@ ext {
 
 dependencies {
     implementation platform("org.trellisldp:trellis-bom:$trellisVersion")
-    implementation platform("io.netty:netty-bom:$nettyVersion")
 
     api "jakarta.annotation:jakarta.annotation-api:$annotationApiVersion"
     api "jakarta.enterprise:jakarta.enterprise.cdi-api:$cdiApiVersion"
