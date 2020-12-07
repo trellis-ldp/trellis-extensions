@@ -23,7 +23,7 @@ ext {
 
     // Miroprofile
     microprofileConfigVersion = "1.4"
-    microprofileHealthVersion = "2.2"
+    microprofileHealthVersion = "3.0"
 
     // Dependencies
     awsVersion = "1.11.908"
