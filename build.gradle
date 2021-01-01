@@ -45,7 +45,6 @@ ext {
     cassandraDriverVersion = "4.9.0"
 
     // Testing
-    apiguardianVersion = "1.1.0"
     awaitilityVersion = "4.0.3"
     commonsTextVersion = "1.9"
     junitVersion = "5.7.0"
@@ -98,7 +97,6 @@ allprojects { subproj ->
 
     dependencies {
         testImplementation enforcedPlatform("org.junit:junit-bom:$junitVersion")
-        testImplementation("org.apiguardian:apiguardian-api:${apiguardianVersion}")
         testImplementation("org.junit.jupiter:junit-jupiter-api")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     }
