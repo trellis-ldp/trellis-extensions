@@ -3,7 +3,7 @@
 Trellis is a scalable platform for building [linked data](https://www.w3.org/TR/ldp/) applications.
 The `trellis-extensions` projects implement additional persistence layers and service components.
 
-[![Build Status](https://travis-ci.com/trellis-ldp/trellis-extensions.svg?branch=main)](https://travis-ci.com/trellis-ldp/trellis-extensions)
+![Build Status](https://github.com/trellis-ldp/trellis-extensions/workflows/GitHub%20CI/badge.svg)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.trellisldp%3Atrellis-extensions&metric=coverage)](https://sonarcloud.io/dashboard?id=org.trellisldp%3Atrellis-extensions)
 ![Maven Central](https://img.shields.io/maven-central/v/org.trellisldp.ext/trellis-aws.svg)
 
