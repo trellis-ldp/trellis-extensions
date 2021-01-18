@@ -38,7 +38,7 @@ ext {
     quarkusVersion = "1.11.0.Final"
     slf4jVersion = "1.7.30"
     smallryeConfigVersion = "2.0.2"
-    smallryeHealthVersion = "2.2.5"
+    smallryeHealthVersion = "3.0.0"
     snakeyamlVersion = "1.27"
 
     // Databases
