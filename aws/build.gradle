@@ -33,7 +33,7 @@ dependencies {
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
 
-    testImplementation "org.trellisldp:trellis-event-jackson"
+    testImplementation "org.trellisldp:trellis-notification-jackson"
     testImplementation "org.trellisldp:trellis-constraint"
 
     testRuntimeOnly "ch.qos.logback:logback-classic:$logbackVersion"
