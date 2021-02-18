@@ -27,9 +27,9 @@ dependencies {
     implementation "org.trellisldp:trellis-audit"
     implementation "org.trellisldp:trellis-cache"
     implementation "org.trellisldp:trellis-constraint"
-    implementation "org.trellisldp:trellis-event-jsonb"
     implementation "org.trellisldp:trellis-jena"
     implementation "org.trellisldp:trellis-namespace"
+    implementation "org.trellisldp:trellis-notification-jsonb"
     implementation "org.trellisldp:trellis-rdfa"
     implementation "org.trellisldp:trellis-vocabulary"
 

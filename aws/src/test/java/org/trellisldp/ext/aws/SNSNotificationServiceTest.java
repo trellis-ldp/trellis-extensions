@@ -18,7 +18,6 @@ package org.trellisldp.ext.aws;
 import static com.amazonaws.services.sns.AmazonSNSClientBuilder.defaultClient;
 import static java.time.Instant.now;
 import static java.util.Collections.singleton;
-import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,57 +31,55 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.trellisldp.api.Event;
-import org.trellisldp.api.EventSerializationService;
-import org.trellisldp.api.EventService;
+import org.trellisldp.api.Notification;
+import org.trellisldp.api.NotificationSerializationService;
+import org.trellisldp.api.NotificationService;
 import org.trellisldp.api.RDFFactory;
-import org.trellisldp.event.jackson.DefaultEventSerializationService;
+import org.trellisldp.notification.jackson.DefaultNotificationSerializationService;
 import org.trellisldp.vocabulary.AS;
 import org.trellisldp.vocabulary.LDP;
 
 @EnabledIfSystemProperty(named = "trellis.test.aws", matches = "true")
 @ExtendWith(MockitoExtension.class)
-class SNSEventServiceTest {
+class SNSNotificationServiceTest {
 
     private static final RDF rdf = RDFFactory.getInstance();
     private static final IRI identifier = rdf.createIRI("trellis:event/123456");
     private static final IRI object = rdf.createIRI("http://example.com/resource");
     private static final IRI agent = rdf.createIRI("http://example.com/agent");
     private static final Instant time = now();
-    private static final EventSerializationService serializer = new DefaultEventSerializationService();
+    private static final NotificationSerializationService serializer = new DefaultNotificationSerializationService();
 
     @Mock
-    private Event mockEvent;
+    private Notification mockNotification;
 
     @Test
     @EnabledIfSystemProperty(named = "trellis.aws.topic", matches = "arn:aws:sns:.*")
-    void testEvent() {
-        when(mockEvent.getIdentifier()).thenReturn(identifier);
-        when(mockEvent.getAgents()).thenReturn(singleton(agent));
-        when(mockEvent.getObject()).thenReturn(of(object));
-        when(mockEvent.getTypes()).thenReturn(singleton(AS.Create));
-        when(mockEvent.getObjectTypes()).thenReturn(singleton(LDP.RDFSource));
-        when(mockEvent.getCreated()).thenReturn(time);
-        when(mockEvent.getInbox()).thenReturn(empty());
+    void testNotification() {
+        when(mockNotification.getIdentifier()).thenReturn(identifier);
+        when(mockNotification.getAgents()).thenReturn(singleton(agent));
+        when(mockNotification.getObject()).thenReturn(of(object));
+        when(mockNotification.getTypes()).thenReturn(singleton(AS.Create));
+        when(mockNotification.getObjectTypes()).thenReturn(singleton(LDP.RDFSource));
+        when(mockNotification.getCreated()).thenReturn(time);
 
-        final EventService svc = new SNSEventService(serializer);
-        svc.emit(mockEvent);
-        verify(mockEvent).getIdentifier();
+        final NotificationService svc = new SNSNotificationService(serializer);
+        svc.emit(mockNotification);
+        verify(mockNotification).getIdentifier();
     }
 
     @Test
-    void testEventError() {
-        when(mockEvent.getIdentifier()).thenReturn(identifier);
-        when(mockEvent.getAgents()).thenReturn(singleton(agent));
-        when(mockEvent.getObject()).thenReturn(of(object));
-        when(mockEvent.getTypes()).thenReturn(singleton(AS.Create));
-        when(mockEvent.getObjectTypes()).thenReturn(singleton(LDP.RDFSource));
-        when(mockEvent.getCreated()).thenReturn(time);
-        when(mockEvent.getInbox()).thenReturn(empty());
+    void testNotificationError() {
+        when(mockNotification.getIdentifier()).thenReturn(identifier);
+        when(mockNotification.getAgents()).thenReturn(singleton(agent));
+        when(mockNotification.getObject()).thenReturn(of(object));
+        when(mockNotification.getTypes()).thenReturn(singleton(AS.Create));
+        when(mockNotification.getObjectTypes()).thenReturn(singleton(LDP.RDFSource));
+        when(mockNotification.getCreated()).thenReturn(time);
 
-        final EventService svc = new SNSEventService(serializer, defaultClient(),
+        final NotificationService svc = new SNSNotificationService(serializer, defaultClient(),
                 "arn:aws:sns:us-east-1:12345678:NonExistent");
-        svc.emit(mockEvent);
-        verify(mockEvent).getIdentifier();
+        svc.emit(mockNotification);
+        verify(mockNotification).getIdentifier();
     }
 }
