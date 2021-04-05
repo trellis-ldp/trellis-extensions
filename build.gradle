@@ -33,7 +33,7 @@ ext {
     commonsRdfVersion = "0.5.0"
     guavaVersion = "30.1.1-jre"
     jacksonVersion = "2.10.1"
-    jenaVersion = "3.17.0"
+    jenaVersion = "4.0.0"
     mustacheVersion = "0.9.6"
     quarkusVersion = "1.13.0.Final"
     slf4jVersion = "1.7.30"
