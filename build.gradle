@@ -45,7 +45,7 @@ ext {
     cassandraDriverVersion = "4.10.0"
 
     // Testing
-    awaitilityVersion = "4.0.3"
+    awaitilityVersion = "4.1.0"
     commonsTextVersion = "1.9"
     junitVersion = "5.7.1"
     logbackVersion = "1.2.3"
