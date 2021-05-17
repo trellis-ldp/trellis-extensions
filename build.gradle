@@ -47,7 +47,7 @@ ext {
     // Testing
     awaitilityVersion = "4.1.0"
     commonsTextVersion = "1.9"
-    junitVersion = "5.7.1"
+    junitVersion = "5.7.2"
     logbackVersion = "1.2.3"
     mockitoVersion = "3.9.0"
     weldVersion = "2.0.2.Final"
