@@ -35,7 +35,7 @@ ext {
     jacksonVersion = "2.10.1"
     jenaVersion = "4.0.0"
     mustacheVersion = "0.9.7"
-    quarkusVersion = "1.13.3.Final"
+    quarkusVersion = "1.13.4.Final"
     slf4jVersion = "1.7.30"
     smallryeConfigVersion = "2.2.0"
     smallryeHealthVersion = "2.2.5"
@@ -47,7 +47,7 @@ ext {
     // Testing
     awaitilityVersion = "4.1.0"
     commonsTextVersion = "1.9"
-    junitVersion = "5.7.1"
+    junitVersion = "5.7.2"
     logbackVersion = "1.2.3"
     mockitoVersion = "3.9.0"
     weldVersion = "2.0.2.Final"
