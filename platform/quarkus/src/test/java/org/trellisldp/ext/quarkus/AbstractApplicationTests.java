@@ -29,7 +29,7 @@ abstract class AbstractApplicationTests {
 
     @Test
     void livenessCheckTest() {
-        given().when().get("/health/live").then().assertThat()
+        given().when().get("/q/health/live").then().assertThat()
             .contentType(ContentType.JSON)
             .statusCode(200);
     }
