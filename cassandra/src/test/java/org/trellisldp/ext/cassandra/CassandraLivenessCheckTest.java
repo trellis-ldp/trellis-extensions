@@ -38,7 +38,7 @@ class CassandraLivenessCheckTest {
     @Test
     void testUnhealthyDefault() {
         final HealthCheck check = new CassandraLivenessCheck();
-        assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(), "Connection isn't healthy!");
+        assertEquals(HealthCheckResponse.Status.DOWN, check.call().getStatus(), "Connection isn't healthy!");
     }
 
     @Test
@@ -51,7 +51,7 @@ class CassandraLivenessCheckTest {
         when(mockExecutionInfo.getErrors()).thenReturn(emptyList());
 
         final HealthCheck check = new CassandraLivenessCheck(mockSession);
-        assertEquals(HealthCheckResponse.State.UP, check.call().getState(), "Connection isn't healthy!");
+        assertEquals(HealthCheckResponse.Status.UP, check.call().getStatus(), "Connection isn't healthy!");
     }
 
     @Test
@@ -66,7 +66,7 @@ class CassandraLivenessCheckTest {
                     new SimpleEntry<>(mockNode, new RuntimeException("Expected exception."))));
 
         final HealthCheck check = new CassandraLivenessCheck(mockSession);
-        assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(),
+        assertEquals(HealthCheckResponse.Status.DOWN, check.call().getStatus(),
                 "Connection doesn't report as unhealthy!");
     }
 }

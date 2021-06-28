@@ -59,7 +59,7 @@ public class CassandraLivenessCheck implements HealthCheck {
             final ResultSet res = session.execute("SELECT identifier FROM mutabledata LIMIT 1");
 
             return HealthCheckResponse.named(CassandraLivenessCheck.class.getSimpleName())
-                .state(res.getExecutionInfo().getErrors().isEmpty()).build();
+                .status(res.getExecutionInfo().getErrors().isEmpty()).build();
         }
         return HealthCheckResponse.named(CassandraLivenessCheck.class.getSimpleName()).down().build();
     }

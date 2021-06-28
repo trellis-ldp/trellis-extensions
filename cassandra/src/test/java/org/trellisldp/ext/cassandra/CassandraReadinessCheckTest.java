@@ -33,7 +33,7 @@ class CassandraReadinessCheckTest {
     @Test
     void testUnhealthyDefault() {
         final HealthCheck check = new CassandraReadinessCheck();
-        assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(), "Connection isn't healthy!");
+        assertEquals(HealthCheckResponse.Status.DOWN, check.call().getStatus(), "Connection isn't healthy!");
     }
 
     @Test
@@ -45,7 +45,7 @@ class CassandraReadinessCheckTest {
         when(mockResultSet.one()).thenReturn(mockRow);
 
         final HealthCheck check = new CassandraReadinessCheck(mockSession);
-        assertEquals(HealthCheckResponse.State.UP, check.call().getState(), "Connection isn't healthy!");
+        assertEquals(HealthCheckResponse.Status.UP, check.call().getStatus(), "Connection isn't healthy!");
     }
 
     @Test
@@ -56,7 +56,7 @@ class CassandraReadinessCheckTest {
         when(mockResultSet.one()).thenReturn(null);
 
         final HealthCheck check = new CassandraReadinessCheck(mockSession);
-        assertEquals(HealthCheckResponse.State.DOWN, check.call().getState(),
+        assertEquals(HealthCheckResponse.Status.DOWN, check.call().getStatus(),
                 "Connection doesn't report as unhealthy!");
     }
 }
