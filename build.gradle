@@ -35,7 +35,7 @@ ext {
     jacksonVersion = "2.10.1"
     jenaVersion = "4.1.0"
     mustacheVersion = "0.9.10"
-    quarkusVersion = "1.13.7.Final"
+    quarkusVersion = "2.0.0.Final"
     slf4jVersion = "1.7.31"
     smallryeConfigVersion = "2.3.0"
     smallryeHealthVersion = "2.2.5"
