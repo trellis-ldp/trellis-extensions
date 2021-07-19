@@ -26,7 +26,7 @@ ext {
 
     // Dependencies
     awsVersion = "1.12.26"
-    commonsCompressVersion = "1.20"
+    commonsCompressVersion = "1.21"
     commonsIoVersion = "2.11.0"
     commonsLangVersion = "3.10"
     commonsRdfVersion = "0.5.0"
