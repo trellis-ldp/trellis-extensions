@@ -31,7 +31,7 @@ ext {
     commonsIoVersion = "2.11.0"
     commonsLangVersion = "3.10"
     commonsRdfVersion = "0.5.0"
-    guavaVersion = "31.0-jre"
+    guavaVersion = "31.0.1-jre"
     jacksonVersion = "2.10.1"
     jenaVersion = "4.2.0"
     mustacheVersion = "0.9.10"
