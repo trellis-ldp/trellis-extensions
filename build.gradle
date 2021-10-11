@@ -49,7 +49,7 @@ ext {
     commonsTextVersion = "1.9"
     junitVersion = "5.8.1"
     logbackVersion = "1.2.6"
-    mockitoVersion = "3.12.4"
+    mockitoVersion = "4.0.0"
     weldVersion = "2.0.2.Final"
 
     // Tools
