@@ -39,7 +39,7 @@ ext {
     slf4jVersion = "1.7.32"
     smallryeConfigVersion = "2.7.0"
     smallryeHealthVersion = "3.1.2"
-    snakeyamlVersion = "1.29"
+    snakeyamlVersion = "1.30"
 
     // Databases
     cassandraDriverVersion = "4.13.0"
