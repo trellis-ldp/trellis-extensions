@@ -20,7 +20,7 @@ ext {
     jaxbApiVersion = "2.3.3"
     jmsApiVersion = "2.0.3"
     jsonVersion = "1.1.6"
-    transactionApiVersion = "1.3.3"
+    transactionApiVersion = "2.0.1"
 
     // Miroprofile
     microprofileVersion = "4.1"
