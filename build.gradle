@@ -36,7 +36,7 @@ ext {
     jenaVersion = "4.4.0"
     mustacheVersion = "0.9.10"
     quarkusVersion = "2.13.0.Final"
-    slf4jVersion = "1.7.36"
+    slf4jVersion = "2.0.2"
     smallryeConfigVersion = "2.11.1"
     smallryeHealthVersion = "3.2.1"
     snakeyamlVersion = "1.32"
