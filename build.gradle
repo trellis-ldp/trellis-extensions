@@ -42,7 +42,7 @@ ext {
     snakeyamlVersion = "1.33"
 
     // Databases
-    cassandraDriverVersion = "4.15.0"
+    cassandraDriverVersion = "4.17.0"
 
     // Testing
     awaitilityVersion = "4.2.0"
